@@ -41,7 +41,13 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             TOMCAT_WEBAPPS="/opt/tomcat10/webapps"
-            WAR_FILE=$(ls /tmp/*.war | head -n 1)
+            WAR_FILE=$(find /tmp -maxdepth 3 -name "*.war" | head -n 1)
+            if [ -z "$WAR_FILE" ]; then
+              echo "No WAR file found in /tmp" >&2
+              ls -la /tmp || true
+              ls -la /tmp/target || true
+              exit 1
+            fi
             rm -rf $TOMCAT_WEBAPPS/ROOT $TOMCAT_WEBAPPS/ROOT.war
             mv "$WAR_FILE" $TOMCAT_WEBAPPS/ROOT.war
             systemctl restart tomcat10
