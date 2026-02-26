@@ -61,6 +61,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
+        response.addHeader("X-JWT-Filter", "hit");
         // Por el filtro de permitir dispositivos (que se ejecuta primero), este header no es nulo
         String device = request.getHeader("User-Agent");
         String refreshToken = request.getHeader("Refresh-Token");

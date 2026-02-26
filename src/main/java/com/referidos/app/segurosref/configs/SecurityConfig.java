@@ -14,7 +14,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -67,8 +67,8 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             // Todo lo demás requiere autenticación
             .anyRequest().authenticated()
         )
-        .addFilterBefore(new DeviceValidationFilter(whiteListRepository, deviceRepository), AuthorizationFilter.class)
-        .addFilterAfter(jwtValidationFilter, DeviceValidationFilter.class)
+        .addFilterBefore(jwtValidationFilter, UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(new DeviceValidationFilter(whiteListRepository, deviceRepository), JwtValidationFilter.class)
         .build();
 }
 
