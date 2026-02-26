@@ -38,6 +38,9 @@ public class SecurityConfig {
     private DeviceRepository deviceRepository;
 
     @Autowired
+    private JwtValidationFilter jwtValidationFilter;
+
+    @Autowired
     private AuthenticationConfiguration authenticationConfiguration;
 
     @Bean
@@ -64,6 +67,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             .anyRequest().authenticated()
         )
         .addFilterBefore(new DeviceValidationFilter(whiteListRepository, deviceRepository), JwtValidationFilter.class)
+        .addFilterAfter(jwtValidationFilter, DeviceValidationFilter.class)
         .build();
 }
 
