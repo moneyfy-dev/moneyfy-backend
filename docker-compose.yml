@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  app:
+    build: .
+    container_name: segurosref_dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app   # Monta tu proyecto local dentro del contenedor
+      - ~/.m2:/root/.m2  # Cache de dependencias Maven
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://host.docker.internal:27017/refseguros

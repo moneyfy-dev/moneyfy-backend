@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .logo {
+            color: rgb(31, 184, 20);
+        }
+        .close-paragraph {
+            margin: 4px 0px;
+        }
+        .close-paragraph--up {
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    
+    <h1 class="logo" >Money Fy</h1>
+    <h4>¡Nos alegra saber que has regresado!</h4>
+
+    <p>Se ha vuelto activar tu cuenta de usuario en nuestra aplicación, debido a que, no ha transcurrido el tiempo estipulado de 30 días hábiles para ser completamente eliminado. Los datos de inicio de sesión son:</p>
+    <!-- Datos de inicio de sesión -->
+    <p th:if="${userEmail != null}" class="close-paragraph">Usuario: <span th:text="${userEmail}"></span></p>
+    <p th:unless="${userEmail != null}" class="close-paragraph">Usuario: No informado</p>
+    <p th:if="${device != null}" class="close-paragraph">Dispositivo: <span th:text="${device}"></span></p>
+    <p th:unless="${device != null}" class="close-paragraph">Dispositivo: No informado</p>
+    <p th:if="${deviceIp != null}" class="close-paragraph">Ip del dispositivo: <span th:text="${deviceIp}"></span></p>
+    <p th:unless="${deviceIp != null}" class="close-paragraph">Ip del dispositivo: No informado</p>
+    <p th:if="${activateDate != null}" class="close-paragraph">Horario de inicio de sesión: <span th:text="${activateDate}"></span></p>
+    <p th:unless="${activateDate != null}" class="close-paragraph">Horario de inicio de sesión: No informado</p>
+
+    <p th:if="${support != null}" style="margin-bottom: 4px;">Si necesitas ayuda, puedes comunicarte con: <span th:text="${support}"></span></p>
+    <p th:unless="${support != null}" style="margin-bottom: 4px;">Si necesitas ayuda, puedes comunicarte con: soporte@moneyfy.cl</p>
+
+    <em>Este es un mensaje automático, por favor no lo responda.</em>
+</body>
+</html>

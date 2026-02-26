@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .logo {
+            color: rgb(31, 184, 20);
+        }
+        .close-paragraph {
+            margin: 4px 0px;
+        }
+        .close-paragraph--up {
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    
+    <h1 class="logo" >Money Fy</h1>
+    <h4>Tu cuenta de usuario se ha desactivado exitosamente</h4>
+
+    <p>Se ha programado la eliminación de tu cuenta, luego de transcurrido 30 días de inactividad. Si deseas volver ha activarla, solo necesitas registrarte con tus credenciales, antes de completarse el tiempo estipulado. ¡Te esperaremos por si cambias de opinión!</p>
+    
+    <p class="close-paragraph" >Información de desactivación de la cuenta:</p>
+    <!-- Datos de desactivación de la cuenta -->
+    <p th:if="${userEmail != null}" class="close-paragraph">Usuario: <span th:text="${userEmail}"></span></p>
+    <p th:unless="${userEmail != null}" class="close-paragraph">Usuario: No informado</p>
+    <p th:if="${disableDate != null}" class="close-paragraph">Fecha de desactivación de cuenta: <span th:text="${disableDate}"></span></p>
+    <p th:unless="${disableDate != null}" class="close-paragraph">Fecha de desactivación de cuenta: No informado</p>
+    <p th:if="${deleteDate != null}" class="close-paragraph">Fecha para la eliminación programada: <span th:text="${deleteDate}"></span></p>
+    <p th:unless="${deleteDate != null}" class="close-paragraph">Fecha para la eliminación programada: No informado</p>
+
+    <p th:if="${support != null}" style="margin-bottom: 4px;">Si necesitas ayuda, puedes comunicarte con: <span th:text="${support}"></span></p>
+    <p th:unless="${support != null}" style="margin-bottom: 4px;">Si necesitas ayuda, puedes comunicarte con: soporte@moneyfy.cl</p>
+
+    <em>Este es un mensaje automático, por favor no lo responda.</em>
+</body>
+</html>

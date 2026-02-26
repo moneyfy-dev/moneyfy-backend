@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .logo {
+            color: rgb(31, 184, 20);
+        }
+        .close-paragraph {
+            margin: 4px 0px;
+        }
+        .close-paragraph--up {
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    
+    <h1 class="logo" >Money Fy</h1>
+    <h4 th:if="${userACodeToRefer != null}">¡Se ha registrado un nuevo usuario con tu código de referidos <span th:text="${userACodeToRefer}"></span>!</h4>
+    <h4 th:unless="${userACodeToRefer != null}">¡Se ha registrado un nuevo usuario con tu código de referido!</h4>
+
+    <p th:if="${fullNameReferredUser != null}">El usuario <span th:text="${fullNameReferredUser}"></span>, acaba de registrarse con tu código de referidos, sigue así y refiere a muchos más, recuerda que entre más refieres más lucas!</p>
+    <p th:unless="${fullNameReferredUser != null}">Un usuario acaba de registrarse con tu código de referidos, sigue así y refiere a muchos más, recuerda que entre más refieres más lucas!</p>
+
+    <em>Este es un mensaje automático, por favor no lo responda.</em>
+</body>
+</html>

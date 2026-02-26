@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .logo {
+            color: rgb(31, 184, 20);
+        }
+        .close-paragraph {
+            margin: 4px 0px;
+        }
+        .close-paragraph--up {
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="logo" >Money Fy</h1>
+
+    <p th:if="${userFullName != null}" class="close-paragraph">Hola <span th:text="${userFullName}"></span>,</p>
+    <p th:if="${quoterId != null}">Queremos informarte que se ha iniciado el proceso de una nueva cotización con el N°<span th:text="${quoterId}"></span> vinculada a tu cuenta.</p> 
+    <p th:unless="${quoterId != null}">Queremos informarte que se ha iniciado el proceso de una nueva cotización vinculada a tu cuenta.</p> 
+    
+    <h4>Vehículo Cotizado</h4>
+    <div th:if="${quoterCar != null}">
+        <p class="close-paragraph">Patente: <span th:text="${quoterCar.getPpu()}"></span></p>
+        <p class="close-paragraph">Marca: <span th:text="${quoterCar.getBrand()}"></span></p>
+        <p class="close-paragraph">Modelo: <span th:text="${quoterCar.getModel()}"></span></p>
+        <p class="close-paragraph">Año: <span th:text="${quoterCar.getYear()}"></span></p>
+    </div>
+    <p th:unless="${quoterCar != null}" class="close-paragraph">Información del vehículo sin especificar</p>
+
+    <p>Te mantendremos al tanto en caso de cualquier novedad. ¡Gracias por confiar en nosotros!</p>
+
+    <p th:if="${support != null}" style="margin-bottom: 4px;">Si necesitas ayuda, puedes comunicarte con: <span th:text="${support}"></span></p>
+    <p th:unless="${support != null}" style="margin-bottom: 4px;">Si necesitas ayuda, puedes comunicarte con: soporte@moneyfy.cl</p>
+
+    <em>Este es un mensaje automático, por favor no lo responda.</em>
+</body>
+</html>

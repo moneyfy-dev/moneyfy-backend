@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .logo {
+            color: rgb(31, 184, 20);
+        }
+        .close-paragraph {
+            margin: 4px 0px;
+        }
+        .close-paragraph--up {
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    
+    <h1 class="logo" >Money Fy</h1>
+
+    <p th:if="${purchaserFullName != null}" class="close-paragraph">Hola <span th:text="${purchaserFullName}"></span>,</p>
+    <p>Gracias por solicitar tu cotización a través de nuestra aplicación. Queremos informarte que la solicitud está siendo procesada por la aseguradora. En caso de requerir información adicional, nos pondremos en contacto contigo.</p> 
+
+    <p th:if="${quoterId != null}">A continuación, te compartimos los detalles de la cotización N°<span th:text="${quoterId}"></span></p>
+    <p th:unless="${quoterId != null}">A continuación, te compartimos los detalles de la cotización:</p>
+    
+    <h4>Vehículo Cotizado</h4>
+    <div th:if="${quoterCar != null and ownerFullName != null}">
+        <p class="close-paragraph">Propietario: <span th:text="${ownerFullName}"></span></p>
+        <p class="close-paragraph">Patente: <span th:text="${quoterCar.getPpu()}"></span></p>
+        <p class="close-paragraph">Marca: <span th:text="${quoterCar.getBrand()}"></span></p>
+        <p class="close-paragraph">Modelo: <span th:text="${quoterCar.getModel()}"></span></p>
+        <p class="close-paragraph">Año: <span th:text="${quoterCar.getYear()}"></span></p>
+    </div>
+    <p th:unless="${quoterCar != null or ownerFullName != null}" class="close-paragraph">Información del vehículo sin especificar</p>
+
+    <h4>Plan Seleccionado</h4>
+    <div th:if="${quoterPlan != null}">
+        <p class="close-paragraph">Aseguradora: <span th:text="${quoterPlan.getInsurer()}"></span></p>
+        <p class="close-paragraph">Nombre del plan: <span th:text="${quoterPlan.getPlanName()}"></span></p>
+        <p class="close-paragraph">Valor total: <span th:text="${quoterPlan.getGrossPriceUF()}"></span> UF</p>
+        <p class="close-paragraph">Valor mensual: <span th:text="${quoterPlan.getMonthlyPriceUF()}"></span> UF</p>
+        <p class="close-paragraph">Cuotas: <span th:text="${quoterPlan.getTotalMonths()}"></span></p>
+        <p class="close-paragraph">Deducible: <span th:text="${quoterPlan.getDeductible()}"></span> UF</p>
+    </div>
+    <p th:unless="${quoterPlan != null}" class="close-paragraph">Información del plan sin especificar</p>
+
+    <h4>Comprador</h4>
+    <div th:if="${quoterPurchaser != null and purchaserFullName != null}">
+        <p class="close-paragraph">Rut: <span th:text="${quoterPurchaser.getPersonalId()}"></span></p>
+        <p class="close-paragraph">Nombre: <span th:text="${purchaserFullName}"></span></p>
+    </div>
+    <p th:unless="${quoterPurchaser != null or purchaserFullName != null}" class="close-paragraph">Información del comprador sin especificar</p>
+
+    <h4>Dirección de Inspección</h4>
+    <div th:if="${addressDetail != null}">
+        <p class="close-paragraph">Calle: <span th:text="${addressDetail}"></span></p>
+        <p class="close-paragraph">Departamento (opcional): <span th:text="${departmentDetail}"></span></p>
+    </div>
+    <p th:unless="${addressDetail != null}" class="close-paragraph">Información del dirección para inspección sin especificar</p>
+
+    <p th:if="${support != null}" style="margin-bottom: 4px;">Si necesitas ayuda, puedes comunicarte con: <span th:text="${support}"></span></p>
+    <p th:unless="${support != null}" style="margin-bottom: 4px;">Si necesitas ayuda, puedes comunicarte con: soporte@moneyfy.cl</p>
+
+    <em>Este es un mensaje automático, por favor no lo responda.</em>
+</body>
+</html>

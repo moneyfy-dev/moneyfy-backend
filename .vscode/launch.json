@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-SegurosrefApplication<refseguros>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.referidos.app.segurosref.SegurosrefApplication",
+            "projectName": "refseguros",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-SegurosrefApplication<segurosref>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.referidos.app.segurosref.SegurosrefApplication",
+            "projectName": "segurosref",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

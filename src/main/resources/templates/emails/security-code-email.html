@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .logo {
+            color: rgb(31, 184, 20);
+        }
+        .close-paragraph {
+            margin: 4px 0px;
+        }
+        .close-paragraph--up {
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="logo" >Money Fy</h1>
+    <h4>Se han creado tus códigos de seguridad exitosamente.</h4>
+    <p>Estos te permitirán realizar procesos relevantes de la aplicación, agregando una capa más de seguridad a tu cuenta. Una vez que utilices alguno de ellos y finalices un proceso, no podrás volver a utilizar el mismo código. Asegúrate de mantenerlos a salvo:</p>
+    <!-- Hacer bucle para listar códigos -->
+    <ul th:if="${codes != null and codes.size() > 0}">
+        <li th:each="code : ${codes}">
+            <span th:text="${code}"></span>
+        </li>
+    </ul>
+    <h4 th:unless="${codes != null or codes.size() > 0}">No es posible cargar los códigos, intentelo más tarde</h4>
+</body>
+</html>

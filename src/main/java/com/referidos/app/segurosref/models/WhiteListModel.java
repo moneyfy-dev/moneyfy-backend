@@ -1,0 +1,36 @@
+package com.referidos.app.segurosref.models;
+
+import java.time.LocalDateTime;
+import java.util.Set;
+
+import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import lombok.Data;
+
+@Data
+@Document(collection = "whiteList")
+public class WhiteListModel {
+
+    @Id
+    private ObjectId whiteListId;
+    private String user;
+    private Set<String> ips;
+    private LocalDateTime createdDate;
+    private LocalDateTime updatedDate;
+
+    // Constructor personalizado
+    public WhiteListModel(String user, Set<String> ips, LocalDateTime createdDate, LocalDateTime updatedDate) {
+        this.user = user;
+        this.ips = ips;
+        this.createdDate = createdDate;
+        this.updatedDate = updatedDate;
+    }
+
+    // Getter personalizado, para obtener el id sin la estructura de objeto.
+    public String getWhiteListId() {
+        return whiteListId.toString();
+    }
+    
+}

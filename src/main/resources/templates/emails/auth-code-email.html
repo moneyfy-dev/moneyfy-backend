@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .logo {
+            color: rgb(31, 184, 20);
+        }
+        .close-paragraph {
+            margin: 4px 0px;
+        }
+        .close-paragraph--up {
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="logo" >Money Fy</h1>
+    <h4>Su código de confirmación es: <span th:text="${code}"></span></h4>
+    
+    <p th:if="${info1 != null}"><span th:text="${info1}"></span></p>
+    <p th:unless="${info1 != null}">Te ayudará a finalizar procesos que necesitan confirmación, mantenlo seguro y no lo compartas con nadie.</p>
+    <p th:if="${info2 != null and (not info2.isBlank())}" class="close-paragraph"><span th:text="${info2}"></span></p>
+    
+    <em>Este es un mensaje automático, por favor no lo responda.</em>
+</body>
+</html>
