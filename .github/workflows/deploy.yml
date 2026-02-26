@@ -51,3 +51,11 @@ jobs:
             rm -rf $TOMCAT_WEBAPPS/ROOT $TOMCAT_WEBAPPS/ROOT.war
             mv "$WAR_FILE" $TOMCAT_WEBAPPS/ROOT.war
             systemctl restart tomcat10
+            sleep 5
+            systemctl status tomcat10 --no-pager -l || true
+            ls -la $TOMCAT_WEBAPPS || true
+            ls -la $TOMCAT_WEBAPPS/ROOT.war || true
+            ls -la $TOMCAT_WEBAPPS/ROOT || true
+            if command -v curl >/dev/null 2>&1; then
+              curl -I http://localhost:8080/swagger-ui.html || true
+            fi
