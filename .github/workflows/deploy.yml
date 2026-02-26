@@ -30,7 +30,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           source: "target/*.war"
-          target: "/tmp/app.war"
+          target: "/tmp/"
 
       - name: Restart Tomcat
         uses: appleboy/ssh-action@v0.1.10
@@ -41,5 +41,7 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             TOMCAT_WEBAPPS="/opt/tomcat10/webapps"
-            mv /tmp/app.war $TOMCAT_WEBAPPS/ROOT.war
+            WAR_FILE=$(ls /tmp/*.war | head -n 1)
+            rm -rf $TOMCAT_WEBAPPS/ROOT $TOMCAT_WEBAPPS/ROOT.war
+            mv "$WAR_FILE" $TOMCAT_WEBAPPS/ROOT.war
             systemctl restart tomcat10
