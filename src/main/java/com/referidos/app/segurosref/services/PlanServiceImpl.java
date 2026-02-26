@@ -56,5 +56,3 @@ public class PlanServiceImpl implements PlanService {
         return ResponseHelper.gone("no se ha podido encontrar el plan con el id: " + planId, null);
     }
 }
-
-
