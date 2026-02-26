@@ -48,18 +48,18 @@ jobs:
               ls -la /tmp/target || true
               exit 1
             fi
-            rm -rf $TOMCAT_WEBAPPS/ROOT $TOMCAT_WEBAPPS/ROOT.war
-            mv "$WAR_FILE" $TOMCAT_WEBAPPS/ROOT.war
-            chown tomcat:tomcat $TOMCAT_WEBAPPS/ROOT.war || true
+            rm -rf $TOMCAT_WEBAPPS/moneyfy $TOMCAT_WEBAPPS/moneyfy.war
+            mv "$WAR_FILE" $TOMCAT_WEBAPPS/moneyfy.war
+            chown tomcat:tomcat $TOMCAT_WEBAPPS/moneyfy.war || true
             systemctl restart tomcat10
             sleep 5
             systemctl status tomcat10 --no-pager -l || true
             ls -la $TOMCAT_WEBAPPS || true
-            ls -la $TOMCAT_WEBAPPS/ROOT.war || true
-            ls -la $TOMCAT_WEBAPPS/ROOT || true
+            ls -la $TOMCAT_WEBAPPS/moneyfy.war || true
+            ls -la $TOMCAT_WEBAPPS/moneyfy || true
             ls -la /opt/tomcat10/conf/Catalina/localhost || true
             grep -nE "autoDeploy|deployOnStartup|unpackWARs" /opt/tomcat10/conf/server.xml || true
             tail -n 200 /opt/tomcat10/logs/catalina.out || true
             if command -v curl >/dev/null 2>&1; then
-              curl -I http://localhost:8080/swagger-ui.html || true
+              curl -I http://localhost:8080/moneyfy/swagger-ui.html || true
             fi
