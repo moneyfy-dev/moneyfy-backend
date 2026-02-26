@@ -77,8 +77,15 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cors = new CorsConfiguration();
 
-        cors.setAllowedOriginPatterns(Arrays.asList("https://toshihiro.herokuapp.com"));
-        cors.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
+        cors.setAllowedOriginPatterns(Arrays.asList(
+                "https://toshihiro.herokuapp.com",
+                "http://localhost:*",
+                "http://127.0.0.1:*",
+                "http://192.168.*.*:*",
+                "http://10.*.*.*:*",
+                "exp://*"
+        ));
+        cors.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         cors.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Refresh-Token", "Origin"));
         cors.setAllowCredentials(true);
 
