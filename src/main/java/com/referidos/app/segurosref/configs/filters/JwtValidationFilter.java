@@ -66,6 +66,13 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
         String refreshToken = request.getHeader("Refresh-Token");
         String endpoint = request.getRequestURI();
 
+        // Ignorar rutas pÃºblicas
+        if (endpoint.equals("/") || endpoint.equals("/moneyfy/") || endpoint.startsWith("/auth")
+                || endpoint.startsWith("/swagger-ui") || endpoint.startsWith("/v3/api-docs")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         // Revisar si es el endpoint de cotización para validarlo / sin actualizar credenciales
         if(endpoint.contains("/quoter/search/plan")) {
             this.validatePlanFinder(request, response, chain, device, refreshToken);
@@ -83,10 +90,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
 
         // Obtener token para autenticar
         String tokenHeader = request.getHeader(HEADER_AUTHORIZATION);
-        if(tokenHeader == null) {
-            chain.doFilter(request, response);
-            return;
-        } else if(!tokenHeader.startsWith(PREFIX_TOKEN) || DataHelper.isNull(refreshToken)) {
+        if(tokenHeader == null || !tokenHeader.startsWith(PREFIX_TOKEN) || DataHelper.isNull(refreshToken)) {
             ResponseHelper.invalidJWT(response, "no es posible continuar con la solicitud", null);
             return;
         }
