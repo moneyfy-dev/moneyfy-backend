@@ -77,6 +77,16 @@ jobs:
               tail -n 200 /opt/tomcat10/logs/catalina.out || true
               grep -nE "SEVERE|ERROR|Exception|Failed|Context" /opt/tomcat10/logs/catalina.out | tail -n 200 || true
             fi
+            if ls /opt/tomcat10/logs/catalina.*.log >/dev/null 2>&1; then
+              LATEST_CATALINA=$(ls -t /opt/tomcat10/logs/catalina.*.log | head -n 1)
+              echo "===== $LATEST_CATALINA ====="
+              tail -n 200 "$LATEST_CATALINA" || true
+              grep -nE "SEVERE|ERROR|Exception|Failed|Context|NoProviderFound|NoSuchFileException" "$LATEST_CATALINA" | tail -n 200 || true
+            fi
+            if [ -d $TOMCAT_WEBAPPS/moneyfy/WEB-INF/lib ]; then
+              echo "===== moneyfy WEB-INF/lib (filtered) ====="
+              ls -la $TOMCAT_WEBAPPS/moneyfy/WEB-INF/lib | grep -E "hibernate-validator|jakarta.validation|validation-api|swagger-models|springdoc" || true
+            fi
             if command -v curl >/dev/null 2>&1; then
               curl -I http://localhost:8080/ || true
               curl -I http://localhost:8080/moneyfy/ || true
