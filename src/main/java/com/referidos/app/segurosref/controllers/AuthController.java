@@ -36,7 +36,6 @@ import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping(value = "/auth")
-@PreAuthorize(value = "denyAll()")
 @Tag(
     name = "Authentication",
     description = "Controller to authenticate the system users"
