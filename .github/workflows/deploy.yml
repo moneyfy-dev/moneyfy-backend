@@ -41,13 +41,14 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             TOMCAT_WEBAPPS="/opt/tomcat10/webapps"
-            WAR_FILE=$(find /tmp -maxdepth 3 -name "*.war" | head -n 1)
+            WAR_FILE=$(find /tmp -maxdepth 3 -name "*.war" -printf "%T@ %p\n" | sort -nr | head -n 1 | cut -d' ' -f2-)
             if [ -z "$WAR_FILE" ]; then
               echo "No WAR file found in /tmp" >&2
               ls -la /tmp || true
               ls -la /tmp/target || true
               exit 1
             fi
+            rm -rf /opt/tomcat10/work/Catalina/localhost/moneyfy || true
             rm -rf $TOMCAT_WEBAPPS/moneyfy $TOMCAT_WEBAPPS/moneyfy.war
             mv "$WAR_FILE" $TOMCAT_WEBAPPS/moneyfy.war
             chown tomcat:tomcat $TOMCAT_WEBAPPS/moneyfy.war || true
