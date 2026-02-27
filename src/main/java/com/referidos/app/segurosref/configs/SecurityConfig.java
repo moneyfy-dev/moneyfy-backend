@@ -39,9 +39,6 @@ public class SecurityConfig {
     private DeviceRepository deviceRepository;
 
     @Autowired
-    private JwtValidationFilter jwtValidationFilter;
-
-    @Autowired
     private AuthenticationConfiguration authenticationConfiguration;
 
     @Bean
@@ -50,7 +47,7 @@ public class SecurityConfig {
     }
     
 @Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtValidationFilter jwtValidationFilter) throws Exception {
     return http
         .csrf(csrf -> csrf.disable())
         .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
