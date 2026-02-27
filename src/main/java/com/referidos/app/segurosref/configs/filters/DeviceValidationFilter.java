@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.referidos.app.segurosref.helpers.DataHelper;
@@ -24,7 +23,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@Component
 public class DeviceValidationFilter extends OncePerRequestFilter {
 
     private WhiteListRepository whiteListRepository;
@@ -42,11 +40,18 @@ public class DeviceValidationFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain chain) throws ServletException, IOException {
 
 
-        String uri = request.getRequestURI();
+        String endpoint = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        if (contextPath != null && !contextPath.isEmpty() && endpoint.startsWith(contextPath)) {
+            endpoint = endpoint.substring(contextPath.length());
+        }
+        if (endpoint.isEmpty()) {
+            endpoint = "/";
+        }
 
         // Ignorar rutas públicas
-        if (uri.equals("/") || uri.equals("/moneyfy/") || uri.startsWith("/auth") 
-            || uri.startsWith("/swagger-ui") || uri.startsWith("/v3/api-docs")) {
+        if (endpoint.equals("/") || endpoint.startsWith("/auth")
+            || endpoint.startsWith("/swagger-ui") || endpoint.startsWith("/v3/api-docs")) {
             chain.doFilter(request, response);
             return;
         }

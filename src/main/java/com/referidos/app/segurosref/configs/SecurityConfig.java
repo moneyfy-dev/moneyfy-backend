@@ -1,6 +1,5 @@
 package com.referidos.app.segurosref.configs;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +22,7 @@ import org.springframework.web.filter.CorsFilter;
 import com.referidos.app.segurosref.configs.filters.DeviceValidationFilter;
 import com.referidos.app.segurosref.configs.filters.JwtValidationFilter;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
+import com.referidos.app.segurosref.repositories.UserRepository;
 import com.referidos.app.segurosref.repositories.WhiteListRepository;
 
 import java.util.Arrays;
@@ -32,22 +32,16 @@ import java.util.Arrays;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private WhiteListRepository whiteListRepository;
-
-    @Autowired
-    private DeviceRepository deviceRepository;
-
-    @Autowired
-    private AuthenticationConfiguration authenticationConfiguration;
 
     @Bean
-    public AuthenticationManager authenticationManager() throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
     
-@Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtValidationFilter jwtValidationFilter) throws Exception {
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+        JwtValidationFilter jwtValidationFilter,
+        DeviceValidationFilter deviceValidationFilter) throws Exception {
     return http
         .csrf(csrf -> csrf.disable())
         .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -65,9 +59,24 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtValidationF
             .anyRequest().authenticated()
         )
         .addFilterBefore(jwtValidationFilter, UsernamePasswordAuthenticationFilter.class)
-        .addFilterBefore(new DeviceValidationFilter(whiteListRepository, deviceRepository), JwtValidationFilter.class)
+        .addFilterBefore(deviceValidationFilter, JwtValidationFilter.class)
         .build();
-}
+    }
+
+    @Bean
+    public JwtValidationFilter jwtValidationFilter(
+            AuthenticationManager authenticationManager,
+            UserRepository userRepository,
+            DeviceRepository deviceRepository) {
+        return new JwtValidationFilter(authenticationManager, userRepository, deviceRepository);
+    }
+
+    @Bean
+    public DeviceValidationFilter deviceValidationFilter(
+            WhiteListRepository whiteListRepository,
+            DeviceRepository deviceRepository) {
+        return new DeviceValidationFilter(whiteListRepository, deviceRepository);
+    }
 
 
     @Bean

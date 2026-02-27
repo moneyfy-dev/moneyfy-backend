@@ -55,41 +55,7 @@ jobs:
             systemctl restart tomcat10
             sleep 5
             systemctl status tomcat10 --no-pager -l || true
-            ls -la $TOMCAT_WEBAPPS || true
             ls -la $TOMCAT_WEBAPPS/moneyfy.war || true
-            ls -la $TOMCAT_WEBAPPS/moneyfy || true
-            ls -la /opt/tomcat10/conf/Catalina || true
-            ls -la /opt/tomcat10/conf/Catalina/localhost || true
-            grep -n "<Host" /opt/tomcat10/conf/server.xml || true
-            grep -n "defaultHost" /opt/tomcat10/conf/server.xml || true
-            ss -lntp | grep -E ':(80|443|8080|8443)' || true
-            grep -nE "autoDeploy|deployOnStartup|unpackWARs" /opt/tomcat10/conf/server.xml || true
-            ls -la /opt/tomcat10/logs || true
-            journalctl -u tomcat10 -n 200 --no-pager -l || true
-            if ls /opt/tomcat10/logs/localhost*.log >/dev/null 2>&1; then
-              for f in /opt/tomcat10/logs/localhost*.log; do
-                echo "===== $f ====="
-                tail -n 200 "$f" || true
-              done
-            fi
-            if [ -f /opt/tomcat10/logs/catalina.out ]; then
-              echo "===== /opt/tomcat10/logs/catalina.out ====="
-              tail -n 200 /opt/tomcat10/logs/catalina.out || true
-              grep -nE "SEVERE|ERROR|Exception|Failed|Context" /opt/tomcat10/logs/catalina.out | tail -n 200 || true
-            fi
-            if ls /opt/tomcat10/logs/catalina.*.log >/dev/null 2>&1; then
-              LATEST_CATALINA=$(ls -t /opt/tomcat10/logs/catalina.*.log | head -n 1)
-              echo "===== $LATEST_CATALINA ====="
-              tail -n 200 "$LATEST_CATALINA" || true
-              grep -nE "SEVERE|ERROR|Exception|Failed|Context|NoProviderFound|NoSuchFileException" "$LATEST_CATALINA" | tail -n 200 || true
-            fi
-            if [ -d $TOMCAT_WEBAPPS/moneyfy/WEB-INF/lib ]; then
-              echo "===== moneyfy WEB-INF/lib (filtered) ====="
-              ls -la $TOMCAT_WEBAPPS/moneyfy/WEB-INF/lib | grep -E "hibernate-validator|jakarta.validation|validation-api|swagger-models|springdoc" || true
-            fi
             if command -v curl >/dev/null 2>&1; then
-              curl -I http://localhost:8080/ || true
               curl -I http://localhost:8080/moneyfy/ || true
-              curl -I http://localhost:8080/moneyfy/v3/api-docs || true
-              curl -I http://localhost:8080/moneyfy/swagger-ui.html || true
             fi
