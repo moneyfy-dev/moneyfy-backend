@@ -57,9 +57,16 @@ jobs:
             ls -la $TOMCAT_WEBAPPS || true
             ls -la $TOMCAT_WEBAPPS/moneyfy.war || true
             ls -la $TOMCAT_WEBAPPS/moneyfy || true
+            ls -la /opt/tomcat10/conf/Catalina || true
             ls -la /opt/tomcat10/conf/Catalina/localhost || true
+            grep -n "<Host" /opt/tomcat10/conf/server.xml || true
+            grep -n "defaultHost" /opt/tomcat10/conf/server.xml || true
+            ss -lntp | grep -E ':(80|443|8080|8443)' || true
             grep -nE "autoDeploy|deployOnStartup|unpackWARs" /opt/tomcat10/conf/server.xml || true
             tail -n 200 /opt/tomcat10/logs/catalina.out || true
             if command -v curl >/dev/null 2>&1; then
+              curl -I http://localhost:8080/ || true
+              curl -I http://localhost:8080/moneyfy/ || true
+              curl -I http://localhost:8080/moneyfy/v3/api-docs || true
               curl -I http://localhost:8080/moneyfy/swagger-ui.html || true
             fi
