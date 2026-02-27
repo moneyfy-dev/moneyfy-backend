@@ -63,7 +63,19 @@ jobs:
             grep -n "defaultHost" /opt/tomcat10/conf/server.xml || true
             ss -lntp | grep -E ':(80|443|8080|8443)' || true
             grep -nE "autoDeploy|deployOnStartup|unpackWARs" /opt/tomcat10/conf/server.xml || true
-            tail -n 200 /opt/tomcat10/logs/catalina.out || true
+            ls -la /opt/tomcat10/logs || true
+            journalctl -u tomcat10 -n 200 --no-pager -l || true
+            if ls /opt/tomcat10/logs/localhost*.log >/dev/null 2>&1; then
+              for f in /opt/tomcat10/logs/localhost*.log; do
+                echo "===== $f ====="
+                tail -n 200 "$f" || true
+              done
+            fi
+            if [ -f /opt/tomcat10/logs/catalina.out ]; then
+              echo "===== /opt/tomcat10/logs/catalina.out ====="
+              tail -n 200 /opt/tomcat10/logs/catalina.out || true
+              grep -nE "SEVERE|ERROR|Exception|Failed|Context" /opt/tomcat10/logs/catalina.out | tail -n 200 || true
+            fi
             if command -v curl >/dev/null 2>&1; then
               curl -I http://localhost:8080/ || true
               curl -I http://localhost:8080/moneyfy/ || true
