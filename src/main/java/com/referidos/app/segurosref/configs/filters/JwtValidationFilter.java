@@ -66,9 +66,17 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
         String device = request.getHeader("User-Agent");
         String refreshToken = request.getHeader("Refresh-Token");
         String endpoint = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        if (contextPath != null && !contextPath.isEmpty() && endpoint.startsWith(contextPath)) {
+            endpoint = endpoint.substring(contextPath.length());
+        }
+        if (endpoint.isEmpty()) {
+            endpoint = "/";
+        }
 
         // Ignorar rutas pÃºblicas
-        if (endpoint.equals("/") || endpoint.equals("/moneyfy/") || endpoint.startsWith("/auth")
+        if (endpoint.equals("/") || endpoint.startsWith("/auth")
+                || endpoint.equals("/swagger-ui.html")
                 || endpoint.startsWith("/swagger-ui") || endpoint.startsWith("/v3/api-docs")) {
             chain.doFilter(request, response);
             return;
