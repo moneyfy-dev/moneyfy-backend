@@ -283,8 +283,8 @@ public class QuoterServiceImpl implements QuoterService {
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         String quoterId = (!DataHelper.isNull(searchPlan.quoterId())) ? searchPlan.quoterId() : "No informado"; // Campo opcional
         String ppu = searchPlan.ppu().toUpperCase();
-        String brand = searchPlan.brand();
-        String model = searchPlan.model();
+        String brand = searchPlan.brand().trim().toUpperCase();
+        String model = searchPlan.model().trim().toUpperCase();
         String year = searchPlan.year();
         String insurerAlias = searchPlan.insurerAlias().trim(); // CON TRIM() INCLUIDO (permite saltos en línea)
         
