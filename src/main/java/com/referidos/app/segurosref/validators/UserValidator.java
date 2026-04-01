@@ -41,8 +41,8 @@ public class UserValidator implements Validator {
     public void validateRegister(Object target, Errors errors) {
         UserRegisterRequest user = (UserRegisterRequest) target;
         
-        String name = this.validateInput.verifyName(user.name()); // CON TRIM() INCLUIDO (No permite saltos en línea)
-        String surname = this.validateInput.verifySurname(user.surname()); // CON TRIM() INCLUIDO (No permite saltos en línea)
+        String name = this.validateInput.verifyName(user.name());
+        String surname = this.validateInput.verifySurname(user.surname());
         String email = this.validateInput.verifyEmail(user.email());
         String pwd = this.validateInput.verifyPwd(user.pwd());
         

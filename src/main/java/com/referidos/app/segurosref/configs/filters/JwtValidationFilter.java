@@ -79,9 +79,9 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             return;
         }
 
-        String device = request.getHeader("User-Agent");
         // "Updated" en objeto de autorización se utiliza para confirmar que el usuario tiene el token de refresco actualizado
         String refreshToken = request.getHeader("Refresh-Token");
+        String device = request.getHeader("User-Agent");
 
         // Revisar si es el endpoint de cotización de planes / para autorizar sin actualizar credenciales
         if(endpoint.contains("/quoter/search/plan")) {

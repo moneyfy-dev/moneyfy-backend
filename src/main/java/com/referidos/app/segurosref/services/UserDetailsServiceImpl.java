@@ -109,8 +109,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if(userReferring == null) {
             return ResponseHelper.locked("el código del referido es inválido", null);
         }
-        // El código del referido es correcto y ahora se crea la estructura del usuario,
-        UserDataModel userData = this.createUserData(userRegister.name().trim(), userRegister.surname().trim(), // CON TRIM() INCLUIDO (No permite saltos en línea)
+        // El código del referido sea a encontrando o no se ha incluido, se puede proseguir con la solicitud
+        UserDataModel userData = this.createUserData(userRegister.name().strip(), userRegister.surname().strip(), // Usamos strip() para quitar espacios al inicio y final
                 userRegister.pwd(), userRegister.email().toLowerCase(), "ROLE_USER");  // Dejamos email en minúsculas
         WalletModel wallet = new WalletModel(0, 0, 0, 0);
         NotificationModel notifs = new NotificationModel(false, true, true,
@@ -121,16 +121,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Transactional
     private ResponseEntity<GeneralResponses> createUnconfirmedUser(String[] userReferring, UserDataModel userData,
             WalletModel wallet, NotificationModel notifs) {
-        // El código del referido ha sido validado en caso de que venga o sino su valor es "Sin Usuario". Ahora se
-        // valida si el usuario ya existe.
+        // En caso de no sea haya incluído el código de referido se los valores de userReferring son "Sin Usuario"
         LocalDateTime currenDateTime = LocalDateTime.now();
-        String email = userData.getEmail(); // El email ya está en minúsculas
+        String email = userData.getEmail(); // Mail se trabaja en minúsculas
         Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(email);
         if(userOptional.isPresent()) {
             UserModel userDB = userOptional.get();
             UserDataModel userDataDB = userDB.getPersonalData();
             if(!userDataDB.getSessionToken().equals("") || !userDataDB.getRefreshToken().equals("")) {
-                // Usuario que al menos una vez estuvo: "Activado"
+                // Si el usuario tiene valor en alguno de los tokens, quiere decir que en algún momento se creó con éxito
                 String statusUserDB = userDataDB.getStatus();
                 switch(statusUserDB) {
                     case "Activado" -> {
