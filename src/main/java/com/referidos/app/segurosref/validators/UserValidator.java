@@ -77,7 +77,6 @@ public class UserValidator implements Validator {
         if(!profilePicture.equals("")) {
             bindingHelper.addError("profilePicture", profilePicture);
         }
-        bindingHelper.validateData();
     }
 
     @SuppressWarnings("null")

@@ -89,7 +89,7 @@ public class UserController {
     public ResponseEntity<?> update(@ModelAttribute UserUpdateRequest user, Authentication authentication) {
         BindingHelper bindingHelper = new BindingHelper();
         userService.validateUpdate(user, bindingHelper);
-        if(bindingHelper.isError()) {
+        if(bindingHelper.findErrors()) {
             return ResponseHelper.preconditionMap("información no aceptada", bindingHelper.getData());
         }
         return userService.update(user, authentication.getPrincipal().toString());

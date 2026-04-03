@@ -33,12 +33,10 @@ import com.referidos.app.segurosref.models.ReferredModel;
 import com.referidos.app.segurosref.models.UserDataModel;
 import com.referidos.app.segurosref.models.UserModel;
 import com.referidos.app.segurosref.models.WalletModel;
-import com.referidos.app.segurosref.models.WhiteListModel;
 import com.referidos.app.segurosref.provider.EmailServiceProvider;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
-import com.referidos.app.segurosref.repositories.WhiteListRepository;
 import com.referidos.app.segurosref.requests.ConfirmUserRequest;
 import com.referidos.app.segurosref.requests.PasswordResetRequest;
 import com.referidos.app.segurosref.requests.UserLoginRequest;
@@ -56,9 +54,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Autowired
     private DeviceRepository deviceRepository;
-
-    @Autowired
-    private WhiteListRepository whiteListRepository;
 
     @Autowired
     private ReferredRepository referredRepository;
@@ -118,11 +113,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return this.createUnconfirmedUser(userReferring, userData, wallet, notifs);
     }
 
+    @SuppressWarnings("null")
     @Transactional
     private ResponseEntity<GeneralResponses> createUnconfirmedUser(String[] userReferring, UserDataModel userData,
             WalletModel wallet, NotificationModel notifs) {
         // En caso de no sea haya incluído el código de referido se los valores de userReferring son "Sin Usuario"
-        LocalDateTime currenDateTime = LocalDateTime.now();
         String email = userData.getEmail(); // Mail se trabaja en minúsculas
         Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(email);
         if(userOptional.isPresent()) {
@@ -136,7 +131,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         return ResponseHelper.gone("usuario existente", null);
                     }
                     case "Desactivado" -> {
-                        if(!userHelper.makeUserObsolete(userRepository, deviceRepository, whiteListRepository, referredRepository, userDB)) {
+                        if(!userHelper.makeUserObsolete(userRepository, deviceRepository, referredRepository, userDB)) {
                             // El usuario no ha quedado obsoleto, por lo tanto, aún se puede habilitar
                             return ResponseHelper.gone("usuario existente", null);
                         }
@@ -144,8 +139,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         break;
                     }
                     default -> {
-                        // No se puede crear un usuario con el email de un usuario obsoleto, porque la estructura no ee
-                        // correcta.
+                        // Es imposible llegar a está instancia, por seguridad se agrega dentro del flujo
                         return ResponseHelper.failedDependency("datos anticuados", null);
                     }
                 }
@@ -168,10 +162,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         // Se genera el nuevo usuario (no confirmado), además del registro del referido...
         String userReferringState = (userReferring[0].equals("Sin usuario")) ? "Desactivado" : "Activado";
+        LocalDateTime currenDateTime = LocalDateTime.now();
         userData.setCodeAuth(pwdEncoder.encode(codeAuth));
         userData.setCodeExpirationTime(currenDateTime); // Se establece el tiempo actual al código de confirmación que tiene una validad de 3 minutos
         UserModel userModel = new UserModel("", DataHelper.deprecatedDateTime(), userData, wallet, notifs);
-        ReferredModel referredModel = new ReferredModel(userReferring[0], userReferring[1], email, userReferringState, "Activado", currenDateTime, currenDateTime);
+        ReferredModel referredModel = new ReferredModel(userReferring[0], userReferring[1], email, userReferringState, "Desactivado", currenDateTime, currenDateTime);
         userRepository.save(userModel);
         referredRepository.save(referredModel);
 
@@ -290,7 +285,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     }
                 }
                 case "Desactivado" -> {
-                    UserModel activateUser = userHelper.checkUserAccount(userRepository, deviceRepository, whiteListRepository, referredRepository, userDB, device, deviceIp);
+                    UserModel activateUser = userHelper.checkUserAccount(userRepository, deviceRepository, referredRepository, userDB, device, deviceIp);
                     if(activateUser != null) {
                         emailProvider.userAccountActivated(email, device, deviceIp);
                         return ResponseHelper.accepted("el usuario se ha activado nuevamente", DataHelper.buildUser(activateUser));
@@ -356,7 +351,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     break;
                 }
                 case "Desactivado" -> {
-                    if(userHelper.makeUserObsolete(userRepository, deviceRepository, whiteListRepository, referredRepository, userDB)) {
+                    if(userHelper.makeUserObsolete(userRepository, deviceRepository, referredRepository, userDB)) {
                         // Usuario quedo obsoleto
                         return ResponseHelper.failedDependency("datos anticuados", null);
                     } else {
@@ -495,11 +490,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         Optional<DeviceModel> deviceOptional = deviceRepository.findByUser(emailAuth);
         if(deviceOptional.isPresent()) {
             deviceRepository.delete(deviceOptional.get());
-        }
-        // Se verifica si existe una lista en el white list
-        Optional<WhiteListModel> whiteListOptional = whiteListRepository.findByUser(emailAuth);
-        if(whiteListOptional.isPresent()) {
-            whiteListRepository.delete(whiteListOptional.get());
         }
         // Se recupera la data de referidos para desactivar los registros
         List<ReferredModel> updateTheReferreds = new ArrayList<>();

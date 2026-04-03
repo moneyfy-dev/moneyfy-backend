@@ -21,11 +21,9 @@ import com.referidos.app.segurosref.models.ReferredModel;
 import com.referidos.app.segurosref.models.UserDataModel;
 import com.referidos.app.segurosref.models.UserModel;
 import com.referidos.app.segurosref.models.WalletModel;
-import com.referidos.app.segurosref.models.WhiteListModel;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
-import com.referidos.app.segurosref.repositories.WhiteListRepository;
 import com.referidos.app.segurosref.seeder.RunUserSeeder;
 
 // El usuario helper, tiene funcionalidad como repositorio, se puede inyectarse a los servicios, para solucionar problemas
@@ -36,7 +34,7 @@ public class UserHelper {
     // FUNCIÓN PARA REGISTRAR USUARIOS DE PRUEBAS
     @Transactional
     public String seedTestUsers(UserRepository userRepository, ReferredRepository referredRepository,
-            DeviceRepository deviceRepository, WhiteListRepository whiteListRepository, PasswordEncoder pwdEncoder) {
+            DeviceRepository deviceRepository, PasswordEncoder pwdEncoder) {
         boolean novaUsers = false;
         boolean existUsers = false;
         LocalDateTime currentDate = LocalDateTime.now();
@@ -55,7 +53,7 @@ public class UserHelper {
                     case "Desactivado" -> {
                         if(!userDataDB.getSessionToken().equals("") && !userDataDB.getRefreshToken().equals("")) {
                             // Tiene tokens, hay que ver si se puede eliminar el usuario => como makeUserObsolet
-                            if(this.makeUserObsolete(userRepository, deviceRepository, whiteListRepository, referredRepository, userDB)) {
+                            if(this.makeUserObsolete(userRepository, deviceRepository, referredRepository, userDB)) {
                                 // El usuario queda obsoleto, y se puede crear nuevamente el usuario de prueba
                                 String novaUser = this.registerTestUser(user, userRepository, referredRepository, pwdEncoder, deprecatedDateTime, currentDate);
                                 if(novaUser == null) {
@@ -142,7 +140,7 @@ public class UserHelper {
     // Función que verifica el usuario para activarlo o dejarlo obsoleto, ya que, se encuentra desactivado
     @Transactional
     public UserModel checkUserAccount(UserRepository userRepository, DeviceRepository deviceRepository,
-            WhiteListRepository whiteListRepository, ReferredRepository referredRepository, UserModel userDB,
+            ReferredRepository referredRepository, UserModel userDB,
             String device, String deviceIp) {
         // Usuario que al menos una vez estuvo: "Activado"
         LocalDateTime currentDateTime = LocalDateTime.now();
@@ -151,7 +149,7 @@ public class UserHelper {
         // LOGGER_MESSAGES.info("\n-----\nDías transcurridos del usuario deshabilitado: " + daysBetween + "\n-----");
         // El usuario queda obsoleto, si ya transcurrio el tiempo estipulado en el estado 'Desactivado' o sea más de 30 días.
         if(daysBetween > 30 && deactivationDate.getYear() > 2020) {
-            this.obsoleteUser(userRepository, deviceRepository, whiteListRepository, referredRepository, userDB, currentDateTime);
+            this.obsoleteUser(userRepository, deviceRepository, referredRepository, userDB, currentDateTime);
             return null;
         }
         // Se vuelve a activar el registro del usuario, ya que, no ha transcurrido más de 30 días hábiles.
@@ -203,26 +201,25 @@ public class UserHelper {
         }
     }
     
+    // Se utiliza cuando el usuario se encuentra "Desactivado" y si se cumplen los 30 días del usuario desactivado se "elimina"
     @Transactional
-    public boolean makeUserObsolete(UserRepository userRepository, DeviceRepository deviceRepository,
-            WhiteListRepository whiteListRepository, ReferredRepository referredRepository, UserModel userDB) {
-        // Usuario que al menos una vez estuvo: "Activado"
+    public boolean makeUserObsolete(UserRepository userRepository, DeviceRepository deviceRepository, ReferredRepository referredRepository, UserModel userDB) {
         LocalDateTime currentDateTime = LocalDateTime.now();
         LocalDate deactivationDate = userDB.getDisableAccount().toLocalDate();
         long daysBetween = currentDateTime.toLocalDate().toEpochDay() - deactivationDate.toEpochDay();
         if(daysBetween > 30 && deactivationDate.getYear() > 2020) {
-            this.obsoleteUser(userRepository, deviceRepository, whiteListRepository, referredRepository, userDB, currentDateTime);
+            this.obsoleteUser(userRepository, deviceRepository, referredRepository, userDB, currentDateTime);
             return true;
         }
         return false;
     }
 
+    @SuppressWarnings("null")
     @Transactional
     public void obsoleteUser(UserRepository userRepository, DeviceRepository deviceRepository,
-            WhiteListRepository whiteListRepository, ReferredRepository referredRepository, UserModel userDB,
-            LocalDateTime currentDateTime) {
+            ReferredRepository referredRepository, UserModel userDB, LocalDateTime currentDateTime) {
         // El usuario estuvo deshabilidato por más de 30 días, por lo tanto, queda obsoleto cambiándole el email,
-        // por un código único con el subfijo ".user-deleted". Los registros de device y whitelist, aunque, ya deben estar
+        // por un código único con el subfijo ".user-deleted". Los registros de device aunque ya deben estar
         // eliminados, consultamos para asegurarnos que no existan, por otro lado, los registros de transacciones y
         // de referidos quedarían con la nueva llave del email, pero deshabilitados. Ahora, generamos un email de
         // eliminación para el usuario, que será el mismo que el código para referir ahora (un código obsoleto),
@@ -243,14 +240,9 @@ public class UserHelper {
         userDB.getPersonalData().setStatus("Obsoleto");
         userRepository.save(userDB);
         // Revisamos si existe dispositivo
-        Optional<DeviceModel> deviceUserB = deviceRepository.findByUser(oldEmailUserDB);
-        if(deviceUserB.isPresent()) {
-            deviceRepository.delete(deviceUserB.get());
-        }
-        // Revisamos si existe whilelist
-        Optional<WhiteListModel> whilteListUserB = whiteListRepository.findByUser(oldEmailUserDB);
-        if(whilteListUserB.isPresent()) {
-            whiteListRepository.delete(whilteListUserB.get());
+        Optional<DeviceModel> deviceUser = deviceRepository.findByUser(oldEmailUserDB);
+        if(deviceUser.isPresent()) {
+            deviceRepository.delete(deviceUser.get());
         }
         // Buscamos a los referidos para dejarlos obsoletos y para asignarle el nuevo email de usuario eliminado
         List<ReferredModel> updateTheReferreds = new ArrayList<>(); 

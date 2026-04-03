@@ -45,7 +45,6 @@ import com.referidos.app.segurosref.repositories.PaymentRepository;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.TransactionRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
-import com.referidos.app.segurosref.repositories.WhiteListRepository;
 import com.referidos.app.segurosref.requests.ChangePwdRequest;
 import com.referidos.app.segurosref.requests.SeedDefaultRequest;
 import com.referidos.app.segurosref.requests.UserRegisterRequest;
@@ -71,9 +70,6 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private PaymentRepository paymentRepository;
-
-    @Autowired
-    private WhiteListRepository whiteListRepository;
 
     @Autowired
     private UserValidator userValidator;
@@ -365,7 +361,7 @@ public class UserServiceImpl implements UserService {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
         }
         // Registramos primero los usuarios de prueba
-        String message = userHelper.seedTestUsers(userRepository, referredRepository, deviceRepository, whiteListRepository, passwordEncoder);
+        String message = userHelper.seedTestUsers(userRepository, referredRepository, deviceRepository, passwordEncoder);
         if(message == null) {
             return ResponseHelper.failedDependency("los usuarios de pruebas son incorrectos", null);
         }

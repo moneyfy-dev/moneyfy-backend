@@ -300,13 +300,13 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
     }
 
     // Autenticación rápida para el contexto de Spring
-    public void authContextForUser(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
+    private void authContextForUser(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
             Authentication auth) throws IOException, ServletException {
         SecurityContextHolder.getContext().setAuthentication(auth);
         chain.doFilter(request, response);
     }
 
-    public void refreshIpAddress(String ipAddress, DeviceModel deviceDB) {
+    private void refreshIpAddress(String ipAddress, DeviceModel deviceDB) {
         if(!DataHelper.isNull(ipAddress) && !deviceDB.getIps().contains(ipAddress)) {
             deviceDB.addIp(ipAddress);
             deviceDB.setUpdatedDate(LocalDateTime.now());
@@ -314,7 +314,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
         }
     }
 
-    public void updateSessionToken(String email, Collection<GrantedAuthority> authorities, UserModel userDB) throws JsonProcessingException {
+    private void updateSessionToken(String email, Collection<GrantedAuthority> authorities, UserModel userDB) throws JsonProcessingException {
         userDB.getPersonalData().setSessionToken(JwtConfig.createSessionToken(email, authorities));
         userRepository.save(userDB);
     }

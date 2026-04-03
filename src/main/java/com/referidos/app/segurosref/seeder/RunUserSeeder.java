@@ -13,7 +13,6 @@ import com.referidos.app.segurosref.helpers.UserHelper;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
-import com.referidos.app.segurosref.repositories.WhiteListRepository;
 
 // Clase que se comporta como servicio, al levantarse la aplicación para inyectar la data por defecto
 @Component
@@ -29,9 +28,6 @@ public class RunUserSeeder implements CommandLineRunner {
     private DeviceRepository deviceRepository;
 
     @Autowired
-    private WhiteListRepository whiteListRepository;
-
-    @Autowired
     private PasswordEncoder pwdEncoder;
 
     @Autowired
@@ -40,7 +36,7 @@ public class RunUserSeeder implements CommandLineRunner {
     // PROCESO QUE SE EJECUTA AL LEVANTARSE LA APLICACIÓN
     @Override
     public void run(String... args) throws Exception {
-        String seededUsers = userHelper.seedTestUsers(userRepository, referredRepository, deviceRepository, whiteListRepository, pwdEncoder);
+        String seededUsers = userHelper.seedTestUsers(userRepository, referredRepository, deviceRepository, pwdEncoder);
         if(seededUsers == null) {
             LOGGER_MESSAGES.info("Test User Message: se han podido registrar los usuarios");
         } else {

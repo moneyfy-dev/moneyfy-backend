@@ -282,6 +282,7 @@ public class EmailServiceProvider {
         }
     }
 
+    @SuppressWarnings("null")
     private void sendEmail(String[] toUsers, String subject, Map<String, Object> templateData, String htmlTemplate) throws Exception {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -324,6 +325,7 @@ public class EmailServiceProvider {
         return templateData;
     }
 
+    @SuppressWarnings("null")
     private void testEmail(String[] toUsers, String subject, String message) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();

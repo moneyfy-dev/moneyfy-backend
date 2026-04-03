@@ -89,10 +89,11 @@ public class ResponseHelper {
     public static void failedDependency(HttpServletResponse response, String message, String info) throws JsonProcessingException, IOException {
         String buildInfo = (info != null) ? info : "failed dependency";
         String buildMessage = "Solicitud irreconocible: " + message;
+        int status = HttpStatus.FAILED_DEPENDENCY.value();
         GeneralResponses body = new GeneralResponses(buildMessage,
-                HttpStatus.FAILED_DEPENDENCY.value(),
+                status,
                 Map.of("info", buildInfo));
-        response.setStatus(HttpStatus.FAILED_DEPENDENCY.value());
+        response.setStatus(status);
         response.setContentType(CONTENT_TYPE);
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
     }
@@ -100,10 +101,11 @@ public class ResponseHelper {
     public static void invalidJWT(HttpServletResponse response, String message, String info) throws JsonProcessingException, IOException {
         String buildInfo = (info != null) ? info : "expectation failed";
         String buildMessage = "JWT inválido: " + message;
+        int status = HttpStatus.EXPECTATION_FAILED.value();
         GeneralResponses body = new GeneralResponses(buildMessage,
-                HttpStatus.EXPECTATION_FAILED.value(),
+                status,
                 Map.of("info", buildInfo));
-        response.setStatus(HttpStatus.EXPECTATION_FAILED.value());
+        response.setStatus(status);
         response.setContentType(CONTENT_TYPE);
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
     }
