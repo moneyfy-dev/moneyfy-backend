@@ -314,7 +314,7 @@ public class AuthController {
             )
         }
     )
-    public ResponseEntity<GeneralResponses> resendUserCode(@RequestBody EmailRequest emailRequest, HttpServletRequest request) {
+    public ResponseEntity<GeneralResponses> resendUserCode(@RequestBody EmailRequest emailRequest) {
         return userDetailsServiceImpl.resendUserCode(emailRequest.email(), emailRequest.type());
     }
 
@@ -352,8 +352,8 @@ public class AuthController {
             )
         }
     )
-    public ResponseEntity<GeneralResponses> disableAccount(Authentication auth, HttpServletRequest request) {
-        return userDetailsServiceImpl.disableAccount(auth.getPrincipal().toString(), request.getHeader("User-Agent"));
+    public ResponseEntity<GeneralResponses> disableAccount(Authentication auth) {
+        return userDetailsServiceImpl.disableAccount(auth.getPrincipal().toString());
     }
 
     // ENDPOINT PRUEBA PARA AUTENTICARSE CON GOOGLE, RECIBE EL TOKEN Y LO VALIDA

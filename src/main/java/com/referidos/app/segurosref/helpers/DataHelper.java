@@ -36,7 +36,8 @@ public class DataHelper {
     public static Map<String, Object> buildUser(UserModel userModel) {
         String jwtSession = userModel.getPersonalData().getSessionToken();
         String jwtRefresh = userModel.getPersonalData().getRefreshToken();
-        return Map.of("user", userModel, "tokens", new TokensDto(jwtSession, jwtRefresh));
+        TokensDto tokens = new TokensDto(jwtSession, jwtRefresh);
+        return Map.of("user", userModel, "tokens", tokens);
     }
 
     public static Map<String, Object> buildUser(UserModel userModel, String key3, Object value3) {

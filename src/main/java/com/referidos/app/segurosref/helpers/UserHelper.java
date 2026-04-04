@@ -26,6 +26,8 @@ import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
 import com.referidos.app.segurosref.seeder.RunUserSeeder;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 // El usuario helper, tiene funcionalidad como repositorio, se puede inyectarse a los servicios, para solucionar problemas
 // específicos, pero no puede inyectarse es su propia clase: servicios
 @Component
@@ -140,9 +142,7 @@ public class UserHelper {
     // Función que verifica el usuario para activarlo o dejarlo obsoleto, ya que, se encuentra desactivado
     @Transactional
     public UserModel checkUserAccount(UserRepository userRepository, DeviceRepository deviceRepository,
-            ReferredRepository referredRepository, UserModel userDB,
-            String device, String deviceIp) {
-        // Usuario que al menos una vez estuvo: "Activado"
+            ReferredRepository referredRepository, UserModel userDB,String device, String deviceIp) {
         LocalDateTime currentDateTime = LocalDateTime.now();
         LocalDate deactivationDate = userDB.getDisableAccount().toLocalDate();
         long daysBetween = currentDateTime.toLocalDate().toEpochDay() - deactivationDate.toEpochDay();
@@ -189,6 +189,7 @@ public class UserHelper {
         return userDB;
     }
 
+    @SuppressWarnings("null")
     @Transactional
     public void updateUserDevice(DeviceRepository deviceRepository, String email, String refreshToken, String device,
             String deviceIp, LocalDateTime currentDateTime) {
@@ -265,6 +266,12 @@ public class UserHelper {
         if(updateTheReferreds.size() > 0) {
             referredRepository.saveAll(updateTheReferreds);
         }
+    }
+
+    public String[] checkUserAgent(HttpServletRequest request, String userEmail) {
+            String device = (!DataHelper.isNull(request.getHeader("User-Agent"))) ? request.getHeader("User-Agent") : "Se está verificando la información del dispositivo:" + userEmail;
+            String deviceIp = (!DataHelper.isNull(request.getRemoteAddr())) ? request.getRemoteAddr() : "Se está verificando la IP del dispositivo:" + userEmail;
+        return new String[] {device, deviceIp};
     }
 
 }
