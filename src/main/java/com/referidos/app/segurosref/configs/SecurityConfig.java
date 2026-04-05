@@ -44,6 +44,7 @@ public class SecurityConfig {
             .securityMatcher(
                 "/",
                 "/auth/**",
+                "/seed/**",
                 "/swagger-ui.html",
                 "/swagger-ui/**",
                 "/v3/api-docs/**"

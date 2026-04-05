@@ -16,6 +16,7 @@ public class ComplexQueryProvider {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @SuppressWarnings("null")
     public Optional<UserModel> findByPersonalDataEmailIgnoreCase(String email) {
         try {
             Query query = new Query(Criteria.where("personalData.email").regex(email, "i"));

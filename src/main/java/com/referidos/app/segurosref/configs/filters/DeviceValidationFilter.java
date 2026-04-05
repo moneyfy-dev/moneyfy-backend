@@ -8,6 +8,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.referidos.app.segurosref.helpers.DataHelper;
+import com.referidos.app.segurosref.helpers.FilterHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 
 import jakarta.servlet.FilterChain;
@@ -22,23 +23,12 @@ public class DeviceValidationFilter extends OncePerRequestFilter {
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain chain) throws ServletException, IOException {
 
-
-        String endpoint = request.getRequestURI();
-        String contextPath = request.getContextPath();
-        if (contextPath != null && !contextPath.isEmpty() && endpoint.startsWith(contextPath)) {
-            endpoint = endpoint.substring(contextPath.length());
-        }
-        if (endpoint.isEmpty()) {
-            endpoint = "/";
-        }
-
         // Ignorar rutas públicas
-        if (endpoint.equals("/") || endpoint.startsWith("/auth")
-            || endpoint.startsWith("/swagger-ui") || endpoint.startsWith("/v3/api-docs")) {
+        if (FilterHelper.checkPublicRoute(request)) {
             chain.doFilter(request, response);
             return;
         }
-                                        
+        
         // Verificar con 'User-Agent'
         String userAgent = request.getHeader("User-Agent");
         if(!DataHelper.isNull(userAgent) && !this.isDeviceBanned(userAgent)) {

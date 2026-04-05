@@ -447,22 +447,20 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         String[] toUsers = {userEmail};
         String code = userData.generateRandomCode();
         boolean isValid = false;
-
-        // Hacer una validación que general que el código de expiración del usuario sea haya creado como máximo
-        // hace 6 horas, para mayor seguridad.
-
-        if(!DataHelper.isNull(type) && (userStatusDB.equals("Activado") || userStatusDB.equals("Desactivado"))) {
+        // Verificamos el tipo de flujo para enviar el mail correcto
+        if(!DataHelper.isNull(type)) {
             switch(type) {
                 case "registerUser": {
-                    if(userData.getSessionToken().equals("") && userData.getRefreshToken().equals("")) {
+                    if(userData.getSessionToken().equals("") && userData.getRefreshToken().equals("")
+                        && userStatusDB.equals("Desactivado")) {
                         emailProvider.sendAuthCodeToRegisterUser(toUsers, code);
                         isValid = true;
                     }
                     break;
                 }
                 case "changeDevice": {
-                    if(!userData.getSessionToken().equals("") && !userData.getRefreshToken().equals("") &&
-                            userStatusDB.equals("Activado")) {
+                    if(!userData.getSessionToken().equals("") && !userData.getRefreshToken().equals("")
+                        && userStatusDB.equals("Activado")) {
                         emailProvider.sendAuthCodeToChangeDevice(toUsers, code);
                         isValid = true;
                     }
@@ -494,6 +492,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @SuppressWarnings("null")
     @Transactional
     public ResponseEntity<GeneralResponses> disableAccount(String emailAuth) {
+        // Verificamos primero si es un usuario de prueba
+        if(RunUserSeeder.isTestUser(emailAuth)) {
+            return ResponseHelper.failedDependency("el usuario de prueba, no puede desactivarse", null);
+        }
         // No se puede deshabilitar/eliminar, si el usuario tiene transacciones pendientes o tiene dinero disponible en su wallet
         UserModel userB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         if(userB.getWallet().getTotalBalance() > 0) {
@@ -576,7 +578,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             return ResponseHelper.locked("el código del referido es inválido", null);
         }
         // El código del referido es correcto y ahora se crea la estructura del usuario
-        UserDataModel userData = this.createUserData(userRegister.name().trim(), userRegister.surname().trim(), // CON TRIM() INCLUIDO (No permite saltos en línea)
+        UserDataModel userData = this.createUserData(userRegister.name().strip(), userRegister.surname().strip(), // Usamos strip() para quitar espacios al inicio y final
                 userRegister.pwd(), userRegister.email().toLowerCase(), userRegister.profileRole()); // Dejamos email en minúsculas
         WalletModel wallet = new WalletModel(0, 0, 0, 0);
         NotificationModel notifs = new NotificationModel(false, true, true,

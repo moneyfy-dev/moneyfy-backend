@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.referidos.app.segurosref.configs.JwtConfig;
 import com.referidos.app.segurosref.configs.SimpleGrantedAuthorityJsonCreator;
 import com.referidos.app.segurosref.helpers.DataHelper;
+import com.referidos.app.segurosref.helpers.FilterHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.models.DeviceModel;
 import com.referidos.app.segurosref.models.UserDataModel;
@@ -62,29 +63,18 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             throws IOException, ServletException {
 
         response.addHeader("X-JWT-Filter", "hit");
-        String endpoint = request.getRequestURI();
-        String contextPath = request.getContextPath();
-        if (contextPath != null && !contextPath.isEmpty() && endpoint.startsWith(contextPath)) {
-            endpoint = endpoint.substring(contextPath.length());
-        }
-        if (endpoint.isEmpty()) {
-            endpoint = "/";
-        }
-
         // Ignorar rutas públicas
-        if (endpoint.equals("/") || endpoint.startsWith("/auth")
-                || endpoint.equals("/swagger-ui.html")
-                || endpoint.startsWith("/swagger-ui") || endpoint.startsWith("/v3/api-docs")) {
+        if (FilterHelper.checkPublicRoute(request)) {
             chain.doFilter(request, response);
             return;
         }
-
+        
         // "Updated" en objeto de autorización se utiliza para confirmar que el usuario tiene el token de refresco actualizado
         String refreshToken = request.getHeader("Refresh-Token");
         String device = request.getHeader("User-Agent");
 
         // Revisar si es el endpoint de cotización de planes / para autorizar sin actualizar credenciales
-        if(endpoint.contains("/quoter/search/plan")) {
+        if(request.getRequestURI().contains("/quoter/search/plan")) {
             this.validatePlanFinder(request, response, chain, device, refreshToken);
             return;
         }
