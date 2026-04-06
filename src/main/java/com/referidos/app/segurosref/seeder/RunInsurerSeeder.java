@@ -12,13 +12,13 @@ import com.referidos.app.segurosref.repositories.InsurerRepository;
 @Component
 public class RunInsurerSeeder implements CommandLineRunner {
 
-    private static final String DARK_TEMPLATE =
+    private final String DARK_TEMPLATE =
             "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 120 40\">"
             + "<rect width=\"120\" height=\"40\" rx=\"8\" fill=\"#111827\"/>"
             + "<text x=\"60\" y=\"25\" font-size=\"12\" text-anchor=\"middle\" fill=\"#ffffff\">%s</text>"
             + "</svg>";
 
-    private static final String LIGHT_TEMPLATE =
+    private final String LIGHT_TEMPLATE =
             "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 120 40\">"
             + "<rect width=\"120\" height=\"40\" rx=\"8\" fill=\"#f3f4f6\" stroke=\"#d1d5db\"/>"
             + "<text x=\"60\" y=\"25\" font-size=\"12\" text-anchor=\"middle\" fill=\"#111827\">%s</text>"

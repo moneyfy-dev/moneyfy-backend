@@ -33,9 +33,9 @@ public class CityModel {
     }
 
     // Métodos de lógica, propios de la clase
-    public List<String> addLocation(String location) {
+    public CityModel addLocation(String location) {
         this.locations.add(location);
-        return this.locations;
+        return this;
     }
 
 }

@@ -6,11 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.referidos.app.segurosref.requests.CityRequest;
 import com.referidos.app.segurosref.responses.GeneralResponses;
 import com.referidos.app.segurosref.services.SeedService;
 
@@ -41,14 +39,6 @@ public class SeedController {
         summary = "Register or update the cities of the application",
         description = "Register or update the cities of the application",
         tags = {"Seedder Controller"},
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Provide the required data to continue",
-            required = true,
-            content = @Content(
-                mediaType = CONTENT_TYPE,
-                schema = @Schema(implementation = CityRequest.class)
-            )
-        ),
         parameters = {
             @Parameter(
                 name = "Api-Key-MoneyFy",
@@ -76,8 +66,8 @@ public class SeedController {
             )
         }
     )
-    public ResponseEntity<?> checkCities(@RequestBody CityRequest cityRequest, HttpServletRequest request) {
-        return seedService.checkCities(cityRequest, request);
+    public ResponseEntity<?> checkCities(HttpServletRequest request) {
+        return seedService.checkCities(request);
     }
 
 }
