@@ -23,7 +23,6 @@ import org.springframework.validation.Errors;
 import com.referidos.app.segurosref.configs.JwtConfig;
 import com.referidos.app.segurosref.dtos.ReferredDto;
 import com.referidos.app.segurosref.dtos.UserCommissionDto;
-import com.referidos.app.segurosref.dtos.UserSimpleDto;
 import com.referidos.app.segurosref.dtos.commission.CommissionDataDto;
 import com.referidos.app.segurosref.dtos.earnings.MonthlyDataDto;
 import com.referidos.app.segurosref.dtos.earnings.MonthlyEarningDto;
@@ -32,8 +31,6 @@ import com.referidos.app.segurosref.helpers.UserHelper;
 import com.referidos.app.segurosref.helpers.BindingHelper;
 import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.models.DeviceModel;
-import com.referidos.app.segurosref.models.NotificationDataModel;
-import com.referidos.app.segurosref.models.NotificationModel;
 import com.referidos.app.segurosref.models.PaymentModel;
 import com.referidos.app.segurosref.models.ReferredModel;
 import com.referidos.app.segurosref.models.TransactionComissionModel;
@@ -92,13 +89,13 @@ public class UserServiceImpl implements UserService {
             UserDataModel userData = userDB.getPersonalData();
 
             // Actualizamos los datos del usuario
-            userData.setName(user.name().trim()); // CON TRIM() INCLUIDO (No permite saltos en línea)
-            userData.setSurname(user.surname().trim()); // CON TRIM() INCLUIDO (No permite saltos en línea)
+            userData.setName(user.name().strip()); // Usamos strip() para quitar espacios al inicio y final
+            userData.setSurname(user.surname().strip()); // Usamos strip() para quitar espacios al inicio y final
 
             String phone = DataHelper.isNull(user.phone()) ? "" : user.phone();
-            String address = DataHelper.isNull(user.address()) ? "" : user.address().trim(); // CON TRIM() INCLUIDO (permite saltos de línea) - dato opcional
+            String address = DataHelper.isNull(user.address()) ? "" : user.address().strip(); // Usamos strip() para quitar espacios al inicio y final
             LocalDate dateOfBirth = DataHelper.isNull(user.dateOfBirth()) ? DataHelper.deprecatedDate() : LocalDate.parse(user.dateOfBirth());
-            byte[] profilePicture = (user.profilePicture() == null) ? new byte[0] : user.profilePicture().getBytes() ;
+            byte[] profilePicture = (user.profilePicture() == null) ? new byte[0] : user.profilePicture().getBytes();
 
             // Campos opcionales
             userData.setPhone(phone);
@@ -130,54 +127,30 @@ public class UserServiceImpl implements UserService {
             userDB = userRepository.save(userDB);
             return ResponseHelper.ok("la contraseña del usuario ha sido cambiada exitosamente", DataHelper.buildUser(userDB));
         } else {
-            return ResponseHelper.locked("la contraseña del usuario antigua del usuario no coincide", null);
+            return ResponseHelper.locked("la contraseña antigua del usuario no coincide", null);
         }
     }
 
     @Transactional
     @Override
     public ResponseEntity<GeneralResponses> hydrationData(String emailAuth, String updateCredential, String device) {
-        // Enpoint utilizado para refrescar la data de la aplicación, por lo tanto, un buen lugar para actualizar
-        // el refresh token, en caso de ser necesario
+        // Endpoint utilizado para refrescar la data de la aplicación, por lo tanto, un buen lugar para
+        // actualizar el refresh token, en caso de ser necesario.
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
-        // Recuperación de notificaciones
-        NotificationModel notifPreference = userDB.getNotifPreference();
-        List<NotificationDataModel> notifs = new ArrayList<>();
-        boolean updateNotifs = false;
-        for(NotificationDataModel notifDB : notifPreference.getData()) {
-            if(notifDB.getStatus().equals("Sin notificar")) {
-                notifDB.setStatus("Notificado");
-                updateNotifs = true; // Se tiene que actualizar las notificaciones, porque se cambia el estado
-                // Buscamos el tipo de notificación y notificar si es el caso.
-                switch (notifDB.getType()) {
-                    case "Usuario referido":
-                        if(notifPreference.isReferredRegistered()) {
-                            notifs.add(notifDB); // Se agrega la notificación, ya que, el usuario tiene activado las notifcaciones para saber cuando se refiere un nuevo usuario con su código
-                        }
-                        break;
-                    default:
-                        notifs.add(notifDB); // Casos no manejados, se agregan a los notificaciones del usuario mientras.
-                        break;
-                }
-                
-            }
-        }
-        if(updateNotifs) {
-            userRepository.save(userDB);
-        }
         // Revisar si se tiene que actualizar el refresh token
         if(updateCredential.equals("Dated")) {
             UserDataModel userData = userDB.getPersonalData();
             Optional<DeviceModel> deviceOptional = deviceRepository.findByUserAndDevice(emailAuth, device);
             if(deviceOptional.isPresent()) {
                 DeviceModel deviceDB = deviceOptional.get();
-                userData.setRefreshToken(JwtConfig.createRefreshToken(emailAuth));
-                deviceDB.setRefreshToken(userData.getRefreshToken());
+                String newRefreshToken = JwtConfig.createRefreshToken(emailAuth);
+                userData.setRefreshToken(newRefreshToken);
+                deviceDB.setRefreshToken(newRefreshToken);
                 userDB = userRepository.save(userDB);
                 deviceRepository.save(deviceDB);
             }
         }
-        return ResponseHelper.ok("la información de hidratación del usuario fue recuperada correctamente", DataHelper.buildUser(userDB, "notifs", notifs));
+        return ResponseHelper.ok("la información de hidratación del usuario fue recuperada correctamente", DataHelper.buildUser(userDB));
     }
 
     @Transactional
@@ -435,25 +408,25 @@ public class UserServiceImpl implements UserService {
     }
 
     // SERVICIOS SUPUESTOS PARA ADMINISTRADORES QUE NO SE ESTÁN UTILIZANDO AÚN
-    @Transactional(readOnly=true)
-    @Override
-    public List<UserSimpleDto> findAll() {
-        List<UserSimpleDto> users = new ArrayList<>();
+    // @Transactional(readOnly=true)
+    // @Override
+    // public List<UserSimpleDto> findAll() {
+    //     List<UserSimpleDto> users = new ArrayList<>();
         
-        userRepository.findAll().forEach(userDB -> {
-            users.add(DataHelper.buildSimpleUser(userDB));
-        });
+    //     userRepository.findAll().forEach(userDB -> {
+    //         users.add(DataHelper.buildSimpleUser(userDB));
+    //     });
         
-        return users;
-    }
-    
-    @Transactional(readOnly=true)
-    @Override
-    public ResponseEntity<?> findById(ObjectId userId) {
-        UserModel userDB = userRepository.findById(userId).orElseThrow();
-        return ResponseHelper.ok(
-                "el usuario ha sido encontrado exitosamente",
-                Map.of("user", DataHelper.buildSimpleUser(userDB)));
-    }
+    //     return users;
+    // }
+    // @SuppressWarnings("null")
+    // @Transactional(readOnly=true)
+    // @Override
+    // public ResponseEntity<?> findById(ObjectId userId) {
+    //     UserModel userDB = userRepository.findById(userId).orElseThrow();
+    //     return ResponseHelper.ok(
+    //             "el usuario ha sido encontrado exitosamente",
+    //             Map.of("user", DataHelper.buildSimpleUser(userDB)));
+    // }
 
 }

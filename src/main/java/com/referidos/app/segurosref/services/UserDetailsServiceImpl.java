@@ -109,7 +109,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         UserDataModel userData = this.createUserData(userRegister.name().strip(), userRegister.surname().strip(), // Usamos strip() para quitar espacios al inicio y final
                 userRegister.pwd(), userRegister.email().toLowerCase(), "ROLE_USER");  // Dejamos email en minúsculas
         WalletModel wallet = new WalletModel(0, 0, 0, 0);
-        NotificationModel notifs = new NotificationModel(false, true, true,
+        NotificationModel notifs = new NotificationModel(true, true, true,
                 false, false, true, false, false, false, new ArrayList<>());
         return this.createUnconfirmedUser(userReferring, userData, wallet, notifs);
     }
@@ -225,20 +225,23 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             referredByUserA.setUpdatedDate(currenDateTime);
             referredRepository.save(referredByUserA);
             
-            // Enviar email al usuario A, por un nuevo usuario que se registro con su código de referidos, además de
-            // agregarlo a su estructura de notificaciones.
-            if(referredByUserAOptional.get().getUserReferringStatus().equals("Activado")) {
+            // Crear notificación de referido, si existe el usuario A, y luego enviar notificación de mail, en caso de estar activada
+            if(referredByUserA.getUserReferringStatus().equals("Activado")) {
                 try {
-                    String userAEmail = referredByUserAOptional.get().getUserReferring();
-                    UserModel userA = userRepository.findByPersonalData_Email(userAEmail).orElseThrow();
-                    String userACodeToRefer = userA.getCodeToRefer();
                     String fullNameReferredUser = userData.getName() + " " + userData.getSurname();
-                    emailProvider.novaUserRegisteredByCodeToRefer(userAEmail, userACodeToRefer, fullNameReferredUser);
-                    // Creamos notificación
+                    String userAEmail = referredByUserA.getUserReferring();
+                    UserModel userA = userRepository.findByPersonalData_Email(userAEmail).orElseThrow();
+                    // Creamos notificación y se la guardamos al usuario A
                     String message = "El usuario " + fullNameReferredUser + ", se ha acaba de registrar con tu código de referidos!";
-                    NotificationDataModel notifUserA = DataHelper.novaNotification(message, "Usuario Referido", currenDateTime);
-                    userA.getNotifPreference().addNotif(notifUserA);
+                    NotificationModel userANotifPreference = userA.getNotifPreference();
+                    NotificationDataModel newNotifUserA = DataHelper.novaNotification(message, "Usuario Referido", currenDateTime);
+                    userANotifPreference.addNotif(newNotifUserA);
                     userRepository.save(userA);
+                    // Enviamos notificación por mail, solo si el usuario A la tiene notificación activada
+                    if(userANotifPreference.isByEmail() && userANotifPreference.isReferredRegistered()) {
+                        String userACodeToRefer = userA.getCodeToRefer();
+                        emailProvider.novaUserRegisteredByCodeToRefer(userAEmail, userACodeToRefer, fullNameReferredUser);
+                    }
                 } catch(NoSuchElementException e) {
                     LOGGER_MESSAGES.info("No es posible identificar al usuario que ha referido");
                 }
@@ -581,7 +584,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         UserDataModel userData = this.createUserData(userRegister.name().strip(), userRegister.surname().strip(), // Usamos strip() para quitar espacios al inicio y final
                 userRegister.pwd(), userRegister.email().toLowerCase(), userRegister.profileRole()); // Dejamos email en minúsculas
         WalletModel wallet = new WalletModel(0, 0, 0, 0);
-        NotificationModel notifs = new NotificationModel(false, true, true,
+        NotificationModel notifs = new NotificationModel(true, true, true,
                 false, false, true, false, false, false, new ArrayList<>());
         return this.createUnconfirmedUser(userReferring, userData, wallet, notifs);
     }

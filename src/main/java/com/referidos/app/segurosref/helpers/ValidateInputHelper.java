@@ -192,7 +192,7 @@ public class ValidateInputHelper {
 
     // Validación de la foto perfil del usuario - Opcional
     public String verifyProfilePictureOptional(MultipartFile file) {
-        if(file != null && !DataHelper.verifyImageFile(file)) {
+        if(file != null && !ImageHelper.verifyImageFile(file)) {
             return env.getProperty("message.field.bad.format");
         }
         return "";
@@ -321,8 +321,8 @@ public class ValidateInputHelper {
             return env.getProperty("message.field.null");
         }
         final String ACCOUNT_NUMBER_REGEX = "^[^\\s]{4,}$";
-        String accountNumberToTrim = accountNumber.strip(); // Usamos strip() para quitar espacios al inicio y final
-        if(!accountNumberToTrim.matches(ACCOUNT_NUMBER_REGEX)) { 
+        String accountNumberToStrip = accountNumber.strip(); // Usamos strip() para quitar espacios al inicio y final
+        if(!accountNumberToStrip.matches(ACCOUNT_NUMBER_REGEX)) { 
             return env.getProperty("message.field.min.characters.4");
         }
         return "";

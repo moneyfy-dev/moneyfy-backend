@@ -1,12 +1,8 @@
 package com.referidos.app.segurosref.services;
 
-import java.util.List;
-
-import org.bson.types.ObjectId;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 
-import com.referidos.app.segurosref.dtos.UserSimpleDto;
 import com.referidos.app.segurosref.helpers.BindingHelper;
 import com.referidos.app.segurosref.requests.ChangePwdRequest;
 import com.referidos.app.segurosref.requests.SeedDefaultRequest;
@@ -34,8 +30,8 @@ public interface UserService {
     void validateUpdate(UserUpdateRequest user, BindingHelper bindingHelper);
     void validatePasswordChanged(ChangePwdRequest changePwd, Errors errors);
 
-    // SERVICIOS SUPUESTOS PARA ADMINISTRADORES QUE NO SE ESTÁN UTILIZANDO AÚN
-    List<UserSimpleDto> findAll();
-    ResponseEntity<?> findById(ObjectId userId);
+    // // SERVICIOS SUPUESTOS PARA ADMINISTRADORES QUE NO SE ESTÁN UTILIZANDO AÚN
+    // List<UserSimpleDto> findAll();
+    // ResponseEntity<?> findById(ObjectId userId);
 
 }

@@ -14,7 +14,8 @@ public class NotificationDataModel {
     private ObjectId notifId;
     private String message;
     private String type;
-    private String status;
+    private Boolean isClick;
+    private Boolean isCheck;
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 

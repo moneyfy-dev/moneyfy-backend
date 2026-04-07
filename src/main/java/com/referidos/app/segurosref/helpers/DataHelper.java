@@ -9,7 +9,6 @@ import java.util.Map;
 
 import org.bson.types.ObjectId;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.referidos.app.segurosref.dtos.TokensDto;
 import com.referidos.app.segurosref.dtos.UserSimpleDto;
@@ -76,18 +75,6 @@ public class DataHelper {
         return false;
     }
 
-    public static boolean verifyImageFile(MultipartFile file) {
-        if(file == null) {
-            return false;
-        }
-        String contentType = file.getContentType();
-        if(contentType == null || !contentType.startsWith("image/")
-                || file.getSize() > 204800) { // 200KB
-            return false;
-        }
-        return true;
-    }
-
     public static String findQuoteOwnerOption(String ownerOption) { // Valor númerico de option
         String[][] quoteOwnerOption = quoteOwnerOption();
 
@@ -142,7 +129,7 @@ public class DataHelper {
 
     // Creación de nueva notificación del usuario
     public static NotificationDataModel novaNotification(String message, String type, LocalDateTime currenDateTime) {
-        return new NotificationDataModel(new ObjectId(), message, type, "Sin notificar", currenDateTime, currenDateTime);
+        return new NotificationDataModel(new ObjectId(), message, type, false, false, currenDateTime, currenDateTime);
     }
 
     // Creamos un código para que el usuario pueda referir, y verificamos que el código no exista actualmente.
