@@ -15,6 +15,7 @@ public interface LogRepository extends MongoRepository<LogModel, ObjectId> {
     boolean existsByTypeAndStatusAndReferenceAndTransactionId(String type, String status, String reference, String transactionId);
     boolean existsByTypeAndStatusAndReferenceAndUserId(String type, String status, String reference, String userId);
     Optional<LogModel> findByTypeAndStatusAndReferenceAndReferenceId(String type, String status, String reference, String referenceId);
+    List<LogModel> findAllByUserId(String userId);
     List<LogModel> findAllByTypeAndStatusAndReference(String type, String status, String reference);
     
 }

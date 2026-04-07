@@ -43,7 +43,6 @@ import com.referidos.app.segurosref.requests.PasswordResetRequest;
 import com.referidos.app.segurosref.requests.UserLoginRequest;
 import com.referidos.app.segurosref.requests.UserRegisterRequest;
 import com.referidos.app.segurosref.responses.GeneralResponses;
-import com.referidos.app.segurosref.seeder.RunUserSeeder;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -270,7 +269,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             switch(statusUserDB) {
                 case "Activado" -> {
                      // Antes verificamos que no sea un usuario de prueba o un usuario por defecto
-                    if(RunUserSeeder.isTestUser(email) || RunUserSeeder.isDefaulUser(email)) {
+                    if(UserHelper.isTestUser(email) || UserHelper.isDefaulUser(email)) {
                         // Actualizamos/generamos el dispositivo del usuario "seeder", e iniciamos sesión
                         userHelper.updateUserDevice(deviceRepository, email, userData.getRefreshToken(), device, deviceIp, currentDateTime);
                         return ResponseHelper.ok("se ha iniciado sesión exitosamente con usuario de prueba", DataHelper.buildUser(userDB));
@@ -345,7 +344,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public ResponseEntity<GeneralResponses> restorePassword(String email) {
         // Verificamos primero si es un usuario de prueba
         String userEmail = email.toLowerCase();
-        if(RunUserSeeder.isTestUser(userEmail)) {
+        if(UserHelper.isTestUser(userEmail)) {
             return ResponseHelper.failedDependency("el usuario de prueba, no puede reestablecer su contraseña", null);
         }
         // No es un usuario 'seeder', se puede seguir con la lógica
@@ -388,7 +387,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public ResponseEntity<GeneralResponses> confirmPasswordReset(PasswordResetRequest passwordReset, HttpServletRequest request) {
         String userEmail = passwordReset.email().toLowerCase();
         // Verificamos primero si es un usuario de prueba
-        if(RunUserSeeder.isTestUser(userEmail)) {
+        if(UserHelper.isTestUser(userEmail)) {
             return ResponseHelper.failedDependency("el usuario de prueba, no puede reestablecer su contraseña", null);
         }
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
@@ -441,7 +440,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public ResponseEntity<GeneralResponses> resendUserCode(String email, String type) {
         // Verificamos primero si es un usuario de prueba
         String userEmail = email.toLowerCase();
-        if(RunUserSeeder.isTestUser(userEmail)) {
+        if(UserHelper.isTestUser(userEmail)) {
             return ResponseHelper.failedDependency("el usuario de prueba, no puede obtener códigos de confirmación", null);
         }
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
@@ -496,7 +495,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Transactional
     public ResponseEntity<GeneralResponses> disableAccount(String emailAuth) {
         // Verificamos primero si es un usuario de prueba
-        if(RunUserSeeder.isTestUser(emailAuth)) {
+        if(UserHelper.isTestUser(emailAuth)) {
             return ResponseHelper.failedDependency("el usuario de prueba, no puede desactivarse", null);
         }
         // No se puede deshabilitar/eliminar, si el usuario tiene transacciones pendientes o tiene dinero disponible en su wallet

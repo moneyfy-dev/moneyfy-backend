@@ -26,12 +26,12 @@ import com.referidos.app.segurosref.configs.SimpleGrantedAuthorityJsonCreator;
 import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.FilterHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
+import com.referidos.app.segurosref.helpers.UserHelper;
 import com.referidos.app.segurosref.models.DeviceModel;
 import com.referidos.app.segurosref.models.UserDataModel;
 import com.referidos.app.segurosref.models.UserModel;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
-import com.referidos.app.segurosref.seeder.RunUserSeeder;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -94,7 +94,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             // Buscamos usuario "Activado" y dispositivo relacionado al usuario que encontramos en el session token
             Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(userEmail);
             if(userOptional.isPresent() && userOptional.get().getPersonalData().getStatus().equals("Activado")) {
-                if(RunUserSeeder.isTestUser(userEmail) || RunUserSeeder.isDefaulUser(userEmail)) {
+                if(UserHelper.isTestUser(userEmail) || UserHelper.isDefaulUser(userEmail)) {
                     // Es un usuario de prueba o por defecto, lo autenticamos
                     String userRole = userOptional.get().getPersonalData().getProfileRole();
                     Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, "Updated", Collections.singletonList(new SimpleGrantedAuthority(userRole)));
@@ -148,7 +148,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             }
 
             // Verificamos si es un usuario de prueba o por defecto, para autenticarlo rápidamente
-            if(RunUserSeeder.isTestUser(user) || RunUserSeeder.isDefaulUser(user)) {
+            if(UserHelper.isTestUser(user) || UserHelper.isDefaulUser(user)) {
                 Authentication authForUser = new UsernamePasswordAuthenticationToken(user, "Updated", Collections.singletonList(new SimpleGrantedAuthority(userRole)));
                 this.authContextForUser(request, response, chain, authForUser);
                 return;
@@ -182,7 +182,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
                 Optional<DeviceModel> deviceUserOptional = deviceRepository.findByRefreshToken(refreshToken);
                 if(deviceUserOptional.isPresent()) {
                     String userEmail = deviceUserOptional.get().getUser();
-                    if(RunUserSeeder.isTestUser(userEmail) || RunUserSeeder.isDefaulUser(userEmail)) {
+                    if(UserHelper.isTestUser(userEmail) || UserHelper.isDefaulUser(userEmail)) {
                         Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(userEmail);
                         if(userOptional.isPresent() && userOptional.get().getPersonalData().getStatus().equals("Activado")) {
                             // Es un usuario de prueba o por defecto, se autoriza
@@ -219,7 +219,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
                 return;
             }
             // Verificamos rápidamente si es un usuario de prueba o por defecto
-            if(RunUserSeeder.isTestUser(userEmail) || RunUserSeeder.isDefaulUser(userEmail)) {
+            if(UserHelper.isTestUser(userEmail) || UserHelper.isDefaulUser(userEmail)) {
                 // Es un usuario de prueba o por defecto, por lo tanto, se autoriza y se le actualiza el token de sesión
                 Collection<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(userData.getProfileRole()));
                 Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, "Updated", authorities);
@@ -267,7 +267,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
                 if(deviceOptionalForUser.isPresent()) {
                     String userEmail = deviceOptionalForUser.get().getUser();
                     // Verificamos si es un usuario de prueba o por defecto
-                    if(RunUserSeeder.isTestUser(userEmail) || RunUserSeeder.isDefaulUser(userEmail)) {
+                    if(UserHelper.isTestUser(userEmail) || UserHelper.isDefaulUser(userEmail)) {
                         Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(userEmail);
                         if(userOptional.isPresent() && userOptional.get().getPersonalData().getStatus().equals("Activado")) {
                             // Es un usuario de prueba, se actualiza el sessión token y se autoriza

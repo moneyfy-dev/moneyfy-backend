@@ -2,12 +2,15 @@ package com.referidos.app.segurosref.helpers;
 
 import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
 
+import com.referidos.app.segurosref.repositories.LogRepository;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,17 +18,29 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.referidos.app.segurosref.configs.JwtConfig;
+import com.referidos.app.segurosref.models.AccountModel;
 import com.referidos.app.segurosref.models.CityModel;
+import com.referidos.app.segurosref.models.DeviceModel;
+import com.referidos.app.segurosref.models.LogModel;
 import com.referidos.app.segurosref.models.NotificationModel;
+import com.referidos.app.segurosref.models.QuoterAddressModel;
+import com.referidos.app.segurosref.models.QuoterCarModel;
+import com.referidos.app.segurosref.models.QuoterModel;
+import com.referidos.app.segurosref.models.QuoterOwnerModel;
+import com.referidos.app.segurosref.models.QuoterPaymentModel;
+import com.referidos.app.segurosref.models.QuoterPlanModel;
+import com.referidos.app.segurosref.models.QuoterPurchaserModel;
 import com.referidos.app.segurosref.models.ReferredModel;
+import com.referidos.app.segurosref.models.TransactionComissionModel;
+import com.referidos.app.segurosref.models.TransactionModel;
 import com.referidos.app.segurosref.models.UserDataModel;
 import com.referidos.app.segurosref.models.UserModel;
 import com.referidos.app.segurosref.models.WalletModel;
 import com.referidos.app.segurosref.repositories.CityRepository;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
+import com.referidos.app.segurosref.repositories.TransactionRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
-import com.referidos.app.segurosref.seeder.RunUserSeeder;
 
 @Component
 public class SeedHelper {
@@ -36,10 +51,15 @@ public class SeedHelper {
 
     // Actualizar las ciudades de la base de datos
     @SuppressWarnings("null")
-    public void updateCities(CityRepository cityRepository) {
+    public void updateCities(CityRepository cityRepository, boolean refreshData) {
         List<CityModel> citiesDB = cityRepository.findAll();
         List<CityModel> cities = this.buildCities();
         if(citiesDB.isEmpty()) {
+            cityRepository.saveAll(cities);
+            return;
+        }
+        if(refreshData) {
+            cityRepository.deleteAll();
             cityRepository.saveAll(cities);
             return;
         }
@@ -136,71 +156,79 @@ public class SeedHelper {
         return cityList;
     }
 
-    // FUNCIÓN PARA REGISTRAR USUARIOS DE PRUEBAS
+    // Función para registrar usuarios de prueba
     @Transactional
-    public String updateTestUsers(UserRepository userRepository, ReferredRepository referredRepository,
-            DeviceRepository deviceRepository, PasswordEncoder pwdEncoder) {
-        boolean novaUsers = false;
-        boolean existUsers = false;
-        LocalDateTime currentDate = LocalDateTime.now();
+    public String updateTestUsers(UserRepository userRepository, ReferredRepository referredRepository, DeviceRepository deviceRepository,
+            TransactionRepository transactionRepository, LogRepository logRepository, PasswordEncoder pwdEncoder, boolean refreshData) {
+        // Data general para realizar proceso de registro
+        List<UserModel> createUsers = new ArrayList<>();
+        List<ReferredModel> createReferreds = new ArrayList<>();
+        LocalDate deprecatedDate = DataHelper.deprecatedDate();
         LocalDateTime deprecatedDateTime = DataHelper.deprecatedDateTime();
-
-        for(String user : RunUserSeeder.testUsers()) {
+        LocalDateTime currentDate = LocalDateTime.now();
+        // Revisamos si se quiere eliminar la data completa para volver a registrarla
+        if(refreshData) {
+            for(String user : UserHelper.testUsers()) {
+                Optional<UserModel> optionalUser = userRepository.findByPersonalData_Email(user);
+                if(optionalUser.isPresent()) {
+                    this.deleteUserTestRegisters(optionalUser.get(), userRepository, referredRepository, deviceRepository,
+                            transactionRepository, logRepository);
+                }
+                Object[] obj = createTestUser(user, userRepository, pwdEncoder, deprecatedDate, deprecatedDateTime, currentDate);
+                if(obj != null) {
+                    createUsers.add((UserModel) obj[0]);
+                    createReferreds.add((ReferredModel) obj[1]);
+                } else {
+                    return "no es posible registrar al usuario de prueba";
+                }
+            }
+            userRepository.saveAll(createUsers);
+            referredRepository.saveAll(createReferreds);
+            return "Los usuarios de pruebas se han registrado";
+        }
+        // Banderas para mensajes
+        boolean existUsers = false;
+        boolean novaUsers = false;
+        for(String user : UserHelper.testUsers()) {
+            Object[] obj = null; // Nos permite ir almacenando los registros, que van hacer incluidos en la BD, en caso de no haber errores.
+            boolean buildStructure = false;
             Optional<UserModel> optionalUser = userRepository.findByPersonalData_Email(user);
             if(optionalUser.isPresent()) {
                 UserModel userDB = optionalUser.get();
                 UserDataModel userDataDB = userDB.getPersonalData();
-                switch (userDataDB.getStatus()) {
-                    case "Activado" -> {
-                        existUsers = true;
-                        break;
-                    }
-                    case "Desactivado" -> {
-                        if(!userDataDB.getSessionToken().equals("") && !userDataDB.getRefreshToken().equals("")) {
-                            // Tiene tokens, hay que ver si se puede eliminar el usuario => como makeUserObsolet
-                            if(userHelper.makeUserObsolete(userRepository, deviceRepository, referredRepository, userDB)) {
-                                // El usuario queda obsoleto, y se puede crear nuevamente el usuario de prueba
-                                String novaUser = this.registerTestUser(user, userRepository, referredRepository, pwdEncoder, deprecatedDateTime, currentDate);
-                                if(novaUser == null) {
-                                    return null;
-                                } else {
-                                    novaUsers = true;
-                                }
-                            } else {
-                                // Usuario que todavía se puede habilitar, por lo tanto, existe
-                                existUsers = true;
-                            }
-                        } else {
-                            // Usuario no está confirmado, se puede eliminar el usuario con su registro de referido.
-                            Optional<ReferredModel> optionalReferred = referredRepository.findByReferred(user);
-                            if(optionalReferred.isPresent()) {
-                                referredRepository.delete(optionalReferred.get());
-                            }
-                            userRepository.delete(userDB);
-                            // Luego de haberse eliminado el usuario NO confirmado, lo registramos
-                            String novaUser = this.registerTestUser(user, userRepository, referredRepository, pwdEncoder,
-                                    deprecatedDateTime, currentDate);
-                            if(novaUser == null) {
-                                return null;
-                            } else {
-                                novaUsers = true;
-                            }
-                        }
-                        break;
-                    }
-                    default -> {
-                        return null;
-                    }
+                if(userDataDB.getStatus().equals("Activado")) {
+                    existUsers = true;
+                } else {
+                    // El usuario de prueba siempre debe estar activado, por lo cual, se eliminan sus registros
+                    // relacionados y se vuelve a crear como 'Activado'
+                    this.deleteUserTestRegisters(userDB, userRepository, referredRepository, deviceRepository,
+                        transactionRepository, logRepository);
+                    // Se crea el usuario de prueba nuevamente
+                    obj = this.createTestUser(user, userRepository, pwdEncoder, deprecatedDate, deprecatedDateTime, currentDate);
+                    novaUsers = true;
+                    buildStructure = true;
                 }
             } else {
-                String novaUser = registerTestUser(user, userRepository, referredRepository, pwdEncoder,
-                        deprecatedDateTime, currentDate);
-                if(novaUser == null) {
-                    return null;
+                obj = createTestUser(user, userRepository, pwdEncoder, deprecatedDate, deprecatedDateTime, currentDate);
+                novaUsers = true;
+                buildStructure = true;
+            }
+            // Revisamos si se creo la estructura de un nuevo usuario de prueba
+            if(buildStructure) {
+                // Vemos si hubo error o no
+                if(obj != null) {
+                    createUsers.add((UserModel) obj[0]);
+                    createReferreds.add((ReferredModel) obj[1]);
                 } else {
-                    novaUsers = true;
+                    return "no es posible registrar al usuario de prueba";
                 }
             }
+        }
+
+        // Se registran los usuarios, si no hubo error
+        if(createUsers.size() > 0 && createReferreds.size() > 0) {
+            userRepository.saveAll(createUsers);
+            referredRepository.saveAll(createReferreds);
         }
 
         if(novaUsers && !existUsers) {
@@ -210,35 +238,373 @@ public class SeedHelper {
         } else if(novaUsers && existUsers) {
             return "hay usuarios de prueba existentes y se han registrado nuevos usuarios de prueba";
         } else {
-            return null;
+            return "no se han encontrado usuarios de prueba";
         }
     }
 
-    // REGISTRAR UN USUARIO DE PRUEBA
-    private String registerTestUser(String user, UserRepository userRepository, ReferredRepository referredRepository,
-            PasswordEncoder pwdEncoder, LocalDateTime deprecatedDateTime, LocalDateTime currentDate) {
+    // Eliminar registros dependicientes del usuario de prueba
+    @SuppressWarnings("null")
+    private void deleteUserTestRegisters(UserModel userDB, UserRepository userRepository, ReferredRepository referredRepository,
+            DeviceRepository deviceRepository, TransactionRepository transactionRepository,
+            LogRepository logRepository) {
+        String userEmail = userDB.getPersonalData().getEmail();
+        String userId = userDB.getUserId();
+        Optional<ReferredModel> referredOptional = referredRepository.findByReferred(userEmail);
+        if(referredOptional.isPresent()) {
+            referredRepository.delete(referredOptional.get());
+        }
+        List<ReferredModel> referredUsers = referredRepository.findAllByUserReferring(userEmail);
+        LocalDateTime currentTime = LocalDateTime.now();
+        for(ReferredModel referredUser : referredUsers) {
+            referredUser.setUserReferring("Sin Usuario");
+            referredUser.setCodeToRefer("Sin Usuario");
+            referredUser.setUserReferringStatus("Desactivado");
+            referredUser.setUpdatedDate(currentTime);
+        }
+        if(referredUsers.size() > 0) {
+            referredRepository.saveAll(referredUsers);
+        }
+        Optional<DeviceModel> deviceOptional = deviceRepository.findByUser(userEmail);
+        if(deviceOptional.isPresent()) {
+            deviceRepository.delete(deviceOptional.get());
+        }
+        List<LogModel> userLogs = logRepository.findAllByUserId(userId);
+        if(userLogs.size() > 0) {
+            logRepository.deleteAll(userLogs);
+        }
+        List<TransactionModel> userTransactions = transactionRepository.findAllByCommissions_UserId(userId);
+        List<TransactionModel> updateTransactions = new ArrayList<>();
+        List<TransactionModel> deleteTransactions = new ArrayList<>();
+        for(TransactionModel userTransaction : userTransactions) {
+            if(userTransaction.getCommissionScope() <= 1) {
+                deleteTransactions.add(userTransaction);
+            } else {
+                for(TransactionComissionModel comission : userTransaction.getCommissions()) {
+                    if(comission.getUserId().equals(userId)) {
+                        comission.setUserId("Usuario de Prueba");
+                        updateTransactions.add(userTransaction);
+                        break;
+                    }
+                }
+            }
+        }
+        transactionRepository.deleteAll(deleteTransactions);
+        transactionRepository.saveAll(updateTransactions);
+        userRepository.delete(userDB);
+    }
+    
+    // Crear estructura de un usuario de prueba
+    private Object[] createTestUser(String user, UserRepository userRepository, PasswordEncoder pwdEncoder,
+            LocalDate deprecatedDate, LocalDateTime deprecatedDateTime, LocalDateTime currentDate) {
         try {
             String sessionToken = JwtConfig.createSessionToken(user, Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")));
             String refreshToken = JwtConfig.createRefreshToken(user);
             String codeToRefer = DataHelper.generateCodeToRefer(userRepository);
             UserDataModel userData = new UserDataModel("Test", "User", user, "", "",
-                    DataHelper.deprecatedDate(), "Activado", new byte[0], pwdEncoder.encode("Testing_123"), "",
+                    deprecatedDate, "Activado", new byte[0], pwdEncoder.encode("Testing_123"), "",
+                    "ROLE_USER", "", deprecatedDateTime, sessionToken, refreshToken);
+            WalletModel userWallet = new WalletModel(0, 0, 0, 0);
+            NotificationModel userNotifs = new NotificationModel(true, true, true,
+                    false, false, true, false, false, false, new ArrayList<>());
+            // Creamos la estructura del usuario 'seeder'
+            UserModel novaUser = new UserModel(codeToRefer, deprecatedDateTime, userData, userWallet, userNotifs);
+            ReferredModel novaReferred = new ReferredModel("Sin usuario", "Sin usuario",
+                    user, "Desactivado", "Activado", currentDate, currentDate);
+            // Retornamos el usuario de prueba y su registro de referido relacionado (por funcionamiento de app)
+            return new Object[] {novaUser, novaReferred};
+        } catch(Exception e) {
+            LOGGER_MESSAGES.info("No se ha podido registrar el usuario de prueba " + user + ": " + e.getMessage());
+        }
+        return null;
+    }
+
+    // FUNCIÓN PARA REGISTRAR USUARIOS POR DEFECTO
+    @Transactional
+    public String seedDefaultUsers(UserRepository userRepository, ReferredRepository referredRepository,
+            DeviceRepository deviceRepository, TransactionRepository transactionRepository,
+            PasswordEncoder pwdEncoder) {
+        // Obtenemos los usuarios por defectos
+        List<String> defaultUsers = UserHelper.defaultUsers();
+        
+        if(defaultUsers == null || defaultUsers.size() != 3) {
+            return "usuarios por defectos incorrectos";
+        }
+        
+        String defaultUser1 = defaultUsers.get(0);
+        String defaultUser2 = defaultUsers.get(1);
+        String defaultUser3 = defaultUsers.get(2);
+        
+        if(defaultUser1 == null || defaultUser2 == null || defaultUser3 == null) {
+            return "usuario por defecto 'null'";
+        }
+        
+        // Obtenemos data necesaria
+        List<UserModel> createUsers = new ArrayList<>();
+        List<ReferredModel> createReferreds = new ArrayList<>();
+        List<TransactionModel> createTransactions = new ArrayList<>();
+        LocalDateTime currentDate = LocalDateTime.now();
+        LocalDateTime deprecatedDateTime = DataHelper.deprecatedDateTime();
+        boolean repeatedCodes = true;
+
+        // PRIMERO SE CREAN LOS USUARIOS DE PRUEBA
+        UserModel user1;
+        UserModel user2;
+        UserModel user3;
+        do {
+            // Creamos el primer usuario, sin ser referido
+            Object[] obj1 = this.buildDefaultUser(defaultUser1, "Sin usuario", "Sin usuario",
+                    userRepository, deviceRepository, referredRepository, pwdEncoder,
+                    deprecatedDateTime, currentDate);
+            String message1 = (String) obj1[2];
+            if(!message1.equals("Estructura Creada")) {
+                return message1;
+            }
+            user1 = (UserModel) obj1[0];
+            String codeToRefferUser1 = user1.getCodeToRefer();
+            UserDataModel userData1 = user1.getPersonalData();
+            ReferredModel referred1 = (ReferredModel) obj1[1];
+
+            // Creamos el segundo usuario, referido por el primero
+            Object[] obj2 = this.buildDefaultUser(defaultUser2, userData1.getEmail(), codeToRefferUser1, userRepository,
+                    deviceRepository, referredRepository, pwdEncoder, deprecatedDateTime, currentDate);
+            String message2 = (String) obj2[2];
+            if(!message2.equals("Estructura Creada")) {
+                return message2;
+            }
+            user2 = (UserModel) obj2[0];
+            String codeToRefferUser2 = user2.getCodeToRefer();
+            UserDataModel userData2 = user2.getPersonalData();
+            ReferredModel referred2 = (ReferredModel) obj2[1];
+
+            // Creamos el tercer usuario, referido por el segundo
+            Object[] obj3 = this.buildDefaultUser(defaultUser3, userData2.getEmail(), codeToRefferUser2, userRepository,
+                    deviceRepository, referredRepository, pwdEncoder, deprecatedDateTime, currentDate);
+            String message3 = (String) obj3[2];
+            if(!message3.equals("Estructura Creada")) {
+                return message3;
+            }
+            user3 = (UserModel) obj3[0];
+            String codeToRefferUser3 = user3.getCodeToRefer();
+            ReferredModel referred3 = (ReferredModel) obj3[1];
+
+            if(codeToRefferUser1 != codeToRefferUser2 && codeToRefferUser1 != codeToRefferUser3 && codeToRefferUser2 != codeToRefferUser3) {
+                // No se repiten los códigos se pueden crear todos los registros
+                repeatedCodes = false;
+
+                createUsers.add(user1);
+                createUsers.add(user2);
+                createUsers.add(user3);
+
+                createReferreds.add(referred1);
+                createReferreds.add(referred2);
+                createReferreds.add(referred3);
+                
+            }
+
+        } while(repeatedCodes);
+
+        // No hubo error y se tiene la estructura de los 3 usuarios por defectos, ahora se deben crear sus comisiones
+        createTransactions.add(this.generateTransaction(null, null, user1, "Aprobado", currentDate));
+        createTransactions.add(this.generateTransaction(null, null, user1, "Aprobado", currentDate));
+        createTransactions.add(this.generateTransaction(null, null, user1, "Aprobado", currentDate));
+        createTransactions.add(this.generateTransaction(null, null, user1, "Rechazado", currentDate));
+        createTransactions.add(this.generateTransaction(null, null, user1, "Caducado", currentDate));
+        createTransactions.add(this.generateTransaction(null, user1, user2, "Aprobado", currentDate));
+        createTransactions.add(this.generateTransaction(null, user1, user2, "Aprobado", currentDate));
+        createTransactions.add(this.generateTransaction(null, user1, user2, "Aprobado", currentDate));
+        createTransactions.add(this.generateTransaction(null, user1, user2, "Aprobado", currentDate));
+        createTransactions.add(this.generateTransaction(null, user1, user2, "Rechazado", currentDate));
+        createTransactions.add(this.generateTransaction(null, user1, user2, "Rechazado", currentDate));
+        createTransactions.add(this.generateTransaction(null, user1, user2, "Caducado", currentDate));
+        createTransactions.add(this.generateTransaction(user1, user2, user3, "Aprobado", currentDate));
+        createTransactions.add(this.generateTransaction(user1, user2, user3, "Aprobado", currentDate));
+        createTransactions.add(this.generateTransaction(user1, user2, user3, "Aprobado", currentDate));
+        createTransactions.add(this.generateTransaction(user1, user2, user3, "Aprobado", currentDate));
+        createTransactions.add(this.generateTransaction(user1, user2, user3, "Aprobado", currentDate));
+        createTransactions.add(this.generateTransaction(user1, user2, user3, "Aprobado", currentDate));
+        createTransactions.add(this.generateTransaction(user1, user2, user3, "Aprobado", currentDate));
+        createTransactions.add(this.generateTransaction(user1, user2, user3, "Rechazado", currentDate));
+        createTransactions.add(this.generateTransaction(user1, user2, user3, "Rechazado", currentDate));
+        createTransactions.add(this.generateTransaction(user1, user2, user3, "Rechazado", currentDate));
+        createTransactions.add(this.generateTransaction(user1, user2, user3, "Caducado", currentDate));
+        createTransactions.add(this.generateTransaction(user1, user2, user3, "Caducado", currentDate));
+
+        // Cuando se haya incluido toda la data se guardan todos los datos
+        userRepository.saveAll(createUsers);
+        referredRepository.saveAll(createReferreds);
+        transactionRepository.saveAll(createTransactions);
+
+        return "se han generado los usuarios por defecto";
+    }
+
+    // Verificar si el usuario por defecto ya existe o no es correcto, o se creo la estructura
+    private Object[] buildDefaultUser(String defaultUser, String userReferring, String referredCode,
+            UserRepository userRepository, DeviceRepository deviceRepository, ReferredRepository referredRepository,
+            PasswordEncoder pwdEncoder, LocalDateTime deprecatedDateTime, LocalDateTime currentDate) {
+        Object[] obj;
+        Optional<UserModel> optionalUser = userRepository.findByPersonalData_Email(defaultUser);
+        if(optionalUser.isPresent()) {
+            UserModel userDB = optionalUser.get();
+            UserDataModel userDataDB = userDB.getPersonalData();
+            switch(userDataDB.getStatus()) {
+                case "Activado" -> {
+                    return new Object[] {"", "", "usuario por defecto se encuentra creado"};
+                }
+                case "Desactivado" -> {
+                    if(!userDataDB.getSessionToken().equals("") && !userDataDB.getRefreshToken().equals("")) {
+                        // Tiene tokens, hay que ver si se puede eliminar el usuario => como makeUserObsolet
+                        if(userHelper.makeUserObsolete(userRepository, deviceRepository, referredRepository, userDB)) {
+                            obj = this.createDefaultUser(defaultUser, userRepository, pwdEncoder, userReferring,
+                                    referredCode, deprecatedDateTime, currentDate);
+                        } else {
+                            return new Object[] {"", "", "usuario por defecto se encuentra creado"};
+                        }
+                    } else {
+                        // Usuario no confirmado, se puede eliminar y luego se crea el usuario por defecto
+                        Optional<ReferredModel> optionalReferred = referredRepository.findByReferred(userDataDB.getEmail());
+                        if(optionalReferred.isPresent()) {
+                            referredRepository.delete(optionalReferred.get());
+                        }
+                        userRepository.delete(userDB);
+                        obj = this.createDefaultUser(defaultUser, userRepository, pwdEncoder, userReferring,
+                                referredCode, deprecatedDateTime, currentDate);
+                    }
+                    break;
+                }
+                default -> {
+                    return new Object[] {"", "", "el estado del usuario por defecto, no es válido y no es posible registrarlo"};
+                }
+            }
+        } else {
+            obj = this.createDefaultUser(defaultUser, userRepository, pwdEncoder, userReferring, referredCode,
+                    deprecatedDateTime, currentDate);
+        }
+        if(obj == null) {
+            return new Object[] {"", "", "no es posible registrar el usuario por defecto"};
+        }
+        return new Object[] {obj[0], obj[1], "Estructura Creada"};
+    }
+
+    // REGISTRAR UN USUARIO POR DEFECTO
+    private Object[] createDefaultUser(String user, UserRepository userRepository, PasswordEncoder pwdEncoder,
+            String userReferring, String referredCode, LocalDateTime deprecatedDateTime, LocalDateTime currentDate) {
+        try {
+            String sessionToken = JwtConfig.createSessionToken(user, Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")));
+            String refreshToken = JwtConfig.createRefreshToken(user);
+            String codeToRefer = DataHelper.generateCodeToRefer(userRepository);
+            UserDataModel userData = new UserDataModel("Default", "User", user, "", "",
+                    DataHelper.deprecatedDate(), "Activado", new byte[0], pwdEncoder.encode("123123123aA#"), "",
                     "ROLE_USER", "", deprecatedDateTime, sessionToken, refreshToken);
             WalletModel userWallet = new WalletModel(0, 0, 0, 0);
             NotificationModel userNotifs = new NotificationModel(false, true, true,
                     false, false, true, false, false, false, new ArrayList<>());
             // Creamos la estructura del usuario 'seeder'
             UserModel novaUser = new UserModel(codeToRefer, deprecatedDateTime, userData, userWallet, userNotifs);
-            ReferredModel novaReferred = new ReferredModel("Sin usuario", "Sin usuario",
-                    user, "Desactivado", "Activado", currentDate, currentDate);
+            novaUser.setUserId(new ObjectId());
+            ReferredModel novaReferred = new ReferredModel(userReferring, referredCode, user,
+                    (userReferring.equals("Sin usuario")) ? "Desactivado" : "Activado", "Activado",
+                    currentDate, currentDate);
             // Guardamos en la base de datos, y lo agregamos a la lista de los usuarios 'seeders'
-            userRepository.save(novaUser);
-            referredRepository.save(novaReferred);
-            return user;
+            return new Object[] {novaUser, novaReferred};
         } catch(Exception e) {
-            LOGGER_MESSAGES.info("No se ha podido registrar el usuario: " + user);
+            LOGGER_MESSAGES.info("No se ha podido registrar el usuario por defecto " + user + ": " + e.getMessage());
         }
         return null;
+    }
+
+    // Crear trasaction para usuario por defecto, el usuario C es el que hace la venta de la póliza
+    private TransactionModel generateTransaction(UserModel userA, UserModel userB, UserModel userC,
+            String transactionStatus, LocalDateTime currentDate) {
+        // Primero revisamos si el usuario que realiza la venta tiene cuenta bancaria predeterminada, sino se la agregamos
+        if(userC.getAccounts().isEmpty()) {
+            userC.addAccount(this.createUserBankAccount(userC, currentDate, ((int) (Math.random() * 3)+1)));
+        }
+        // Luego creamos una nueva cotización en el usuario que estará relacionada a la transacción
+        QuoterModel userQuote = this.createUserQuote(transactionStatus, currentDate);
+        userC.addQuoter(userQuote);
+        // Luego de haber creado la cotización por defecto, se crea la transacción y se envían todos los usuarios,
+        // para calcular las comisiones
+        String transactionId = new ObjectId().toString();
+        String userCId = userC.getUserId();
+        boolean isApproved = transactionStatus.equals("Aprobado");
+        String observation = "La transacción ha sido " + transactionStatus;
+        LocalDateTime approvalDate = (isApproved) ? currentDate : DataHelper.deprecatedDateTime();
+        int commissionUserC = 35000, commissionUserB = 10000, commissionUserA = 5000;
+        TransactionModel novaTransaction = new TransactionModel(transactionId, userQuote.getQuoterPlanData().getQuoterPlanId(),
+                userCId, userQuote.getQuoterId(), transactionStatus, commissionUserC, 1,
+                observation, currentDate, currentDate, approvalDate);
+        // Comenzamos ha agregar las comisiones, independiente del estado de la transacción
+        novaTransaction.addCommission(new TransactionComissionModel(userCId, commissionUserC, transactionStatus));
+        if(userB != null) {
+            String userBId = userB.getUserId();
+            novaTransaction.addCommission(new TransactionComissionModel(userBId, commissionUserB, transactionStatus));
+            novaTransaction.setCommissionScope(2);
+            novaTransaction.setCommissionTotal(commissionUserC + commissionUserB);
+            if(userA != null) {
+                String userAId = userA.getUserId();
+                novaTransaction.addCommission(new TransactionComissionModel(userAId, commissionUserA, transactionStatus));
+                novaTransaction.setCommissionScope(3);
+                novaTransaction.setCommissionTotal(commissionUserC + commissionUserB + commissionUserA);
+            }
+        }
+        // Se verifica que la transacción haya sido aprobada para agregar las comisiones a los usuarios, y como estamos
+        // agregando la transacción directamente, solo agregamos dinero, no quitamos, en caso de que la comisión sea
+        // aprobada.
+        if(isApproved) {
+            WalletModel userWalletC = userC.getWallet();
+            userWalletC.setAvailableBalance(userWalletC.getAvailableBalance() + commissionUserC);
+            userWalletC.setTotalBalance(userWalletC.getAvailableBalance() + userWalletC.getOutstandingBalance());
+            if(userB != null) {
+                WalletModel userWalletB = userB.getWallet();
+                userWalletB.setAvailableBalance(userWalletB.getAvailableBalance() + commissionUserB);
+                userWalletB.setTotalBalance(userWalletB.getAvailableBalance() + userWalletB.getOutstandingBalance());
+                if(userA != null) {
+                    WalletModel userWalletA = userA.getWallet();
+                    userWalletA.setAvailableBalance(userWalletA.getAvailableBalance() + commissionUserA);
+                    userWalletA.setTotalBalance(userWalletA.getAvailableBalance() + userWalletA.getOutstandingBalance());
+                }
+            }
+        }
+        // Se agrega la transacción al usuario de la transacción
+        userC.getWallet().addTransactionId(transactionId);
+        return novaTransaction;
+    }
+
+    // Creamos una cuenta bancaria predeterminada, a un usuario que no tenga cuenta
+    private AccountModel createUserBankAccount(UserModel user, LocalDateTime currentDate, int option) {
+        ObjectId objectId = new ObjectId();
+        String holderName = "Default User HD";
+        String email = "default.user.hd@gmail.com";
+        switch (option) {
+            case 1 -> {
+                return new AccountModel(objectId, "11.111.111-1", holderName, "Bco Estado", email,
+                        "Banco Estado", "Corriente", "783342201", true,
+                        currentDate, currentDate);
+            }
+            case 2 -> {
+                return new AccountModel(objectId, "22.222.222-2", holderName, "Bco Chile", email,
+                        "Banco Chile", "Vista", "844938022", true,
+                        currentDate, currentDate);
+            }
+            default -> {
+                return new AccountModel(objectId, "33.333.333-3", holderName, "Bco BCI", email,
+                        "Banco BCI/Mach", "Corriente", "500938827", true,
+                        currentDate, currentDate);
+            }
+        }
+    }
+
+    // Creamos una cotización nueva para el usuario
+    private QuoterModel createUserQuote(String transactionStatus, LocalDateTime currentTime) {
+        ObjectId objectId = new ObjectId();
+        QuoterOwnerModel ownerData = new QuoterOwnerModel("11.111.111-1", "Propietario", "Default", "HD");
+        QuoterCarModel carData = new QuoterCarModel("JKLW99", "OPEL", "CORSA", "2023", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis");
+        QuoterPurchaserModel purchaserData = new QuoterPurchaserModel("55.555.555-5", "Comprador", "Default", "HD", "comprador.default@gmail.com", "+56912345678", "2");
+        QuoterPlanModel planData = new QuoterPlanModel("22000653_5", "BCI", "SOLUCION MOVIL 2.0", 38367.06, 45.98, 11, 4.18, 160374.0, 10, 0.0);
+        QuoterAddressModel addressData = new QuoterAddressModel("Calle Default", "55#A", "");
+        QuoterPaymentModel paymentData = new QuoterPaymentModel("", "", "", "");
+
+        return new QuoterModel(objectId, transactionStatus, ownerData, carData, purchaserData, planData, addressData, paymentData, currentTime, currentTime);
     }
 
 }

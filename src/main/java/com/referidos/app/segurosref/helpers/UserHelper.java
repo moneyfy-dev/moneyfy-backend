@@ -120,10 +120,11 @@ public class UserHelper {
             ReferredRepository referredRepository, UserModel userDB, LocalDateTime currentDateTime) {
         // El usuario estuvo deshabilidato por más de 30 días, por lo tanto, queda obsoleto cambiándole el email,
         // por un código único con el subfijo ".user-deleted". Los registros de device aunque ya deben estar
-        // eliminados, consultamos para asegurarnos que no existan, por otro lado, los registros de transacciones y
-        // de referidos quedarían con la nueva llave del email, pero deshabilitados. Ahora, generamos un email de
-        // eliminación para el usuario, que será el mismo que el código para referir ahora (un código obsoleto),
-        // así libramos un cupo del código anterior del usuario.
+        // eliminados, consultamos para asegurarnos que no existan, por otro lado, los registros de referidos
+        // quedarían con la nueva llave del email, pero deshabilitados. Ahora, generamos un email de eliminación
+        // para el usuario, que será el mismo que el código para referir ahora (un código obsoleto), así libramos
+        // un cupo del código anterior del usuario. Y los registros de transacciones, pagos y logs aún quedan
+        // relacionados al usuario obsoleto porque se relacionan por id, no por mail.
         String oldEmailUserDB = userDB.getPersonalData().getEmail();
         String emailForUserDeleted;
         String codeForUserDeleted;
@@ -171,6 +172,36 @@ public class UserHelper {
             String device = (!DataHelper.isNull(request.getHeader("User-Agent"))) ? request.getHeader("User-Agent") : "Se está verificando la información del dispositivo:" + userEmail;
             String deviceIp = (!DataHelper.isNull(request.getRemoteAddr())) ? request.getRemoteAddr() : "Se está verificando la IP del dispositivo:" + userEmail;
         return new String[] {device, deviceIp};
+    }
+
+    // Lista de los usuarios de prueba
+    public static List<String> testUsers() {
+        return List.of("nuser.random01@gmail.com");
+    }
+    // Verificar usuario de pruba
+    public static boolean isTestUser(String emailAuth) {
+        List<String> testUsers = testUsers();
+        for(String testUser : testUsers) {
+            if(testUser.equals(emailAuth)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Lista de los usuarios por defecto
+    public static List<String> defaultUsers() {
+        return List.of("nuser.random@gmail.com");
+    }
+    // Verificar usuario por defecto
+    public static boolean isDefaulUser(String emailAuth) {
+        List<String> defaultUsers = defaultUsers();
+        for(String defaultUser : defaultUsers) {
+            if(defaultUser.equals(emailAuth)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

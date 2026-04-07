@@ -26,4 +26,8 @@ public interface TransactionRepository extends MongoRepository<TransactionModel,
     @Query(value = "{ 'approvalDate': { $gte: ?0 }, 'status': { $in: ['Aprobado', 'Confirmando', 'Liberado'] } }")
     List<TransactionModel> findAllByApprovalDateAfterAndStatusAccepted(LocalDateTime lastMonthlyEarning);
 
+    // Spring entiende que debe buscar dentro de la lista 'commissions', cualquier objeto cuyo 'userId' coincida con el parámetro.
+    List<TransactionModel> findAllByCommissions_UserId(String userId);
+    List<TransactionModel> findAllByCommissions_UserIdAndCommissions_CommissionStatus(String userId, String status);
+
 }

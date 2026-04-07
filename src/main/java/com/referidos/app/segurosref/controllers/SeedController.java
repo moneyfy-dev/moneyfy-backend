@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.referidos.app.segurosref.requests.SeedRequest;
 import com.referidos.app.segurosref.responses.GeneralResponses;
 import com.referidos.app.segurosref.services.SeedService;
 
@@ -47,6 +48,14 @@ public class SeedController {
                 required = true
             )
         },
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Refresh All Data Again",
+            required = true,
+            content = @Content(
+                mediaType = CONTENT_TYPE,
+                schema = @Schema(implementation = SeedRequest.class)
+            )
+        ),
         responses = {
             @ApiResponse(
                 responseCode = "200",
@@ -66,8 +75,8 @@ public class SeedController {
             )
         }
     )
-    public ResponseEntity<?> checkCities(HttpServletRequest request) {
-        return seedService.checkCities(request);
+    public ResponseEntity<?> checkCities(HttpServletRequest request, SeedRequest seedRequest) {
+        return seedService.checkCities(request, seedRequest);
     }
 
     @PostMapping(value = "/users")
@@ -84,6 +93,14 @@ public class SeedController {
                 required = true
             )
         },
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Refresh All Data Again",
+            required = true,
+            content = @Content(
+                mediaType = CONTENT_TYPE,
+                schema = @Schema(implementation = SeedRequest.class)
+            )
+        ),
         responses = {
             @ApiResponse(
                 responseCode = "200",
@@ -103,8 +120,8 @@ public class SeedController {
             )
         }
     )
-    public ResponseEntity<?> checkUsers(HttpServletRequest request) {
-        return seedService.checkUsers(request);
+    public ResponseEntity<?> checkUsers(HttpServletRequest request, SeedRequest seedRequest) {
+        return seedService.checkUsers(request, seedRequest);
     }
 
 }

@@ -2,12 +2,14 @@ package com.referidos.app.segurosref.services;
 
 import org.springframework.http.ResponseEntity;
 
+import com.referidos.app.segurosref.requests.SeedRequest;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 public interface SeedService {
 
     // Servicios para registrar información esencial a la API
-    ResponseEntity<?> checkCities(HttpServletRequest request);
-    ResponseEntity<?> checkUsers(HttpServletRequest request);
+    ResponseEntity<?> checkCities(HttpServletRequest request, SeedRequest seedRequest);
+    ResponseEntity<?> checkUsers(HttpServletRequest request, SeedRequest seedRequest);
     
 }

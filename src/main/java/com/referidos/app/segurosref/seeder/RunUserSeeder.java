@@ -2,8 +2,6 @@ package com.referidos.app.segurosref.seeder;
 
 import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,7 +9,9 @@ import org.springframework.stereotype.Component;
 
 import com.referidos.app.segurosref.helpers.SeedHelper;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
+import com.referidos.app.segurosref.repositories.LogRepository;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
+import com.referidos.app.segurosref.repositories.TransactionRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
 
 // Clase que se comporta como servicio, al levantarse la aplicación para inyectar la data por defecto
@@ -28,6 +28,12 @@ public class RunUserSeeder implements CommandLineRunner {
     private DeviceRepository deviceRepository;
 
     @Autowired
+    private TransactionRepository transactionRepository;
+
+    @Autowired
+    private LogRepository logRepository;
+
+    @Autowired
     private PasswordEncoder pwdEncoder;
 
     @Autowired
@@ -36,46 +42,9 @@ public class RunUserSeeder implements CommandLineRunner {
     // PROCESO QUE SE EJECUTA AL LEVANTARSE LA APLICACIÓN
     @Override
     public void run(String... args) throws Exception {
-        String seededUsers = seedHelper.updateTestUsers(userRepository, referredRepository, deviceRepository, pwdEncoder);
-        if(seededUsers == null) {
-            LOGGER_MESSAGES.info("Test User Message: se han podido registrar los usuarios");
-        } else {
-            LOGGER_MESSAGES.info("Test User Message: " + seededUsers);
-        }
-    }
-
-    // SEEDER PARA USUARIOS DE PRUEBA
-    public static List<String> testUsers() {
-        return List.of("user.test.appstore@gmail.com");
-    }
-
-    // SABER SI EL USUARIO ES UN USUARIO DE PRUEBA
-    public static boolean isTestUser(String emailAuth) {
-        List<String> seededUsers = testUsers();
-        for(String seededUser : seededUsers) {
-            if(seededUser.equals(emailAuth)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // SEEDER PARA USUARIOS POR DEFECTO
-    public static List<String> defaultUsers() {
-        return List.of("eliu.martineez@gmail.com",
-                "gottafindshape@gmail.com",
-                "nuser.random01@gmail.com");
-    }
-
-    // SABER SI EL USUARIO ES UN USUARIO POR DEFECTO
-    public static boolean isDefaulUser(String emailAuth) {
-        List<String> seededUsers = defaultUsers();
-        for(String seededUser : seededUsers) {
-            if(seededUser.equals(emailAuth)) {
-                return true;
-            }
-        }
-        return false;
+        LOGGER_MESSAGES.info("----- SEEDING -----");
+        LOGGER_MESSAGES.info("Test User Message: " + seedHelper.updateTestUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, pwdEncoder, true));
+        LOGGER_MESSAGES.info("Default User Message: " + seedHelper.seedDefaultUsers(userRepository, referredRepository, deviceRepository, transactionRepository, pwdEncoder));
     }
 
 }

@@ -43,7 +43,6 @@ import com.referidos.app.segurosref.requests.ChangePwdRequest;
 import com.referidos.app.segurosref.requests.UserRegisterRequest;
 import com.referidos.app.segurosref.requests.UserUpdateRequest;
 import com.referidos.app.segurosref.responses.GeneralResponses;
-import com.referidos.app.segurosref.seeder.RunUserSeeder;
 import com.referidos.app.segurosref.validators.UserValidator;
 
 @Service
@@ -110,7 +109,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<?> changePassword(ChangePwdRequest changePwd, String emailAuth) {
         // Verificamos primero si es un usuario de prueba
-        if(RunUserSeeder.isTestUser(emailAuth)) {
+        if(UserHelper.isTestUser(emailAuth)) {
             return ResponseHelper.failedDependency("el usuario de prueba, no puede cambiar su contraseña", null);
         }
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
@@ -224,7 +223,7 @@ public class UserServiceImpl implements UserService {
         String userId = userDB.getUserId();
         DateTimeFormatter formatStr = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         List<UserCommissionDto> userCommissions = new ArrayList<>();
-        List<TransactionModel> transactionsDB = transactionRepository.findAll();
+        List<TransactionModel> transactionsDB = transactionRepository.findAllByCommissions_UserId(userId);
         // Buscamos por las comisiones de las transacciones, donde el id del usuario de la comisión, sea igual al id del
         // usuario que está realizando la consulta
         for(TransactionModel transactionDB : transactionsDB) {
