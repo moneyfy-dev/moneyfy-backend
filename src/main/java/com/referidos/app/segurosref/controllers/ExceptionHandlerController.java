@@ -1,5 +1,7 @@
 package com.referidos.app.segurosref.controllers;
 
+import java.time.DateTimeException;
+
 // import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
 
 import java.util.Map;
@@ -63,6 +65,11 @@ public class ExceptionHandlerController {
     @ExceptionHandler(value = NullPointerException.class)
     public ResponseEntity<GeneralResponses> handleNullPointerException(NullPointerException ex) {
         return ResponseHelper.failedDependency("el objeto no posee valor", ex.getMessage());
+    }
+
+    @ExceptionHandler(value = DateTimeException.class)
+    public ResponseEntity<GeneralResponses> handleDateTimeException(DateTimeException ex) {
+        return ResponseHelper.failedDependency("no se ha podido entregar formato a la fecha", ex.getMessage());
     }
 
 }

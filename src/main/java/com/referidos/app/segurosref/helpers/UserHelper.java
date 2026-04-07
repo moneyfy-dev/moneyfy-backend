@@ -1,7 +1,5 @@
 package com.referidos.app.segurosref.helpers;
 
-import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -9,22 +7,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.referidos.app.segurosref.configs.JwtConfig;
 import com.referidos.app.segurosref.models.DeviceModel;
-import com.referidos.app.segurosref.models.NotificationModel;
 import com.referidos.app.segurosref.models.ReferredModel;
 import com.referidos.app.segurosref.models.UserDataModel;
 import com.referidos.app.segurosref.models.UserModel;
-import com.referidos.app.segurosref.models.WalletModel;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
-import com.referidos.app.segurosref.seeder.RunUserSeeder;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -33,109 +26,15 @@ import jakarta.servlet.http.HttpServletRequest;
 @Component
 public class UserHelper {
 
-    // FUNCIÓN PARA REGISTRAR USUARIOS DE PRUEBAS
+    // Actualizar token de refresco
     @Transactional
-    public String seedTestUsers(UserRepository userRepository, ReferredRepository referredRepository,
-            DeviceRepository deviceRepository, PasswordEncoder pwdEncoder) {
-        boolean novaUsers = false;
-        boolean existUsers = false;
-        LocalDateTime currentDate = LocalDateTime.now();
-        LocalDateTime deprecatedDateTime = DataHelper.deprecatedDateTime();
-
-        for(String user : RunUserSeeder.testUsers()) {
-            Optional<UserModel> optionalUser = userRepository.findByPersonalData_Email(user);
-            if(optionalUser.isPresent()) {
-                UserModel userDB = optionalUser.get();
-                UserDataModel userDataDB = userDB.getPersonalData();
-                switch (userDataDB.getStatus()) {
-                    case "Activado" -> {
-                        existUsers = true;
-                        break;
-                    }
-                    case "Desactivado" -> {
-                        if(!userDataDB.getSessionToken().equals("") && !userDataDB.getRefreshToken().equals("")) {
-                            // Tiene tokens, hay que ver si se puede eliminar el usuario => como makeUserObsolet
-                            if(this.makeUserObsolete(userRepository, deviceRepository, referredRepository, userDB)) {
-                                // El usuario queda obsoleto, y se puede crear nuevamente el usuario de prueba
-                                String novaUser = this.registerTestUser(user, userRepository, referredRepository, pwdEncoder, deprecatedDateTime, currentDate);
-                                if(novaUser == null) {
-                                    return null;
-                                } else {
-                                    novaUsers = true;
-                                }
-                            } else {
-                                // Usuario que todavía se puede habilitar, por lo tanto, existe
-                                existUsers = true;
-                            }
-                        } else {
-                            // Usuario no está confirmado, se puede eliminar el usuario con su registro de referido.
-                            Optional<ReferredModel> optionalReferred = referredRepository.findByReferred(user);
-                            if(optionalReferred.isPresent()) {
-                                referredRepository.delete(optionalReferred.get());
-                            }
-                            userRepository.delete(userDB);
-                            // Luego de haberse eliminado el usuario NO confirmado, lo registramos
-                            String novaUser = this.registerTestUser(user, userRepository, referredRepository, pwdEncoder,
-                                    deprecatedDateTime, currentDate);
-                            if(novaUser == null) {
-                                return null;
-                            } else {
-                                novaUsers = true;
-                            }
-                        }
-                        break;
-                    }
-                    default -> {
-                        return null;
-                    }
-                }
-            } else {
-                String novaUser = registerTestUser(user, userRepository, referredRepository, pwdEncoder,
-                        deprecatedDateTime, currentDate);
-                if(novaUser == null) {
-                    return null;
-                } else {
-                    novaUsers = true;
-                }
-            }
-        }
-
-        if(novaUsers && !existUsers) {
-            return "se han registrados los usuarios de prueba";
-        } else if(!novaUsers && existUsers) {
-            return "los usuarios de prueba se encuentran registrados";
-        } else if(novaUsers && existUsers) {
-            return "hay usuarios de prueba existentes y se han registrado nuevos usuarios de prueba";
-        } else {
-            return null;
-        }
-    }
-
-    // REGISTRAR UN USUARIO DE PRUEBA
-    private String registerTestUser(String user, UserRepository userRepository, ReferredRepository referredRepository,
-            PasswordEncoder pwdEncoder, LocalDateTime deprecatedDateTime, LocalDateTime currentDate) {
-        try {
-            String sessionToken = JwtConfig.createSessionToken(user, Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")));
-            String refreshToken = JwtConfig.createRefreshToken(user);
-            String codeToRefer = DataHelper.generateCodeToRefer(userRepository);
-            UserDataModel userData = new UserDataModel("Test", "User", user, "", "",
-                    DataHelper.deprecatedDate(), "Activado", new byte[0], pwdEncoder.encode("Testing_123"), "",
-                    "ROLE_USER", "", deprecatedDateTime, sessionToken, refreshToken);
-            WalletModel userWallet = new WalletModel(0, 0, 0, 0);
-            NotificationModel userNotifs = new NotificationModel(false, true, true,
-                    false, false, true, false, false, false, new ArrayList<>());
-            // Creamos la estructura del usuario 'seeder'
-            UserModel novaUser = new UserModel(codeToRefer, deprecatedDateTime, userData, userWallet, userNotifs);
-            ReferredModel novaReferred = new ReferredModel("Sin usuario", "Sin usuario",
-                    user, "Desactivado", "Activado", currentDate, currentDate);
-            // Guardamos en la base de datos, y lo agregamos a la lista de los usuarios 'seeders'
-            userRepository.save(novaUser);
-            referredRepository.save(novaReferred);
-            return user;
-        } catch(Exception e) {
-            LOGGER_MESSAGES.info("No se ha podido registrar el usuario: " + user);
-        }
-        return null;
+    public void updateRefreshToken(UserRepository userRepository, UserModel userDB, DeviceModel deviceDB, DeviceRepository deviceRepository) {
+        UserDataModel userDataDB = userDB.getPersonalData();
+        String newRefreshToken = JwtConfig.createRefreshToken(userDataDB.getEmail());
+        userDataDB.setRefreshToken(newRefreshToken);
+        deviceDB.setRefreshToken(newRefreshToken);
+        userRepository.save(userDB);
+        deviceRepository.save(deviceDB);
     }
 
     // FLUJOS PARA DESACTIVACIÓN Y ACTIVACIÓN DEL USUARIO

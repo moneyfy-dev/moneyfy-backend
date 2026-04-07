@@ -5,7 +5,6 @@ import org.springframework.validation.Errors;
 
 import com.referidos.app.segurosref.helpers.BindingHelper;
 import com.referidos.app.segurosref.requests.ChangePwdRequest;
-import com.referidos.app.segurosref.requests.SeedDefaultRequest;
 import com.referidos.app.segurosref.requests.UserRegisterRequest;
 import com.referidos.app.segurosref.requests.UserUpdateRequest;
 import com.referidos.app.segurosref.responses.GeneralResponses;
@@ -20,9 +19,6 @@ public interface UserService {
     ResponseEntity<GeneralResponses> obtainCommissions(String emailAuth);
     ResponseEntity<GeneralResponses> obtainPayments(String emailAuth);
     ResponseEntity<GeneralResponses> monthlyEarnings(String emailAuth);
-    
-    // SERVICIO PARA ALMACENAR O ACTUALIZAR LA DATA POR DEFECTO
-    ResponseEntity<GeneralResponses> seedDefault(SeedDefaultRequest seedDefault);
     
     // SERVICIOS DE VALIDACIONES DE DATOS
     void validateRegister(UserRegisterRequest user, Errors errors);

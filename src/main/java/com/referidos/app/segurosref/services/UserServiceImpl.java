@@ -8,19 +8,16 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Errors;
 
-import com.referidos.app.segurosref.configs.JwtConfig;
 import com.referidos.app.segurosref.dtos.ReferredDto;
 import com.referidos.app.segurosref.dtos.UserCommissionDto;
 import com.referidos.app.segurosref.dtos.commission.CommissionDataDto;
@@ -43,7 +40,6 @@ import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.TransactionRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
 import com.referidos.app.segurosref.requests.ChangePwdRequest;
-import com.referidos.app.segurosref.requests.SeedDefaultRequest;
 import com.referidos.app.segurosref.requests.UserRegisterRequest;
 import com.referidos.app.segurosref.requests.UserUpdateRequest;
 import com.referidos.app.segurosref.responses.GeneralResponses;
@@ -76,9 +72,6 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Value(value = "${user.endpoint.keyword}")
-    private String userEndpointKeyword;
 
     // SERVICIOS PARA FLUJOS RELACIONADOS AL USUARIO
     @Transactional
@@ -139,15 +132,9 @@ public class UserServiceImpl implements UserService {
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         // Revisar si se tiene que actualizar el refresh token
         if(updateCredential.equals("Dated")) {
-            UserDataModel userData = userDB.getPersonalData();
             Optional<DeviceModel> deviceOptional = deviceRepository.findByUserAndDevice(emailAuth, device);
             if(deviceOptional.isPresent()) {
-                DeviceModel deviceDB = deviceOptional.get();
-                String newRefreshToken = JwtConfig.createRefreshToken(emailAuth);
-                userData.setRefreshToken(newRefreshToken);
-                deviceDB.setRefreshToken(newRefreshToken);
-                userDB = userRepository.save(userDB);
-                deviceRepository.save(deviceDB);
+                userHelper.updateRefreshToken(userRepository, userDB, deviceOptional.get(), deviceRepository);
             }
         }
         return ResponseHelper.ok("la información de hidratación del usuario fue recuperada correctamente", DataHelper.buildUser(userDB));
@@ -156,27 +143,27 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public ResponseEntity<GeneralResponses> listReferreds(String emailAuth, String updateCredential, String device) {
-        // Obtenemos los referidos del usuario que está haciendo la solicitud
         UserModel userA = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         List<ReferredDto> referredsDto = new ArrayList<>(); // Lista de todos los referidos que se van a mostrar.
         List<ReferredModel> referredsB = referredRepository.findAllByUserReferring(emailAuth);
         for(ReferredModel referredB : referredsB) {
-            // Recuperamos la data de los referidos del usuario A (o sea los usuarios B), del cual necesitamos conocer su
-            // nombre, apellido, estado actual, además de saber cuantos referidos tiene el usuario B (o sea los usuarios C)
-            // y cuanto es el monto de ganancia que se lleva el usuario A, entre sus referidos (usuarios B) y los referidos
-            // del usuario B (usuarios C)
+            // Recuperamos los referidos del usuario que está haciendo la solicitud (que serían los usuariosB),
+            // del cual necesitamos conocer su nombre, apellido, estado actual, y recuperar los referidos del
+            // usuario B (que serían los usuariosC), para calcular la ganacia total del usuario que está haciendo
+            // la solicitud, contabilizando los usuariosB y los usuariosC
             String userEmailB = referredB.getReferred();
             UserModel userB = userRepository.findByPersonalData_Email(userEmailB).orElseThrow();
-            String userBId = userB.getUserId();
             UserDataModel userDataB = userB.getPersonalData();
             // Si el usuario aún no confirma su registro, no se agrega como referido
             if(userDataB.getRefreshToken().equals("") || userDataB.getSessionToken().equals("")) {
                continue; 
             }
+            // Luego de checkear que el registro del usuario se completo, se actualiza info dependiendo del estado
+            String userBId = userB.getUserId();
             String statusUserB = userDataB.getStatus();
-            // Una vez encontrado el usuario B, se obtiene su información, y dependiendo del estado se omite info
             String nameUserB = userDataB.getName();
             String surnameUserB = userDataB.getSurname();
+            boolean isUserBDeleted = false;
             String showStatusUserB;
             switch(statusUserB) {
                 case "Activado" -> {
@@ -191,38 +178,41 @@ public class UserServiceImpl implements UserService {
                     nameUserB = "Sin especificar";
                     surnameUserB = "Sin especificar";
                     showStatusUserB = "Eliminado";
+                    isUserBDeleted = true;
                     break;
                 }
             }
             // Ya que se estableció la data principal, ahora calcularemos las ganacias totales
-            long earnings=0; // Ganancias totales del usuario B y sus referidos.
+            long earnings = 0; // Ganancias totales del usuario B y sus referidos.
             long totalTransactionsB = transactionRepository.countByUserIdAndCommissionScopeGTEAndStatusPassed(userBId, 2);
-            earnings += totalTransactionsB * 10000;
-            // Obtener ganancias totales de los referidos del usuario B.
+            long userBEarnings = totalTransactionsB * 10000;
+            long userCEarnings = 0;
+            boolean allUsersCDeleted = true;
             List<ReferredModel> referredsC = referredRepository.findAllByUserReferring(userEmailB);
             for(ReferredModel referredC : referredsC) {
-                // Se obtienen las transacciones que se realizaron, independiente del estado del usuario C
                 String userEmailC = referredC.getReferred();
-                String userCId = userRepository.findByPersonalData_Email(userEmailC).orElseThrow().getUserId();
+                UserModel userC = userRepository.findByPersonalData_Email(userEmailC).orElseThrow();
+                String userCId = userC.getUserId();
+                String userCStatus = userC.getPersonalData().getStatus();
                 long totalTransactionsC = transactionRepository.countByUserIdAndCommissionScopeGTEAndStatusPassed(userCId, 3);
-                earnings += totalTransactionsC * 5000;
+                // Ajustar variables iterativas
+                allUsersCDeleted = (!userCStatus.equals("Activado") && !userCStatus.equals("Desactivado")) ? allUsersCDeleted : false;
+                userCEarnings += totalTransactionsC * 5000;
             }
+            // Si es un referido eliminado que no está aportando al saldo, no lo agregamos
+            if(isUserBDeleted && userBEarnings <= 0 && allUsersCDeleted && userCEarnings <= 0) {
+                continue;
+            } 
+            earnings += userBEarnings + userCEarnings;
             referredsDto.add(new ReferredDto(userEmailB, nameUserB, surnameUserB, showStatusUserB, referredsC.size(), earnings));
         }
         // Revisamos si se tiene que actualizar el refresh token
         if(updateCredential.equals("Dated")) {
-            UserDataModel userAData = userA.getPersonalData();
             Optional<DeviceModel> deviceOptional = deviceRepository.findByUserAndDevice(emailAuth, device);
             if(deviceOptional.isPresent()) {
-                DeviceModel deviceUserA = deviceOptional.get();
-                userAData.setRefreshToken(JwtConfig.createRefreshToken(emailAuth));
-                deviceUserA.setRefreshToken(userAData.getRefreshToken());
-                userA = userRepository.save(userA);
-                deviceRepository.save(deviceUserA);
+                userHelper.updateRefreshToken(userRepository, userA, deviceOptional.get(), deviceRepository);
             }
         }
-        // Finalmente retornamos la lista de los referidos del usuario y los detalles de estos, además del los datos
-        // propios del usuario que hace la solicitud.
         return ResponseHelper.ok("se han recuperado los referidos", DataHelper.buildUser(userA, "referreds", referredsDto));
     }
 
@@ -242,12 +232,12 @@ public class UserServiceImpl implements UserService {
             String transactionUserId = transactionDB.getUserId();
             String createdDate = transactionDB.getCreatedDate().format(formatStr);
             String observation = transactionDB.getObservation();
-            for(TransactionComissionModel commission : transactionDB.getCommissions()) {
-                if(userId.equals(commission.getUserId())) {
+            for(TransactionComissionModel commissionData : transactionDB.getCommissions()) {
+                if(userId.equals(commissionData.getUserId())) {
                     // Comisión del usuario
                     String seller;
-                    String status = commission.getCommissionStatus();
-                    int userCommission = commission.getUserCommission();
+                    String status = commissionData.getCommissionStatus();
+                    int userCommission = commissionData.getUserCommission();
                     // Buscamos el vendedor del plan
                     if(userId.equals(transactionUserId)) {
                         seller = userDataDB.getName() + " " + userDataDB.getSurname();
@@ -265,6 +255,7 @@ public class UserServiceImpl implements UserService {
                         observation = "Debe crear o seleccionar una cuenta bancaria predeterminada, para recibir su comisión";
                     }
                     userCommissions.add(new UserCommissionDto(transactionId, seller, status, userCommission, createdDate, observation));
+                    break;
                 }
             }
         }
@@ -288,7 +279,7 @@ public class UserServiceImpl implements UserService {
         String userId = userDB.getUserId();
         LocalDateTime currentDate = LocalDateTime.now();
         DateTimeFormatter formatterDate = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        // Obtención de fecha del último mes, de los últimos 5 meses
+        // Obtención de fecha, del último mes, de los últimos 5 meses
         LocalDateTime lastMonth = currentDate.minusMonths(4)
                 .with(TemporalAdjusters.firstDayOfMonth())
                 .withHour(0)
@@ -312,8 +303,8 @@ public class UserServiceImpl implements UserService {
                     if(!this.addCommissionToMonthlyEarnings(monthlyEarningDto, transacionId, approvalDate.substring(0, 7), transactionCommission)) {
                         return ResponseHelper.locked("no se pudo encontrar el mes, al que corresponde la comisión", null);
                     }
-                    finalCommissions += 1;
-                    finalAmount += transactionCommission;
+                    finalCommissions += transactionCommission;
+                    finalAmount += 1;
                     break;
                 }
             }
@@ -325,58 +316,39 @@ public class UserServiceImpl implements UserService {
                 DataHelper.buildUser(userDB, "monthlyEarnings", monthlyEarningDto));
     }
 
-    @Transactional
-    @Override
-    public ResponseEntity<GeneralResponses> seedDefault(SeedDefaultRequest seedDefault) {
-        // Verificamos que la llave sea la correcta
-        String key = seedDefault.key();
-        if(key == null || !key.equals(userEndpointKeyword)) {
-            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
-        }
-        // Registramos primero los usuarios de prueba
-        String message = userHelper.seedTestUsers(userRepository, referredRepository, deviceRepository, passwordEncoder);
-        if(message == null) {
-            return ResponseHelper.failedDependency("los usuarios de pruebas son incorrectos", null);
-        }
-        return ResponseHelper.ok(message, Map.of("info", "ok"));
-    }
-
     // SERVICIOS HELPERS PARA OBTENER LAS GANANCIAS DE LOS ÚLTIMOS 5 MESES DEL USUARIO
+    // Crea la estructura de la data de cada mes
     private List<MonthlyDataDto> addMonthsToMonthlyEarnings(LocalDateTime lastMonth, DateTimeFormatter formatterDate) {
-        // Se toman los últimos cinco meses de las comisiones, y agregamos las fechas teniendo como referencia el último mes
+        // Se toman los últimos cinco meses de las comisiones, y agregamos las fechas teniendo como
+        // referencia el cálculo del último mes.
         List<MonthlyDataDto> list = new ArrayList<>();
-
-        String monthStr1 = lastMonth.toLocalDate().format(formatterDate);
+        // Agregamos los meses
+        String monthStr1 = lastMonth.plusMonths(4).toLocalDate().format(formatterDate);
         MonthlyDataDto month1 = new MonthlyDataDto(monthStr1, 0, 0, new ArrayList<>());
-        
-        String monthStr2 = lastMonth.plusMonths(1).toLocalDate().format(formatterDate);
+        String monthStr2 = lastMonth.plusMonths(3).toLocalDate().format(formatterDate);
         MonthlyDataDto month2 = new MonthlyDataDto(monthStr2, 0, 0, new ArrayList<>());
-        
         String monthStr3 = lastMonth.plusMonths(2).toLocalDate().format(formatterDate);
         MonthlyDataDto month3 = new MonthlyDataDto(monthStr3, 0, 0, new ArrayList<>());
-
-        String monthStr4 = lastMonth.plusMonths(3).toLocalDate().format(formatterDate);
+        String monthStr4 = lastMonth.plusMonths(1).toLocalDate().format(formatterDate);
         MonthlyDataDto month4 = new MonthlyDataDto(monthStr4, 0, 0, new ArrayList<>());
-
-        String monthStr5 = lastMonth.plusMonths(4).toLocalDate().format(formatterDate);
+        String monthStr5 = lastMonth.toLocalDate().format(formatterDate);
         MonthlyDataDto month5 = new MonthlyDataDto(monthStr5, 0, 0, new ArrayList<>());
-
+        // Se agrega a la lista la estructura de la ganancia de los últimos 5 meses
         list.add(month1);
         list.add(month2);
         list.add(month3);
         list.add(month4);
         list.add(month5);
-
         return list;
     }
-
+    // Asigna una comisión al mes correspondiente
     private boolean addCommissionToMonthlyEarnings(MonthlyEarningDto monthlyEarningDto, String transacionId,
             String approvalDateYearMonth, int transactionCommission) {
         for(MonthlyDataDto monthDto : monthlyEarningDto.getMonths()) {
             String yearMonth = monthDto.getMonth().substring(0, 7);
             if(approvalDateYearMonth.equals(yearMonth)) {
-                int totalCommissions = monthDto.getTotalCommission() + 1;
-                int totalAmount = monthDto.getTotalAmount() + transactionCommission;
+                int totalCommissions = monthDto.getTotalCommission() + transactionCommission;
+                int totalAmount = monthDto.getTotalAmount() + 1;
                 monthDto.setTotalCommission(totalCommissions);
                 monthDto.setTotalAmount(totalAmount);
                 monthDto.addCommission(new CommissionDataDto(transacionId, transactionCommission));

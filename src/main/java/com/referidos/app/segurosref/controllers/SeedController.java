@@ -25,7 +25,7 @@ import jakarta.servlet.http.HttpServletRequest;
 @RequestMapping(value = "/seed")
 @PreAuthorize(value = "denyAll()")
 @Tag(
-    name = "Seedder Controller",
+    name = "Seed Controller",
     description = "Controller to seed essential data"
 )
 public class SeedController {
@@ -38,7 +38,7 @@ public class SeedController {
     @Operation(
         summary = "Register or update the cities of the application",
         description = "Register or update the cities of the application",
-        tags = {"Seedder Controller"},
+        tags = {"Seed Controller"},
         parameters = {
             @Parameter(
                 name = "Api-Key-MoneyFy",
@@ -68,6 +68,43 @@ public class SeedController {
     )
     public ResponseEntity<?> checkCities(HttpServletRequest request) {
         return seedService.checkCities(request);
+    }
+
+    @PostMapping(value = "/users")
+    @PreAuthorize(value = "permitAll()")
+    @Operation(
+        summary = "Register or update the users of the application",
+        description = "Register or update the users of the application",
+        tags = {"Seed Controller"},
+        parameters = {
+            @Parameter(
+                name = "Api-Key-MoneyFy",
+                in = ParameterIn.HEADER,
+                description = "Security parameter for some public endpoints",
+                required = true
+            )
+        },
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "The test and default users were updated successfully",
+                content = @Content(
+                    mediaType = CONTENT_TYPE,
+                    schema = @Schema(implementation = GeneralResponses.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "4XX",
+                description = "General responses",
+                content = @Content(
+                    mediaType = CONTENT_TYPE,
+                    schema = @Schema(implementation = GeneralResponses.class)
+                )
+            )
+        }
+    )
+    public ResponseEntity<?> checkUsers(HttpServletRequest request) {
+        return seedService.checkUsers(request);
     }
 
 }

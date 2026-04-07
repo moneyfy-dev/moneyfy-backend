@@ -9,7 +9,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import com.referidos.app.segurosref.helpers.UserHelper;
+import com.referidos.app.segurosref.helpers.SeedHelper;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
@@ -31,12 +31,12 @@ public class RunUserSeeder implements CommandLineRunner {
     private PasswordEncoder pwdEncoder;
 
     @Autowired
-    private UserHelper userHelper;
+    private SeedHelper seedHelper;
 
     // PROCESO QUE SE EJECUTA AL LEVANTARSE LA APLICACIÓN
     @Override
     public void run(String... args) throws Exception {
-        String seededUsers = userHelper.seedTestUsers(userRepository, referredRepository, deviceRepository, pwdEncoder);
+        String seededUsers = seedHelper.updateTestUsers(userRepository, referredRepository, deviceRepository, pwdEncoder);
         if(seededUsers == null) {
             LOGGER_MESSAGES.info("Test User Message: se han podido registrar los usuarios");
         } else {

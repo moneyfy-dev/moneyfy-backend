@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.referidos.app.segurosref.helpers.BindingHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.requests.ChangePwdRequest;
-import com.referidos.app.segurosref.requests.SeedDefaultRequest;
 import com.referidos.app.segurosref.requests.UserUpdateRequest;
 import com.referidos.app.segurosref.responses.GeneralResponses;
 import com.referidos.app.segurosref.services.UserService;
@@ -329,52 +328,6 @@ public class UserController {
     )
     public ResponseEntity<GeneralResponses> monthlyEarnings(Authentication auth) {
         return userService.monthlyEarnings(auth.getPrincipal().toString());
-    }
-
-    // ENDPOINT PARA ALMACENAR O ACTUALIZAR LA DATA POR DEFECTO
-    @PostMapping(value = "/seed/default")
-    @PreAuthorize(value = "permitAll()")
-    @Operation(
-        summary = "Seed the default data",
-        description = "Seed the default data",
-        tags = {"User"},
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Enter the key to update the default data",
-            required = true,
-            content = @Content(
-                mediaType = CONTENT_TYPE,
-                schema = @Schema(implementation = SeedDefaultRequest.class)
-            )
-        ),
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The default data has been updated",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
-                )
-            )
-        },
-        parameters = {
-            @Parameter(
-                name = "Refresh-Token",
-                in = ParameterIn.HEADER,
-                description = "Token that allow you to update the credentials",
-                required = true
-            )
-        }
-    )
-    public ResponseEntity<GeneralResponses> seedDefault(@RequestBody SeedDefaultRequest seedDefault) {
-        return userService.seedDefault(seedDefault);
     }
 
     // ENDPOINTS SUPUESTOS PARA ADMINISTRADORES QUE NO SE ESTÁN UTILIZANDO AÚN
