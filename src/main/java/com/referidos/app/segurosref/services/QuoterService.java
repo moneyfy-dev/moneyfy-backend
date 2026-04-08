@@ -3,7 +3,6 @@ package com.referidos.app.segurosref.services;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 
-import com.referidos.app.segurosref.requests.VehicleBrandRequest;
 import com.referidos.app.segurosref.requests.CommissionPaymentRequest;
 import com.referidos.app.segurosref.requests.CommissionReportRequest;
 import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
@@ -16,7 +15,6 @@ import com.referidos.app.segurosref.requests.SearchPlanRequest;
 public interface QuoterService {
 
     // SERVICIOS PARA INGRESAR O BUSCAR DATA RELACIONADA A LA MARCA/MODELOS DE UN VEHÍCULO PARA REALIZAR LAS COTIZACIONES
-    ResponseEntity<?> registerVehicleBrands(VehicleBrandRequest vehicleBrands);
     ResponseEntity<?> searchVehicleBrands(String emailAuth);
 
     // SERVICIOS PARA INGRESAR O BUSCAR ASEGURADORAS QUE PROVEEN DE LOS PLANES PARA REALIZAR LAS COTIZACIONES

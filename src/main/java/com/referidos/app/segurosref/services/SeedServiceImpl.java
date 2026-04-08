@@ -1,5 +1,6 @@
 package com.referidos.app.segurosref.services;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.helpers.SeedHelper;
+import com.referidos.app.segurosref.models.BrandModel;
+import com.referidos.app.segurosref.repositories.BrandRepository;
 import com.referidos.app.segurosref.repositories.CityRepository;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
 import com.referidos.app.segurosref.repositories.InsurerRepository;
@@ -50,6 +53,9 @@ public class SeedServiceImpl implements SeedService {
     private InsurerRepository insurerRepository;
 
     @Autowired
+    private BrandRepository brandRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Override
@@ -78,6 +84,18 @@ public class SeedServiceImpl implements SeedService {
         }
         String insurersMF = seedHelper.updateInsurers(insurerRepository, seedRequest.refreshData());
         return ResponseHelper.ok("se ha logrado hacer la petición", Map.of("insurersMF", insurersMF));
+    }
+
+    @Override
+    public ResponseEntity<?> checkBrands(HttpServletRequest request, SeedRequest seedRequest) {
+        if(!this.checkApiKeyMF(request.getParameter("Api-Key-MoneyFy"))) {
+            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        }
+        Object[] objBrands = seedHelper.updateBrands(brandRepository, seedRequest.refreshData());
+        String message = (String) objBrands[0];
+        @SuppressWarnings("unchecked")
+        List<BrandModel> brands = (List<BrandModel>) objBrands[1];
+        return ResponseHelper.ok("se ha logrado hacer la petición", Map.of("info", message, "brands", brands));
     }
 
     private boolean checkApiKeyMF(String apiKeyParameter) {

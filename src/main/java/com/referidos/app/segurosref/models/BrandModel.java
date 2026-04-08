@@ -34,13 +34,13 @@ public class BrandModel {
     }
     
     // Métodos de lógica, propios de la clase
-    public List<BrandInsurerModel> addInsurerBrandId(BrandInsurerModel insurerBrandId) {
+    public BrandModel addInsurerBrandId(BrandInsurerModel insurerBrandId) {
         this.insurersId.add(insurerBrandId);
-        return this.insurersId;
+        return this;
     }
-    public List<BrandDataModel> addModel(BrandDataModel model) {
+    public BrandModel addModel(BrandDataModel model) {
         this.models.add(model);
-        return this.models;
+        return this;
     }
 
 }

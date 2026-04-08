@@ -169,4 +169,49 @@ public class SeedController {
         return seedService.checkInsurers(request, seedRequest);
     }
 
+    @PostMapping(value = "/brands")
+    @PreAuthorize(value = "permitAll()")
+    @Operation(
+        summary = "Register the brands to quote your vehicle",
+        description = "Register the brands to quote your vehicle",
+        tags = {"Seed Controller"},
+        parameters = {
+            @Parameter(
+                name = "Api-Key-MoneyFy",
+                in = ParameterIn.HEADER,
+                description = "Security parameter for some public endpoints",
+                required = true
+            )
+        },
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Refresh All Data Again",
+            required = true,
+            content = @Content(
+                mediaType = CONTENT_TYPE,
+                schema = @Schema(implementation = SeedRequest.class)
+            )
+        ),
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "The vehicle brands were created successfully",
+                content = @Content(
+                    mediaType = CONTENT_TYPE,
+                    schema = @Schema(implementation = GeneralResponses.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "4XX",
+                description = "General responses",
+                content = @Content(
+                    mediaType = CONTENT_TYPE,
+                    schema = @Schema(implementation = GeneralResponses.class)
+                )
+            )
+        }
+    )
+    public ResponseEntity<?> checkBrands(HttpServletRequest request, SeedRequest seedRequest) {
+        return seedService.checkBrands(request, seedRequest);
+    }
+
 }

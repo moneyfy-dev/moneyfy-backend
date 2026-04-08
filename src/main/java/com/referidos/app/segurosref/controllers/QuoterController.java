@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.referidos.app.segurosref.helpers.ResponseHelper;
-import com.referidos.app.segurosref.requests.VehicleBrandRequest;
 import com.referidos.app.segurosref.requests.CommissionPaymentRequest;
 import com.referidos.app.segurosref.requests.CommissionReportRequest;
 import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
@@ -49,44 +48,6 @@ public class QuoterController {
 
     @Autowired
     private QuoterService quoterService;
-
-    // ENDPOINTS PARA INGRESAR O BUSCAR DATA RELACIONADA A LA MARCA/MODELO DE UN VEHÍCULO PARA REALIZAR LAS COTIZACIONES
-    @PostMapping(value = "/register/vehicle/brands")
-    @PreAuthorize(value = "permitAll()")
-    @Operation(
-        summary = "Register the vehicle brands to quote your vehicle",
-        description = "Register the vehicle brands to quote your vehicle",
-        tags = {"Quoter Controller"},
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Provide the array of the vehicle brands to register",
-            required = true,
-            content = @Content(
-                mediaType = CONTENT_TYPE,
-                schema = @Schema(implementation = VehicleBrandRequest.class)
-            )
-        ),
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The vehicle brands were created successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
-                )
-            )
-        }
-    )
-    public ResponseEntity<?> registerVehicleBrands(@RequestBody VehicleBrandRequest vehicleBrands) {
-        return quoterService.registerVehicleBrands(vehicleBrands);
-    }
 
     @GetMapping(value = "/search/vehicle/brands")
     @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")

@@ -47,7 +47,7 @@ public class RunVehicleBrandSeeder implements CommandLineRunner {
     private BrandModel createBrand(String brand, String... models) {
         List<BrandDataModel> brandModels = new ArrayList<>();
         for (String model : models) {
-            brandModels.add(new BrandDataModel(null, model, new ArrayList<>()));
+            brandModels.add(new BrandDataModel(null, model, "", new ArrayList<>()));
         }
 
         return new BrandModel(brand, new ArrayList<>(), brandModels);

@@ -58,7 +58,6 @@ import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.TransactionRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
 import com.referidos.app.segurosref.repositories.BrandRepository;
-import com.referidos.app.segurosref.requests.VehicleBrandRequest;
 import com.referidos.app.segurosref.requests.CommissionPaymentRequest;
 import com.referidos.app.segurosref.requests.CommissionReportRequest;
 import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
@@ -119,24 +118,6 @@ public class QuoterServiceImpl implements QuoterService {
     private final int commissionUserB = 10000;
     
     private final int commissionUserA = 5000;
-
-    // SERVICIOS PARA INGRESAR O BUSCAR DATA RELACIONADA A LA MARCA/MODELO DE UN VEHÍCULO PARA REALIZAR LAS COTIZACIONES
-    @Transactional
-    @Override
-    public ResponseEntity<?> registerVehicleBrands(VehicleBrandRequest vehicleBrands) {
-        String key = vehicleBrands.key();
-        List<BrandModel> brands = vehicleBrands.brands();
-        if(key == null || !key.equals(quoterEndpointKeyword) || brands == null || brands.size() < 1) {
-            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
-        }
-        // Se actualizan la lista de marca/modelos, dependiendo de la lista entregada en el cuerpo de la solicitud
-        List<BrandModel> brandsDB = quoterHelper.updateVehicleBrands(brandRepository, brands);
-        if(brandsDB == null) {
-            return ResponseHelper.failedDependency("data inválida", null);
-        }
-        brandRepository.saveAll(brandsDB);
-        return ResponseHelper.ok("se han actualizado las marcas de los vehículos correctamente", Map.of("brands", brandsDB));
-    }
 
     @Transactional(readOnly = true)
     @Override

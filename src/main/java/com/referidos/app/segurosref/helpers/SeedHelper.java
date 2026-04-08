@@ -18,6 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.referidos.app.segurosref.configs.JwtConfig;
 import com.referidos.app.segurosref.models.AccountModel;
+import com.referidos.app.segurosref.models.BrandDataModel;
+import com.referidos.app.segurosref.models.BrandInsurerModel;
+import com.referidos.app.segurosref.models.BrandModel;
 import com.referidos.app.segurosref.models.CityModel;
 import com.referidos.app.segurosref.models.DeviceModel;
 import com.referidos.app.segurosref.models.InsurerModel;
@@ -36,6 +39,7 @@ import com.referidos.app.segurosref.models.TransactionModel;
 import com.referidos.app.segurosref.models.UserDataModel;
 import com.referidos.app.segurosref.models.UserModel;
 import com.referidos.app.segurosref.models.WalletModel;
+import com.referidos.app.segurosref.repositories.BrandRepository;
 import com.referidos.app.segurosref.repositories.CityRepository;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
 import com.referidos.app.segurosref.repositories.InsurerRepository;
@@ -606,23 +610,34 @@ public class SeedHelper {
 
     // Construimos las aseguradoras de la app
     private List<InsurerModel> buildInsurers() {
-        List<InsurerModel> insurers = new ArrayList<>(); 
-        InsurerModel insurer1 = new InsurerModel("Tractor Seguros Automotriz", "aseguradora1",
-            "", String.format(INSURER_DARK_TEMPLATE, "TRACTOR"), String.format(INSURER_LIGHT_TEMPLATE,"TRACTOR"));
-        insurers.add(insurer1);
-        InsurerModel insurer2 = new InsurerModel("Seguros Alameda", "aseguradora2",
-            "", String.format(INSURER_DARK_TEMPLATE, "ALAMEDA"), String.format(INSURER_LIGHT_TEMPLATE,"ALAMEDA"));
-        insurers.add(insurer2);
-        InsurerModel insurer3 = new InsurerModel("Los Alamos Seguros Automotriz", "aseguradora3",
-            "", String.format(INSURER_DARK_TEMPLATE, "ALAMOS"), String.format(INSURER_LIGHT_TEMPLATE,"ALAMOS"));
-        insurers.add(insurer3);
-        InsurerModel insurer4 = new InsurerModel("BCI", "aseguradora4",
-            "", String.format(INSURER_DARK_TEMPLATE, "BCI"), String.format(INSURER_LIGHT_TEMPLATE,"BCI"));
-        insurers.add(insurer4);
-        InsurerModel insurer5 = new InsurerModel("FDI Seguros", "aseguradora5",
-            "", String.format(INSURER_DARK_TEMPLATE, "FDI"), String.format(INSURER_LIGHT_TEMPLATE,"FDI"));
-        insurers.add(insurer5);
+        List<InsurerModel> insurers = new ArrayList<>();
+        insurers.add(new InsurerModel("Tractor Seguros Automotriz", "aseguradora1", "", String.format(INSURER_DARK_TEMPLATE, "TRACTOR"), String.format(INSURER_LIGHT_TEMPLATE,"TRACTOR")));
+        insurers.add(new InsurerModel("Seguros Alameda", "aseguradora2", "", String.format(INSURER_DARK_TEMPLATE, "ALAMEDA"), String.format(INSURER_LIGHT_TEMPLATE,"ALAMEDA")));
+        insurers.add(new InsurerModel("Los Alamos Seguros Automotriz", "aseguradora3", "", String.format(INSURER_DARK_TEMPLATE, "ALAMOS"), String.format(INSURER_LIGHT_TEMPLATE,"ALAMOS")));
+        insurers.add(new InsurerModel("BCI", "aseguradora4", "", String.format(INSURER_DARK_TEMPLATE, "BCI"), String.format(INSURER_LIGHT_TEMPLATE,"BCI")));
+        insurers.add(new InsurerModel("FDI Seguros", "aseguradora5", "", String.format(INSURER_DARK_TEMPLATE, "FDI"), String.format(INSURER_LIGHT_TEMPLATE,"FDI")));
         return insurers;
+    }
+
+    // Función para actualizar las marcas de la app
+    public Object[] updateBrands(BrandRepository brandRepository, boolean refreshData) {
+        List<BrandModel> brands = this.buildBrands();
+        if(refreshData) {
+            brandRepository.deleteAll();
+            if(brands.size() > 0) {
+                brands = brandRepository.saveAll(brands);
+            }
+            return new Object[] {"Se han creado las marcas nuevamente", brands};
+        }
+        // Se compara la data actual vs la data de la DB para actualizarla
+        return null;
+    }
+
+    // Construimos las marcas de la app, en referencia a la documentación actual
+    private List<BrandModel> buildBrands() {
+        List<BrandModel> brands = new ArrayList<>();
+        // brands.add(new BrandModel("Marca", new ArrayList<>(), new ArrayList<>()).addInsurerBrandId(new BrandInsurerModel(1, "NombreAseguradoraObjTieneIdDeMarcaDeAseguradora")).addInsurerBrandId(new BrandInsurerModel(1, "OtraAseguradoraObjTieneIdDeMarcaDeAseguradora")).addModel(new BrandDataModel(new ObjectId(), "Model", "Type", new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(1, "NombreAseguradoraObjTieneIdDeModeloDeAseguradora")).addInsurerModelId(new BrandInsurerModel(1, "OtraAseguradoraObjTieneIdDeModeloDeAseguradora"))));
+        return brands;
     }
 
 }

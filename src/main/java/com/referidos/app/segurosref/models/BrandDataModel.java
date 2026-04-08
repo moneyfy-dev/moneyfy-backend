@@ -11,25 +11,23 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-@JsonPropertyOrder(value = {"modelId", "model", "insurersId"})
+@JsonPropertyOrder(value = {"modelId", "model", "type", "insurersId"})
 public class BrandDataModel {
 
     // Id del modelo
     private ObjectId modelId;
     private String model;
+    private String type;
     private List<BrandInsurerModel> insurersId;
 
     public String getModelId() {
-        if(this.modelId == null) {
-            return "";
-        }
         return this.modelId.toString();
     }
 
     // Métodos de lógica, propios de la clase
-    public List<BrandInsurerModel> addInsurerModelId(BrandInsurerModel insurerModelId) {
+    public BrandDataModel addInsurerModelId(BrandInsurerModel insurerModelId) {
         this.insurersId.add(insurerModelId);
-        return this.insurersId;
+        return this;
     }
 
 }
