@@ -69,7 +69,7 @@ public class LogController {
         }
     )
     public ResponseEntity<?> findAllLogs(@RequestBody LogRequest logRequest) {
-        return this.logService.findAllLogs(logRequest);
+        return logService.findAllLogs(logRequest);
     }
 
     // Endpoint para notificar a usuarios que actualicen data necesaria o actualización de logs de error
@@ -107,7 +107,7 @@ public class LogController {
         }
     )
     public ResponseEntity<?> notifyAccountNotFound(@RequestBody LogNotifyRequest logRequest) {
-        return this.logService.notifyAccountNotFound(logRequest);
+        return logService.notifyAccountNotFound(logRequest);
     }
 
     @PutMapping(value = "/update")
@@ -144,7 +144,7 @@ public class LogController {
         }
     )
     public ResponseEntity<?> updateErrorLogs(@RequestBody LogRequest logRequest) {
-        return this.logService.updateErrorLogs(logRequest);
+        return logService.updateErrorLogs(logRequest);
     }
     
 }

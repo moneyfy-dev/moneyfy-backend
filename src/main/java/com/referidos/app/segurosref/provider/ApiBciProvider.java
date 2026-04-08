@@ -34,11 +34,11 @@ import com.referidos.app.segurosref.repositories.LogRepository;
 @Component
 public class ApiBciProvider {
 
-    @Value(value = "${insurer.url.quote-bci}")
-    private String insurerUrlQuoteBCI;
+    @Value(value = "${url.bci.tarifacion}")
+    private String urlBCITarifacion;
 
-    @Value(value = "${insurer.keyword.bci}")
-    private String insurerKeywordBCI;
+    @Value(value = "${api.key.bci.tarifacion}")
+    private String apiKeyBCITarifacion;
 
     @Transactional
     public Map<String, Object> getPlansFromBCI(String purchaserId, String brandIdBCI, String modelIdBCI, int year,
@@ -56,7 +56,7 @@ public class ApiBciProvider {
             // Configuración de encabezados
             HttpHeaders headers = new HttpHeaders();
             headers.set("Content-Type", "application/json");
-            headers.set("Key", insurerKeywordBCI);
+            headers.set("Key", apiKeyBCITarifacion);
 
             // Utilizamos Object Mapper, para ingresar los datos del cuerpo de la solicitud
             ObjectMapper mapper = new ObjectMapper();
@@ -97,7 +97,7 @@ public class ApiBciProvider {
                 "Informe", "Verificar solicitud aseguradora BCI", referenceId);
             LogModel logDB;
             LogModel novaLog = new LogModel(new ObjectId(), "INFO", "Verificar solicitud aseguradora BCI",
-                insurerUrlQuoteBCI, "Informe", "", "", referenceId, new HashMap<>(),
+                urlBCITarifacion, "Informe", "", "", referenceId, new HashMap<>(),
                 currentDateTime, currentDateTime);
             if(logOptional.isPresent()) {
                 logDB = logOptional.get();
@@ -118,7 +118,7 @@ public class ApiBciProvider {
             HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
             
             // Puede que aquí tenga error
-            ResponseEntity<QuoteBciPojo> response = restTemplate.exchange(insurerUrlQuoteBCI, HttpMethod.POST, requestEntity, QuoteBciPojo.class);
+            ResponseEntity<QuoteBciPojo> response = restTemplate.exchange(urlBCITarifacion, HttpMethod.POST, requestEntity, QuoteBciPojo.class);
             
             // Si el código de la respuesta es correcto seguimos con la lógica, si no, retornamos un error.
             if(response.getStatusCode() == HttpStatus.OK) {

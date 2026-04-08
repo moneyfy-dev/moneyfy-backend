@@ -22,9 +22,6 @@ import com.referidos.app.segurosref.dtos.commission.CommissionDataDto;
 import com.referidos.app.segurosref.dtos.commission.CommissionPaymentDto;
 import com.referidos.app.segurosref.dtos.commission.CommissionReportDto;
 import com.referidos.app.segurosref.models.AccountModel;
-import com.referidos.app.segurosref.models.BrandDataModel;
-import com.referidos.app.segurosref.models.BrandInsurerModel;
-import com.referidos.app.segurosref.models.BrandModel;
 import com.referidos.app.segurosref.models.LogModel;
 import com.referidos.app.segurosref.models.PaymentModel;
 import com.referidos.app.segurosref.models.QuoterAddressModel;
@@ -38,7 +35,6 @@ import com.referidos.app.segurosref.models.TransactionComissionModel;
 import com.referidos.app.segurosref.models.TransactionModel;
 import com.referidos.app.segurosref.models.UserModel;
 import com.referidos.app.segurosref.models.WalletModel;
-import com.referidos.app.segurosref.repositories.BrandRepository;
 import com.referidos.app.segurosref.repositories.LogRepository;
 import com.referidos.app.segurosref.repositories.TransactionRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
@@ -48,136 +44,11 @@ import com.referidos.app.segurosref.requests.CommissionReportRequest;
 @Component 
 public class QuoterHelper {
 
-    @Value(value="${commission.cutoff-date}")
+    @Value(value="${report.commission.cutoff-date}")
     private int commissionCutoffDate;
 
-    @Value(value="${commission.payment-date}")
+    @Value(value="${report.commission.payment-date}")
     private int commissionPaymentDate;
-
-    // LÓGICA PARA ACTUALIZAR LA DATA MARCA/MODELOS EN LA BASE DE DATOS
-    public List<BrandModel> updateVehicleBrands(BrandRepository brandRepository, List<BrandModel> brands) {
-        // Recuperamos todas las marcas actuales registradas en la base de datos
-        List<BrandModel> brandsDB = brandRepository.findAll();
-        // Vamos revisando las marcas de vehículos comparando con la base de datos.
-        // 1. Si existe la marca, se revisa si tiene los ids de la marca de las aseguradoras, y si no existe la marca se genera objeto completo.
-        // 2. Si existe la marca, hay que revisar si tiene los modelos.
-        // 3. Si existe el modelo, se revisa si tiene los ids de los modelos de las aseguradoras, y si no existe el modelo se genera el objeto completo.
-        for(BrandModel brandModel : brands) {
-            String brandName = (!DataHelper.isNull(brandModel.getBrand())) ? brandModel.getBrand().trim().toUpperCase() : null;
-            List<BrandInsurerModel> insurersBrandId = brandModel.getInsurersId();
-            List<BrandDataModel> models = brandModel.getModels();
-            if(brandName == null || insurersBrandId == null || models == null) {
-                return null; // "data incorrecta"
-            }
-            boolean existBrandDB = false;
-            for(BrandModel brandDB : brandsDB) {
-                if(brandName.equals(brandDB.getBrand())) {
-                    // EXISTE LA MARCA, ahora verificamos si existen los ids de la marca de las aseguradoras en la BD
-                    existBrandDB = true;
-                    for(BrandInsurerModel insurerBrandId : insurersBrandId) {
-                        String insurerNameForBrandId = (!DataHelper.isNull(insurerBrandId.getName())) ? insurerBrandId.getName().trim() : null;
-                        insurerBrandId.setName(insurerNameForBrandId);
-                        if(insurerNameForBrandId == null) {
-                            return null; // "el nombre de la aseguradora para el id de la marca, no es válido"
-                        }
-                        boolean existsInsurerBrandId = false;
-                        for(BrandInsurerModel insurerBrandIdDB : brandDB.getInsurersId()) {
-                            String insurerNameForBrandIdDB = insurerBrandIdDB.getName();
-                            if(insurerNameForBrandId.equals(insurerNameForBrandIdDB)) {
-                                existsInsurerBrandId = true;
-                                break;
-                            }
-                        }
-                        if(!existsInsurerBrandId) { // Si no existe el id de la marca de la aseguradora en la base de datos, se agrega el objeto completo.
-                            brandDB.addInsurerBrandId(insurerBrandId);
-                        }
-                    }
-                    // EXISTE LA MARCA, y nos aseguramos de saber que los ids de la marca de las aseguradoras este en nuestra bd.
-                    // Ahora, queremos saber si existen los modelos de la marca en la BD
-                    for(BrandDataModel dataModel : models) {
-                        String modelName = (!DataHelper.isNull(dataModel.getModel())) ? dataModel.getModel().trim().toUpperCase() : null;
-                        if(modelName == null) {
-                            return null; // "el nombre del modelo de la marca, no es válido"
-                        }
-                        boolean existModelName = false;
-                        for(BrandDataModel dataModelDB : brandDB.getModels()) {
-                            String modelNameDB = dataModelDB.getModel();
-                            if(modelName.equals(modelNameDB)) {
-                                // EXISTE EL MODELO EN LA MARCA, ahora hay que verificar si están los ids del modelo de las aseguradoras en la BD.
-                                existModelName = true;
-                                for(BrandInsurerModel insurerModelId : dataModel.getInsurersId()) {
-                                    String insurerNameForModelId = (!DataHelper.isNull(insurerModelId.getName())) ? insurerModelId.getName().trim() : null;
-                                    insurerModelId.setName(insurerNameForModelId);
-                                    if(insurerNameForModelId == null) {
-                                        return null; // "el nombre de la aseguradora para el id del modelo, no es válido"
-                                    }
-                                    boolean existsInsurerModelId = false;
-                                    for(BrandInsurerModel insurerModelIdDB : dataModelDB.getInsurersId()) {
-                                        String insurerNameForModelIdDB = insurerModelIdDB.getName();
-                                        if(insurerNameForModelId.equals(insurerNameForModelIdDB)) {
-                                            existsInsurerModelId = true;
-                                            break; // Ya se verificó que existe el id del modelo de la aseguradora en la BD.
-                                        }
-                                    }
-                                    if(!existsInsurerModelId) { // Si no existe el id del modelo de la aseguradora en la base de datos, se agrega el objeto completo.
-                                        // Existe el modelo, solo que no existe el id de ese modelo, de la aseguradora.
-                                        dataModelDB.addInsurerModelId(insurerModelId);
-                                    }
-                                }
-                                // Como existe el modelo y ya se verifico que existen los ids de modelo de las asegurados, se sale del for
-                                break;
-                            }
-                        }
-                        if(!existModelName) { // No existe el modelo de la marca encontrada en la base de datos, por lo tanto, se agrega el objeto completo
-                            dataModel.setModelId(new ObjectId()); // Se le debe crear un id al modelo, para la aplicación, porque es un nuevo modelo que es agregado.
-                            dataModel.setModel(modelName);
-                            for(BrandInsurerModel insurerModelId : dataModel.getInsurersId()) { // Nos aseguramos que los nombres de las aseguradoras estén sin espacios
-                                String insurerNameForModelId = (!DataHelper.isNull(insurerModelId.getName())) ? insurerModelId.getName().trim() : null;
-                                if(insurerNameForModelId == null) {
-                                    return null; // "el nombre de la aseguradora para el id del modelo, no es válido"
-                                }
-                                insurerModelId.setName(insurerNameForModelId);
-                            }
-                            brandDB.addModel(dataModel);
-                        }
-                    }
-                    // Como sabemos que existe la marca y ya se actualizo lo que se debía de actualizar, se sale del for
-                    break;
-                }
-            }
-            // Si no se encontró la marca del vehículo, con el objeto proporcionado, se agrega el objeto a la estructura
-            // actual de la base de datos, pero, a cada uno de los modelos de la marca se le genera un id, antes de agregar
-            // el objeto, ya que, como es primera vez del ingreso de la marca, los modelos no tienen id en la aplicación
-            if(!existBrandDB) {
-                // Además, si se registra la marca, se tiene que mantener un único formato: marca/modelo, en mayúsculas y
-                // sin saltos de líneas extra, y los nombres de las aseguradoras: sin saltos extras.
-                for(BrandInsurerModel insurerBrandId : insurersBrandId) {
-                    String insurerNameForBrandId = (!DataHelper.isNull(insurerBrandId.getName())) ? insurerBrandId.getName().trim() : null;
-                    if(insurerNameForBrandId == null) {
-                        return null; // "el nombre de la aseguradora para el id de la marca, no es válido"
-                    }
-                    insurerBrandId.setName(insurerNameForBrandId);
-                }
-                for(BrandDataModel model : models) {
-                    String modelName = (!DataHelper.isNull(model.getModel())) ? model.getModel().trim().toUpperCase() : null;
-                    if(modelName == null) {
-                        return null; // "el nombre del modelo de la marca, no es válido"
-                    }
-                    model.setModelId(new ObjectId());
-                    model.setModel(modelName);
-                    for(BrandInsurerModel insurerModelId : model.getInsurersId()) {
-                        String insurerNameForModelId = (!DataHelper.isNull(insurerModelId.getName())) ? insurerModelId.getName().trim() : null;
-                        if(insurerNameForModelId == null) {
-                            return null; // "el nombre de la aseguradora para el id del modelo, no es válido"
-                        }
-                        insurerModelId.setName(insurerNameForModelId);
-                    }
-                }
-                brandsDB.add(brandModel);
-            }
-        } // FIN DEL FOR QUE ESTÁ VERIFICANDO SI EXISTE LA MARCA
-        return brandsDB;
-    }
 
     // FUNCIONES DE APOYO - DATOS DE PRUEBA - LOGICA
     public List<QuoterCarModel> vehicleList() {

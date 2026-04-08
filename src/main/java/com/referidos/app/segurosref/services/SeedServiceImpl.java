@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.helpers.SeedHelper;
@@ -23,6 +24,7 @@ import com.referidos.app.segurosref.requests.SeedRequest;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+@Service
 public class SeedServiceImpl implements SeedService {
 
     @Value(value = "${api.key.moneyfy.seed}")
@@ -60,38 +62,42 @@ public class SeedServiceImpl implements SeedService {
 
     @Override
     public ResponseEntity<?> checkCities(HttpServletRequest request, SeedRequest seedRequest) {
-        if(!this.checkApiKeyMF(request.getParameter("Api-Key-MoneyFy"))) {
+        if(!this.checkApiKeyMF(request.getHeader("Api-Key-MoneyFy"))) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
         }
-        String ciudades = seedHelper.updateCities(cityRepository, seedRequest.refreshData());
+        boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
+        String ciudades = seedHelper.updateCities(cityRepository, refreshData);
         return ResponseHelper.ok("se ha logrado hacer la petición", Map.of("ciudades", ciudades));
     }
 
     @Override
     public ResponseEntity<?> checkUsers(HttpServletRequest request, SeedRequest seedRequest) {
-        if(!this.checkApiKeyMF(request.getParameter("Api-Key-MoneyFy"))) {
+        if(!this.checkApiKeyMF(request.getHeader("Api-Key-MoneyFy"))) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
         }
-        String testUsers = seedHelper.updateTestUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, passwordEncoder, seedRequest.refreshData());
+        boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
+        String testUsers = seedHelper.updateTestUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, passwordEncoder, refreshData);
         String defaultUsers = seedHelper.updateDefaultUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, passwordEncoder);
         return ResponseHelper.ok("se ha logrado hacer la petición", Map.of("testUsers", testUsers, "defaultUsers", defaultUsers));
     }
 
     @Override
     public ResponseEntity<?> checkInsurers(HttpServletRequest request, SeedRequest seedRequest) {
-        if(!this.checkApiKeyMF(request.getParameter("Api-Key-MoneyFy"))) {
+        if(!this.checkApiKeyMF(request.getHeader("Api-Key-MoneyFy"))) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
         }
-        String insurersMF = seedHelper.updateInsurers(insurerRepository, seedRequest.refreshData());
+        boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
+        String insurersMF = seedHelper.updateInsurers(insurerRepository, refreshData);
         return ResponseHelper.ok("se ha logrado hacer la petición", Map.of("insurersMF", insurersMF));
     }
 
     @Override
     public ResponseEntity<?> checkBrands(HttpServletRequest request, SeedRequest seedRequest) {
-        if(!this.checkApiKeyMF(request.getParameter("Api-Key-MoneyFy"))) {
+        if(!this.checkApiKeyMF(request.getHeader("Api-Key-MoneyFy"))) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
         }
-        Object[] objBrands = seedHelper.updateBrands(brandRepository, seedRequest.refreshData());
+        boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
+        Object[] objBrands = seedHelper.updateBrands(brandRepository, refreshData);
         String message = (String) objBrands[0];
         @SuppressWarnings("unchecked")
         List<BrandModel> brands = (List<BrandModel>) objBrands[1];

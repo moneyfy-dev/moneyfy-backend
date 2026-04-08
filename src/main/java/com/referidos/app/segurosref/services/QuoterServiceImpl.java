@@ -110,8 +110,8 @@ public class QuoterServiceImpl implements QuoterService {
     @Autowired
     private QuoterHelper quoterHelper;
 
-    @Value(value = "${quoter.endpoint.keyword}")
-    private String quoterEndpointKeyword;
+    @Value(value = "${api.key.moneyfy.seed}")
+    private String apiKeyMoneyFy;
 
     private final int commissionUserC = 35000;
     
@@ -162,7 +162,7 @@ public class QuoterServiceImpl implements QuoterService {
 
         // Ingresar palabra clave para registrar la aseguradora
         String key = registerInsurer.key();
-        if(!DataHelper.isNull(key) && key.equals(quoterEndpointKeyword)) {
+        if(!DataHelper.isNull(key) && key.equals(apiKeyMoneyFy)) {
             InsurerModel newInsurer = new InsurerModel(name, alias, endpoint, darkLogo, lightLogo);
             insurerRepository.save(newInsurer);
             return ResponseHelper.created("aseguradora agregada", Map.of("insurer", newInsurer));
@@ -728,7 +728,7 @@ public class QuoterServiceImpl implements QuoterService {
     public ResponseEntity<?> commissionReport(CommissionReportRequest commissionReportRequest, String requestEndpoint) {
         // Revisamos si la llave de la solicitud hace match con la del backend, de otra manera, no puede seguir con la solicitud
         String key = commissionReportRequest.key();
-        if(DataHelper.isNull(key) || !key.equals(quoterEndpointKeyword)) {
+        if(DataHelper.isNull(key) || !key.equals(apiKeyMoneyFy)) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
         }
         // Obtenemos la fecha de corte y la fecha de pago
@@ -766,7 +766,7 @@ public class QuoterServiceImpl implements QuoterService {
         // Revisamos si la llave de la solicitud hace match con la del backend, de otra manera, no puede seguir con la solicitud
         String key = commissionPaymentRequest.key();
         List<CommissionPaymentDto> payments = commissionPaymentRequest.payments();
-        if(DataHelper.isNull(key) || !key.equals(quoterEndpointKeyword) || payments == null) {
+        if(DataHelper.isNull(key) || !key.equals(apiKeyMoneyFy) || payments == null) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
         }
         // Se buscan los usuarios para actualizar las comisiones que fueron pagadas (TRATAR LUEGO DE LLEVAR LA LÓGICA AL HELPER)
