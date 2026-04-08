@@ -191,7 +191,10 @@ public class UserHelper {
 
     // Lista de los usuarios por defecto
     public static List<String> defaultUsers() {
-        return List.of("nuser.random@gmail.com");
+        return List.of("nuser.random@gmail.com",
+            "gottafindshape@gmail.com",
+            "eliu.martineez@gmail.com"
+        );
     }
     // Verificar usuario por defecto
     public static boolean isDefaulUser(String emailAuth) {

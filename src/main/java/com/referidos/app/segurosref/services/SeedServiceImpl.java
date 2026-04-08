@@ -11,6 +11,7 @@ import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.helpers.SeedHelper;
 import com.referidos.app.segurosref.repositories.CityRepository;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
+import com.referidos.app.segurosref.repositories.InsurerRepository;
 import com.referidos.app.segurosref.repositories.LogRepository;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.TransactionRepository;
@@ -46,6 +47,9 @@ public class SeedServiceImpl implements SeedService {
     private LogRepository logRepository;
 
     @Autowired
+    private InsurerRepository insurerRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Override
@@ -53,8 +57,8 @@ public class SeedServiceImpl implements SeedService {
         if(!this.checkApiKeyMF(request.getParameter("Api-Key-MoneyFy"))) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
         }
-        seedHelper.updateCities(cityRepository, seedRequest.refreshData());
-        return ResponseHelper.ok("las ciudades se han actualizado", Map.of("info", "ok"));
+        String ciudades = seedHelper.updateCities(cityRepository, seedRequest.refreshData());
+        return ResponseHelper.ok("se ha logrado hacer la petición", Map.of("ciudades", ciudades));
     }
 
     @Override
@@ -63,7 +67,17 @@ public class SeedServiceImpl implements SeedService {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
         }
         String testUsers = seedHelper.updateTestUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, passwordEncoder, seedRequest.refreshData());
-        return ResponseHelper.ok("se ha logrado hacer la petición", Map.of("testUsers", testUsers));
+        String defaultUsers = seedHelper.updateDefaultUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, passwordEncoder);
+        return ResponseHelper.ok("se ha logrado hacer la petición", Map.of("testUsers", testUsers, "defaultUsers", defaultUsers));
+    }
+
+    @Override
+    public ResponseEntity<?> checkInsurers(HttpServletRequest request, SeedRequest seedRequest) {
+        if(!this.checkApiKeyMF(request.getParameter("Api-Key-MoneyFy"))) {
+            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        }
+        String insurersMF = seedHelper.updateInsurers(insurerRepository, seedRequest.refreshData());
+        return ResponseHelper.ok("se ha logrado hacer la petición", Map.of("insurersMF", insurersMF));
     }
 
     private boolean checkApiKeyMF(String apiKeyParameter) {

@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -21,6 +20,7 @@ import com.referidos.app.segurosref.configs.JwtConfig;
 import com.referidos.app.segurosref.models.AccountModel;
 import com.referidos.app.segurosref.models.CityModel;
 import com.referidos.app.segurosref.models.DeviceModel;
+import com.referidos.app.segurosref.models.InsurerModel;
 import com.referidos.app.segurosref.models.LogModel;
 import com.referidos.app.segurosref.models.NotificationModel;
 import com.referidos.app.segurosref.models.QuoterAddressModel;
@@ -38,6 +38,7 @@ import com.referidos.app.segurosref.models.UserModel;
 import com.referidos.app.segurosref.models.WalletModel;
 import com.referidos.app.segurosref.repositories.CityRepository;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
+import com.referidos.app.segurosref.repositories.InsurerRepository;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.TransactionRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
@@ -45,23 +46,31 @@ import com.referidos.app.segurosref.repositories.UserRepository;
 @Component
 public class SeedHelper {
 
-    // Ver si se puede ajustar
-    @Autowired
-    private UserHelper userHelper;
+    private static String INSURER_DARK_TEMPLATE =
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 120 40\">"
+            + "<rect width=\"120\" height=\"40\" rx=\"8\" fill=\"#111827\"/>"
+            + "<text x=\"60\" y=\"25\" font-size=\"12\" text-anchor=\"middle\" fill=\"#ffffff\">%s</text>"
+            + "</svg>";
+
+    private static String INSURER_LIGHT_TEMPLATE =
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 120 40\">"
+            + "<rect width=\"120\" height=\"40\" rx=\"8\" fill=\"#f3f4f6\" stroke=\"#d1d5db\"/>"
+            + "<text x=\"60\" y=\"25\" font-size=\"12\" text-anchor=\"middle\" fill=\"#111827\">%s</text>"
+            + "</svg>";
 
     // Actualizar las ciudades de la base de datos
     @SuppressWarnings("null")
-    public void updateCities(CityRepository cityRepository, boolean refreshData) {
+    public String updateCities(CityRepository cityRepository, boolean refreshData) {
         List<CityModel> citiesDB = cityRepository.findAll();
         List<CityModel> cities = this.buildCities();
         if(citiesDB.isEmpty()) {
             cityRepository.saveAll(cities);
-            return;
+            return "Las ciudades se han registrado";
         }
         if(refreshData) {
             cityRepository.deleteAll();
             cityRepository.saveAll(cities);
-            return;
+            return "Las ciudades se han vuelto a registrar";
         }
         // Hay ciudades en la BD actual, y se actualiza en relación a las ciudades del método 'buildCities()'
         for(CityModel city : cities) {
@@ -93,8 +102,10 @@ public class SeedHelper {
             }
         }
         cityRepository.saveAll(citiesDB);
+        return "Las ciudades se han actualizado";
     }
 
+    // Lista de ciudades para inyectar en la DB, en caso de no estar
     private List<CityModel> buildCities() {
         List<CityModel> cityList = new ArrayList<>();
         cityList.add(new CityModel("Arica").addLocation("Arica").addLocation("Camarones"));
@@ -156,11 +167,15 @@ public class SeedHelper {
         return cityList;
     }
 
-    // Función para registrar usuarios de prueba
+    // Registrar usuarios de prueba
     @Transactional
     public String updateTestUsers(UserRepository userRepository, ReferredRepository referredRepository, DeviceRepository deviceRepository,
             TransactionRepository transactionRepository, LogRepository logRepository, PasswordEncoder pwdEncoder, boolean refreshData) {
         // Data general para realizar proceso de registro
+        List<String> testUsers = UserHelper.testUsers();
+        if(testUsers == null || testUsers.isEmpty()) {
+            return "usuarios de prueba incorrectos";
+        }
         List<UserModel> createUsers = new ArrayList<>();
         List<ReferredModel> createReferreds = new ArrayList<>();
         LocalDate deprecatedDate = DataHelper.deprecatedDate();
@@ -168,13 +183,13 @@ public class SeedHelper {
         LocalDateTime currentDate = LocalDateTime.now();
         // Revisamos si se quiere eliminar la data completa para volver a registrarla
         if(refreshData) {
-            for(String user : UserHelper.testUsers()) {
+            for(String user : testUsers) {
                 Optional<UserModel> optionalUser = userRepository.findByPersonalData_Email(user);
                 if(optionalUser.isPresent()) {
-                    this.deleteUserTestRegisters(optionalUser.get(), userRepository, referredRepository, deviceRepository,
+                    this.deleteUserAndDependencies(optionalUser.get(), userRepository, referredRepository, deviceRepository,
                             transactionRepository, logRepository);
                 }
-                Object[] obj = createTestUser(user, userRepository, pwdEncoder, deprecatedDate, deprecatedDateTime, currentDate);
+                Object[] obj = createTestUserStructure(user, userRepository, pwdEncoder, deprecatedDate, deprecatedDateTime, currentDate);
                 if(obj != null) {
                     createUsers.add((UserModel) obj[0]);
                     createReferreds.add((ReferredModel) obj[1]);
@@ -189,7 +204,7 @@ public class SeedHelper {
         // Banderas para mensajes
         boolean existUsers = false;
         boolean novaUsers = false;
-        for(String user : UserHelper.testUsers()) {
+        for(String user : testUsers) {
             Object[] obj = null; // Nos permite ir almacenando los registros, que van hacer incluidos en la BD, en caso de no haber errores.
             boolean buildStructure = false;
             Optional<UserModel> optionalUser = userRepository.findByPersonalData_Email(user);
@@ -201,15 +216,14 @@ public class SeedHelper {
                 } else {
                     // El usuario de prueba siempre debe estar activado, por lo cual, se eliminan sus registros
                     // relacionados y se vuelve a crear como 'Activado'
-                    this.deleteUserTestRegisters(userDB, userRepository, referredRepository, deviceRepository,
-                        transactionRepository, logRepository);
+                    this.deleteUserAndDependencies(userDB, userRepository, referredRepository, deviceRepository, transactionRepository, logRepository);
                     // Se crea el usuario de prueba nuevamente
-                    obj = this.createTestUser(user, userRepository, pwdEncoder, deprecatedDate, deprecatedDateTime, currentDate);
+                    obj = this.createTestUserStructure(user, userRepository, pwdEncoder, deprecatedDate, deprecatedDateTime, currentDate);
                     novaUsers = true;
                     buildStructure = true;
                 }
             } else {
-                obj = createTestUser(user, userRepository, pwdEncoder, deprecatedDate, deprecatedDateTime, currentDate);
+                obj = createTestUserStructure(user, userRepository, pwdEncoder, deprecatedDate, deprecatedDateTime, currentDate);
                 novaUsers = true;
                 buildStructure = true;
             }
@@ -224,13 +238,11 @@ public class SeedHelper {
                 }
             }
         }
-
         // Se registran los usuarios, si no hubo error
         if(createUsers.size() > 0 && createReferreds.size() > 0) {
             userRepository.saveAll(createUsers);
             referredRepository.saveAll(createReferreds);
         }
-
         if(novaUsers && !existUsers) {
             return "se han registrados los usuarios de prueba";
         } else if(!novaUsers && existUsers) {
@@ -242,9 +254,9 @@ public class SeedHelper {
         }
     }
 
-    // Eliminar registros dependicientes del usuario de prueba
+    // Eliminar registros dependicientes para los usuarios de prueba o usuarios por defecto
     @SuppressWarnings("null")
-    private void deleteUserTestRegisters(UserModel userDB, UserRepository userRepository, ReferredRepository referredRepository,
+    private void deleteUserAndDependencies(UserModel userDB, UserRepository userRepository, ReferredRepository referredRepository,
             DeviceRepository deviceRepository, TransactionRepository transactionRepository,
             LogRepository logRepository) {
         String userEmail = userDB.getPersonalData().getEmail();
@@ -281,7 +293,7 @@ public class SeedHelper {
             } else {
                 for(TransactionComissionModel comission : userTransaction.getCommissions()) {
                     if(comission.getUserId().equals(userId)) {
-                        comission.setUserId("Usuario de Prueba");
+                        comission.setUserId("Usuario de App");
                         updateTransactions.add(userTransaction);
                         break;
                     }
@@ -292,9 +304,9 @@ public class SeedHelper {
         transactionRepository.saveAll(updateTransactions);
         userRepository.delete(userDB);
     }
-    
+
     // Crear estructura de un usuario de prueba
-    private Object[] createTestUser(String user, UserRepository userRepository, PasswordEncoder pwdEncoder,
+    private Object[] createTestUserStructure(String user, UserRepository userRepository, PasswordEncoder pwdEncoder,
             LocalDate deprecatedDate, LocalDateTime deprecatedDateTime, LocalDateTime currentDate) {
         try {
             String sessionToken = JwtConfig.createSessionToken(user, Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")));
@@ -318,43 +330,40 @@ public class SeedHelper {
         return null;
     }
 
-    // FUNCIÓN PARA REGISTRAR USUARIOS POR DEFECTO
+    // Registrar usuarios por defecto
     @Transactional
-    public String seedDefaultUsers(UserRepository userRepository, ReferredRepository referredRepository,
-            DeviceRepository deviceRepository, TransactionRepository transactionRepository,
+    public String updateDefaultUsers(UserRepository userRepository, ReferredRepository referredRepository,
+            DeviceRepository deviceRepository, TransactionRepository transactionRepository, LogRepository logRepository,
             PasswordEncoder pwdEncoder) {
-        // Obtenemos los usuarios por defectos
+        // Obtenemos los usuarios por defectos y revisamos que haya valores correctos
         List<String> defaultUsers = UserHelper.defaultUsers();
-        
         if(defaultUsers == null || defaultUsers.size() != 3) {
             return "usuarios por defectos incorrectos";
         }
-        
         String defaultUser1 = defaultUsers.get(0);
         String defaultUser2 = defaultUsers.get(1);
         String defaultUser3 = defaultUsers.get(2);
-        
         if(defaultUser1 == null || defaultUser2 == null || defaultUser3 == null) {
-            return "usuario por defecto 'null'";
+            return "usuarios por defecto 'null'";
         }
-        
         // Obtenemos data necesaria
         List<UserModel> createUsers = new ArrayList<>();
         List<ReferredModel> createReferreds = new ArrayList<>();
         List<TransactionModel> createTransactions = new ArrayList<>();
         LocalDateTime currentDate = LocalDateTime.now();
+        LocalDate deprecatedDate = DataHelper.deprecatedDate();
         LocalDateTime deprecatedDateTime = DataHelper.deprecatedDateTime();
         boolean repeatedCodes = true;
-
-        // PRIMERO SE CREAN LOS USUARIOS DE PRUEBA
+        // Se crea los objetos sin instanciar
         UserModel user1;
         UserModel user2;
         UserModel user3;
         do {
-            // Creamos el primer usuario, sin ser referido
+            // Creamos el primer usuario sin ser referido y los usuarios en caso de existir se eliminan solo
+            // si estos no están activados, caso contrario no es posible eliminarlos y se retorna el mensaje
             Object[] obj1 = this.buildDefaultUser(defaultUser1, "Sin usuario", "Sin usuario",
-                    userRepository, deviceRepository, referredRepository, pwdEncoder,
-                    deprecatedDateTime, currentDate);
+                    userRepository, deviceRepository, referredRepository, transactionRepository, logRepository,
+                    pwdEncoder, currentDate, deprecatedDate, deprecatedDateTime);
             String message1 = (String) obj1[2];
             if(!message1.equals("Estructura Creada")) {
                 return message1;
@@ -363,10 +372,10 @@ public class SeedHelper {
             String codeToRefferUser1 = user1.getCodeToRefer();
             UserDataModel userData1 = user1.getPersonalData();
             ReferredModel referred1 = (ReferredModel) obj1[1];
-
             // Creamos el segundo usuario, referido por el primero
             Object[] obj2 = this.buildDefaultUser(defaultUser2, userData1.getEmail(), codeToRefferUser1, userRepository,
-                    deviceRepository, referredRepository, pwdEncoder, deprecatedDateTime, currentDate);
+                    deviceRepository, referredRepository, transactionRepository, logRepository, pwdEncoder, currentDate,
+                    deprecatedDate, deprecatedDateTime);
             String message2 = (String) obj2[2];
             if(!message2.equals("Estructura Creada")) {
                 return message2;
@@ -375,10 +384,10 @@ public class SeedHelper {
             String codeToRefferUser2 = user2.getCodeToRefer();
             UserDataModel userData2 = user2.getPersonalData();
             ReferredModel referred2 = (ReferredModel) obj2[1];
-
             // Creamos el tercer usuario, referido por el segundo
             Object[] obj3 = this.buildDefaultUser(defaultUser3, userData2.getEmail(), codeToRefferUser2, userRepository,
-                    deviceRepository, referredRepository, pwdEncoder, deprecatedDateTime, currentDate);
+                    deviceRepository, referredRepository, transactionRepository, logRepository, pwdEncoder, currentDate,
+                    deprecatedDate, deprecatedDateTime);
             String message3 = (String) obj3[2];
             if(!message3.equals("Estructura Creada")) {
                 return message3;
@@ -386,23 +395,17 @@ public class SeedHelper {
             user3 = (UserModel) obj3[0];
             String codeToRefferUser3 = user3.getCodeToRefer();
             ReferredModel referred3 = (ReferredModel) obj3[1];
-
+            // Verficamos que no se repiten los códigos de los usuarios
             if(codeToRefferUser1 != codeToRefferUser2 && codeToRefferUser1 != codeToRefferUser3 && codeToRefferUser2 != codeToRefferUser3) {
-                // No se repiten los códigos se pueden crear todos los registros
                 repeatedCodes = false;
-
                 createUsers.add(user1);
                 createUsers.add(user2);
                 createUsers.add(user3);
-
                 createReferreds.add(referred1);
                 createReferreds.add(referred2);
                 createReferreds.add(referred3);
-                
             }
-
         } while(repeatedCodes);
-
         // No hubo error y se tiene la estructura de los 3 usuarios por defectos, ahora se deben crear sus comisiones
         createTransactions.add(this.generateTransaction(null, null, user1, "Aprobado", currentDate));
         createTransactions.add(this.generateTransaction(null, null, user1, "Aprobado", currentDate));
@@ -428,75 +431,51 @@ public class SeedHelper {
         createTransactions.add(this.generateTransaction(user1, user2, user3, "Rechazado", currentDate));
         createTransactions.add(this.generateTransaction(user1, user2, user3, "Caducado", currentDate));
         createTransactions.add(this.generateTransaction(user1, user2, user3, "Caducado", currentDate));
-
         // Cuando se haya incluido toda la data se guardan todos los datos
         userRepository.saveAll(createUsers);
         referredRepository.saveAll(createReferreds);
         transactionRepository.saveAll(createTransactions);
-
         return "se han generado los usuarios por defecto";
     }
 
-    // Verificar si el usuario por defecto ya existe o no es correcto, o se creo la estructura
-    private Object[] buildDefaultUser(String defaultUser, String userReferring, String referredCode,
-            UserRepository userRepository, DeviceRepository deviceRepository, ReferredRepository referredRepository,
-            PasswordEncoder pwdEncoder, LocalDateTime deprecatedDateTime, LocalDateTime currentDate) {
+    // Verificar si el usuario por defecto es posible crearlo
+    private Object[] buildDefaultUser(String defaultUser, String userReferring, String referredCode, UserRepository userRepository,
+            DeviceRepository deviceRepository, ReferredRepository referredRepository, TransactionRepository transactionRepository, LogRepository logRepository,
+            PasswordEncoder pwdEncoder, LocalDateTime currentDate, LocalDate deprecatedDate, LocalDateTime deprecatedDateTime) {
         Object[] obj;
         Optional<UserModel> optionalUser = userRepository.findByPersonalData_Email(defaultUser);
         if(optionalUser.isPresent()) {
             UserModel userDB = optionalUser.get();
             UserDataModel userDataDB = userDB.getPersonalData();
-            switch(userDataDB.getStatus()) {
-                case "Activado" -> {
-                    return new Object[] {"", "", "usuario por defecto se encuentra creado"};
-                }
-                case "Desactivado" -> {
-                    if(!userDataDB.getSessionToken().equals("") && !userDataDB.getRefreshToken().equals("")) {
-                        // Tiene tokens, hay que ver si se puede eliminar el usuario => como makeUserObsolet
-                        if(userHelper.makeUserObsolete(userRepository, deviceRepository, referredRepository, userDB)) {
-                            obj = this.createDefaultUser(defaultUser, userRepository, pwdEncoder, userReferring,
-                                    referredCode, deprecatedDateTime, currentDate);
-                        } else {
-                            return new Object[] {"", "", "usuario por defecto se encuentra creado"};
-                        }
-                    } else {
-                        // Usuario no confirmado, se puede eliminar y luego se crea el usuario por defecto
-                        Optional<ReferredModel> optionalReferred = referredRepository.findByReferred(userDataDB.getEmail());
-                        if(optionalReferred.isPresent()) {
-                            referredRepository.delete(optionalReferred.get());
-                        }
-                        userRepository.delete(userDB);
-                        obj = this.createDefaultUser(defaultUser, userRepository, pwdEncoder, userReferring,
-                                referredCode, deprecatedDateTime, currentDate);
-                    }
-                    break;
-                }
-                default -> {
-                    return new Object[] {"", "", "el estado del usuario por defecto, no es válido y no es posible registrarlo"};
-                }
+            if(userDataDB.getStatus().equals("Activado")) {
+                return new Object[] {"", "", "usuario por defecto se encuentra creado: ".concat(defaultUser)};
+            } else {
+                this.deleteUserAndDependencies(userDB, userRepository, referredRepository, deviceRepository, transactionRepository, logRepository);
+                obj = this.createDefaultUserStructure(defaultUser, userReferring, referredCode, userRepository, pwdEncoder,
+                    currentDate, deprecatedDate, deprecatedDateTime);
             }
         } else {
-            obj = this.createDefaultUser(defaultUser, userRepository, pwdEncoder, userReferring, referredCode,
-                    deprecatedDateTime, currentDate);
+            obj = this.createDefaultUserStructure(defaultUser, userReferring, referredCode, userRepository, pwdEncoder,
+                    currentDate, deprecatedDate, deprecatedDateTime);
         }
         if(obj == null) {
-            return new Object[] {"", "", "no es posible registrar el usuario por defecto"};
+            return new Object[] {"", "", "no es posible registrar el usuario por defecto: ".concat(defaultUser)};
         }
         return new Object[] {obj[0], obj[1], "Estructura Creada"};
     }
 
-    // REGISTRAR UN USUARIO POR DEFECTO
-    private Object[] createDefaultUser(String user, UserRepository userRepository, PasswordEncoder pwdEncoder,
-            String userReferring, String referredCode, LocalDateTime deprecatedDateTime, LocalDateTime currentDate) {
+    // Crear la estructura de usuario por defecto
+    private Object[] createDefaultUserStructure(String user, String userReferring, String referredCode, UserRepository userRepository,
+            PasswordEncoder pwdEncoder, LocalDateTime currentDate, LocalDate deprecatedDate, LocalDateTime deprecatedDateTime) {
         try {
             String sessionToken = JwtConfig.createSessionToken(user, Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")));
             String refreshToken = JwtConfig.createRefreshToken(user);
             String codeToRefer = DataHelper.generateCodeToRefer(userRepository);
             UserDataModel userData = new UserDataModel("Default", "User", user, "", "",
-                    DataHelper.deprecatedDate(), "Activado", new byte[0], pwdEncoder.encode("123123123aA#"), "",
+                    deprecatedDate, "Activado", new byte[0], pwdEncoder.encode("Testing_123"), "",
                     "ROLE_USER", "", deprecatedDateTime, sessionToken, refreshToken);
             WalletModel userWallet = new WalletModel(0, 0, 0, 0);
-            NotificationModel userNotifs = new NotificationModel(false, true, true,
+            NotificationModel userNotifs = new NotificationModel(true, true, true,
                     false, false, true, false, false, false, new ArrayList<>());
             // Creamos la estructura del usuario 'seeder'
             UserModel novaUser = new UserModel(codeToRefer, deprecatedDateTime, userData, userWallet, userNotifs);
@@ -570,11 +549,11 @@ public class SeedHelper {
         return novaTransaction;
     }
 
-    // Creamos una cuenta bancaria predeterminada, a un usuario que no tenga cuenta
+    // Creamos una cuenta bancaria predeterminada a un usuario de prueba o por defecto que no tenga cuenta
     private AccountModel createUserBankAccount(UserModel user, LocalDateTime currentDate, int option) {
         ObjectId objectId = new ObjectId();
-        String holderName = "Default User HD";
-        String email = "default.user.hd@gmail.com";
+        String holderName = "Default User";
+        String email = user.getPersonalData().getEmail();
         switch (option) {
             case 1 -> {
                 return new AccountModel(objectId, "11.111.111-1", holderName, "Bco Estado", email,
@@ -594,17 +573,56 @@ public class SeedHelper {
         }
     }
 
-    // Creamos una cotización nueva para el usuario
+    // Creamos una cotización nueva para un usuario de prueba o por defecto
     private QuoterModel createUserQuote(String transactionStatus, LocalDateTime currentTime) {
         ObjectId objectId = new ObjectId();
         QuoterOwnerModel ownerData = new QuoterOwnerModel("11.111.111-1", "Propietario", "Default", "HD");
         QuoterCarModel carData = new QuoterCarModel("JKLW99", "OPEL", "CORSA", "2023", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis");
-        QuoterPurchaserModel purchaserData = new QuoterPurchaserModel("55.555.555-5", "Comprador", "Default", "HD", "comprador.default@gmail.com", "+56912345678", "2");
+        QuoterPurchaserModel purchaserData = new QuoterPurchaserModel("55.555.555-5", "Comprador", "Default", "HD", "comprador.default.hd314@gmail.com", "+56912345678", "2");
         QuoterPlanModel planData = new QuoterPlanModel("22000653_5", "BCI", "SOLUCION MOVIL 2.0", 38367.06, 45.98, 11, 4.18, 160374.0, 10, 0.0);
         QuoterAddressModel addressData = new QuoterAddressModel("Calle Default", "55#A", "");
         QuoterPaymentModel paymentData = new QuoterPaymentModel("", "", "", "");
-
         return new QuoterModel(objectId, transactionStatus, ownerData, carData, purchaserData, planData, addressData, paymentData, currentTime, currentTime);
+    }
+
+    // Función para actualizar las aseguradoras de la app
+    @Transactional
+    public String updateInsurers(InsurerRepository insurerRepository, boolean refreshData) {
+        List<InsurerModel> insurers = this.buildInsurers();
+        if(refreshData) {
+            insurerRepository.deleteAll();
+            if(insurers.size() > 0) {
+                insurerRepository.saveAll(insurers);
+            }
+            return "Las aseguradoras se han vuelto a crear";
+        }
+        for(InsurerModel insurer : insurers) {
+            if(!insurerRepository.existsByNameOrAlias(insurer.getName(), insurer.getAlias())) {
+                insurerRepository.save(insurer);
+            }
+        }
+        return "Las aseguradoras se han actualizado";
+    }
+
+    // Construimos las aseguradoras de la app
+    private List<InsurerModel> buildInsurers() {
+        List<InsurerModel> insurers = new ArrayList<>(); 
+        InsurerModel insurer1 = new InsurerModel("Tractor Seguros Automotriz", "aseguradora1",
+            "", String.format(INSURER_DARK_TEMPLATE, "TRACTOR"), String.format(INSURER_LIGHT_TEMPLATE,"TRACTOR"));
+        insurers.add(insurer1);
+        InsurerModel insurer2 = new InsurerModel("Seguros Alameda", "aseguradora2",
+            "", String.format(INSURER_DARK_TEMPLATE, "ALAMEDA"), String.format(INSURER_LIGHT_TEMPLATE,"ALAMEDA"));
+        insurers.add(insurer2);
+        InsurerModel insurer3 = new InsurerModel("Los Alamos Seguros Automotriz", "aseguradora3",
+            "", String.format(INSURER_DARK_TEMPLATE, "ALAMOS"), String.format(INSURER_LIGHT_TEMPLATE,"ALAMOS"));
+        insurers.add(insurer3);
+        InsurerModel insurer4 = new InsurerModel("BCI", "aseguradora4",
+            "", String.format(INSURER_DARK_TEMPLATE, "BCI"), String.format(INSURER_LIGHT_TEMPLATE,"BCI"));
+        insurers.add(insurer4);
+        InsurerModel insurer5 = new InsurerModel("FDI Seguros", "aseguradora5",
+            "", String.format(INSURER_DARK_TEMPLATE, "FDI"), String.format(INSURER_LIGHT_TEMPLATE,"FDI"));
+        insurers.add(insurer5);
+        return insurers;
     }
 
 }
