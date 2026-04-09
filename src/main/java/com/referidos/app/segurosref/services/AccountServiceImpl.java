@@ -38,12 +38,12 @@ public class AccountServiceImpl implements AccountService {
         // Verificar que no exista una cuenta bancaria con el mismo rut, banco, tipo de cuenta y número de cuenta.
         // En caso de no existir, quitar la selección de la cuenta principal (solo se actualiza, si no existe error).
         String personalId = account.personalId();
-        String holderName = account.holderName().trim(); // CON TRIM() INCLUIDO (permite saltos en línea)
-        String alias = DataHelper.isNull(account.alias()) ? "" : account.alias().trim(); // CON TRIM() INCLUIDO (permite saltos en línea) - dato opcional
+        String holderName = account.holderName().strip(); // Usamos strip() para quitar espacios al inicio y final
+        String alias = DataHelper.isNull(account.alias()) ? "" : account.alias().strip(); // Usamos strip() para quitar espacios al inicio y final - dato opcional
         String email = account.email();
         String bank = account.bank();
         String accountType = account.accountType();
-        String accountNumber = account.accountNumber().trim(); // CON TRIM() INCLUIDO
+        String accountNumber = account.accountNumber().strip(); // Usamos strip() para quitar espacios al inicio y final
         for(AccountModel accountDB : accounts) {
             if(accountDB.getPersonalId().equals(personalId) && accountDB.getBank().equals(bank) &&
                     accountDB.getAccountType().equals(accountType) && accountDB.getAccountNumber().equals(accountNumber)) {
@@ -52,12 +52,11 @@ public class AccountServiceImpl implements AccountService {
             accountDB.setSelected(false);
         }
 
-        // Nueva cuenta seleccionada por defecto
+        // Nueva cuenta seleccionada por defecto y se actualiza el usuario y por ende su nueva cuenta
         LocalDateTime currenTime = LocalDateTime.now();
         AccountModel newAccount = new AccountModel(new ObjectId(), personalId, holderName, alias, email, bank,
                 accountType, accountNumber, true, currenTime, currenTime);
         userDB.addAccount(newAccount);
-        // (IMPORTANTE: se obtienen los valores por referencia, asi que solo hay que actualizar el usuario)
         userDB = userRepository.save(userDB);
 
         return ResponseHelper.created(
@@ -73,13 +72,13 @@ public class AccountServiceImpl implements AccountService {
         for(AccountModel accountDB : accounts) {
             if(account.accountId().equals(accountDB.getAccountId())) {
                 accountDB.setPersonalId(account.personalId());
-                accountDB.setHolderName(account.holderName().trim()); // CON TRIM() INCLUIDO (permite saltos en línea)
+                accountDB.setHolderName(account.holderName().strip()); // Usamos strip() para quitar espacios al inicio y final
                 accountDB.setEmail(account.email());
                 accountDB.setBank(account.bank());
                 accountDB.setAccountType(account.accountType());
-                accountDB.setAccountNumber(account.accountNumber().trim()); // CON TRIM() INCLUIDO (no permite saltos en línea)
+                accountDB.setAccountNumber(account.accountNumber().strip()); // Usamos strip() para quitar espacios al inicio y final
 
-                String alias = DataHelper.isNull(account.alias()) ? "" : account.alias().trim(); // CON TRIM() INCLUIDO (permite saltos en línea) - dato opcional
+                String alias = DataHelper.isNull(account.alias()) ? "" : account.alias().strip(); // Usamos strip() para quitar espacios al inicio y final - dato opcional
                 accountDB.setAlias(alias);
                 accountDB.setUpdatedDate(LocalDateTime.now());
                 userDB = userRepository.save(userDB);
@@ -120,6 +119,7 @@ public class AccountServiceImpl implements AccountService {
     public ResponseEntity<GeneralResponses> select(String accountId, String emailAuth) {
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         List<AccountModel> accounts = userDB.getAccounts();
+        LocalDateTime currentTime = LocalDateTime.now();
         boolean found = false;
 
         for(AccountModel accountDB : accounts) {
@@ -130,11 +130,11 @@ public class AccountServiceImpl implements AccountService {
                             DataHelper.buildUser(userDB));
                 }
                 accountDB.setSelected(true);
-                accountDB.setUpdatedDate(LocalDateTime.now());
+                accountDB.setUpdatedDate(currentTime);
                 found = true; // No sale del bucle, ya que tiene que dejar las otras cuentas en => false
             } else {
                 accountDB.setSelected(false);
-                accountDB.setUpdatedDate(LocalDateTime.now());
+                accountDB.setUpdatedDate(currentTime);
             }
         }
 

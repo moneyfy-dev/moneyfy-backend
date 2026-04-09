@@ -24,7 +24,6 @@ import com.referidos.app.segurosref.configs.filters.DeviceValidationFilter;
 import com.referidos.app.segurosref.configs.filters.JwtValidationFilter;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
-import com.referidos.app.segurosref.repositories.WhiteListRepository;
 
 import java.util.Arrays;
 
@@ -45,13 +44,14 @@ public class SecurityConfig {
             .securityMatcher(
                 "/",
                 "/auth/**",
+                "/seed/**",
                 "/swagger-ui.html",
                 "/swagger-ui/**",
                 "/v3/api-docs/**"
             )
             .csrf(csrf -> csrf.disable())
             .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .cors(cors -> cors.configurationSource(this.corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
                 .anyRequest().permitAll()
             )
@@ -66,7 +66,7 @@ public class SecurityConfig {
         return http
             .csrf(csrf -> csrf.disable())
             .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .cors(cors -> cors.configurationSource(this.corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
                 .anyRequest().authenticated()
             )
@@ -84,10 +84,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public DeviceValidationFilter deviceValidationFilter(
-            WhiteListRepository whiteListRepository,
-            DeviceRepository deviceRepository) {
-        return new DeviceValidationFilter(whiteListRepository, deviceRepository);
+    public DeviceValidationFilter deviceValidationFilter() {
+        return new DeviceValidationFilter();
     }
 
     @Bean
@@ -108,7 +106,7 @@ public class SecurityConfig {
                 "exp://*"
         ));
         cors.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        cors.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Refresh-Token", "Origin"));
+        cors.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Refresh-Token", "Origin", "User-Agent"));
         cors.setAllowCredentials(true);
 
         // Creamos la instancia del objeto que implementa la interfaz Cors... y entregamos las
@@ -121,7 +119,8 @@ public class SecurityConfig {
 
     @Bean
     public FilterRegistrationBean<CorsFilter> corsFilter() {
-        FilterRegistrationBean<CorsFilter> corsFilter = new FilterRegistrationBean<>(new CorsFilter(corsConfigurationSource()));
+        @SuppressWarnings("null")
+        FilterRegistrationBean<CorsFilter> corsFilter = new FilterRegistrationBean<>(new CorsFilter(this.corsConfigurationSource()));
         corsFilter.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return corsFilter;
     }

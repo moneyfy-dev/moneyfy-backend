@@ -54,12 +54,6 @@ public class EmailServiceProvider {
     @Value(value = "${mail.template.auth-code}")
     private String templateAuthCode;
 
-    @Value(value = "${mail.subject.security-code}")
-    private String subjectSecurityCode;
-
-    @Value(value = "${mail.template.security-code}")
-    private String templateSecurityCode;
-
     @Value(value = "${mail.subject.user-account-activated}")
     private String subjectUserAccountActivated;
 
@@ -282,6 +276,7 @@ public class EmailServiceProvider {
         }
     }
 
+    @SuppressWarnings("null")
     private void sendEmail(String[] toUsers, String subject, Map<String, Object> templateData, String htmlTemplate) throws Exception {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -324,6 +319,7 @@ public class EmailServiceProvider {
         return templateData;
     }
 
+    @SuppressWarnings("null")
     private void testEmail(String[] toUsers, String subject, String message) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -367,19 +363,5 @@ public class EmailServiceProvider {
         sb.append("\n\nEste es un mensaje automático, por favor no lo responda.");
         return sb.toString();
     }
-
-    // CÓDIGO PROPUESTO PARA MAYOR SEGURIDAD - NO IMPLEMENTADO
-    // public void sendSecurityCodeToUser(String[] toUsers, List<String> securityCodes) {
-    //     try {
-    //         this.sendEmail(toUsers, subjectSecurityCode, Map.of("codes", securityCodes), templateSecurityCode);
-    //     } catch(Exception e) {
-    //         StringBuilder sb = new StringBuilder("Se han creado tus códigos de seguridad exitosamente. Estos te permitirán realizar procesos relevantes de la aplicación, agregando una capa más de seguridad a tu cuenta. Una vez que utilices alguno de ellos y finalices un proceso, no podrás volver a utilizar el mismo código.");
-    //         sb.append("\n\nAsegúrate de mantenerlos a salvo:\n\n");
-    //         for(String code : securityCodes) {
-    //             sb.append(code).append("\n");
-    //         }
-    //         this.testEmail(toUsers, subjectSecurityCode, sb.toString());
-    //     }
-    // }
 
 }

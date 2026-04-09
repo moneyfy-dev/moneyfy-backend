@@ -30,6 +30,7 @@ public class PlanServiceImpl implements PlanService {
     @Autowired
     private UserRepository userRepository;
 
+    // Servicio para enconotrar plan realizado en un una cotización y para que el frotend lo pueda volver a cargar
     @Transactional(readOnly = true)
     @Override
     public ResponseEntity<?> findPlanById(String emailAuth, String planId) {
@@ -38,12 +39,13 @@ public class PlanServiceImpl implements PlanService {
             return ResponseHelper.failedDependency("el id del plan es nulo", null);
         }
         // Buscamos un plan por id, y si se encuentra lo guardamos en una lista para mantener una estructura correcta.
+        @SuppressWarnings("null")
         Optional<PlanModel> optionalPlan = planRepository.findById(planId);
-        List<PlanModel> planInList = new ArrayList<>();
         if(optionalPlan.isPresent()) {
+            List<PlanModel> planInList = new ArrayList<>();
             PlanModel planDB = optionalPlan.get();
+            // Agregamos el plan encontrado en una lista, porque el fronted recibe los planes con estructura de arreglo
             planInList.add(planDB);
-            // Ya que agregamos el plan en la lista, ahora buscamos la aseguradora del plan
             String insurerName = planDB.getInsurer();
             Optional<InsurerModel> optionalInsurer = insurerRepository.findByName(insurerName);
             if(optionalInsurer.isPresent()) {

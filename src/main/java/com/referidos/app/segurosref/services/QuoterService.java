@@ -3,27 +3,21 @@ package com.referidos.app.segurosref.services;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 
-import com.referidos.app.segurosref.requests.VehicleBrandRequest;
 import com.referidos.app.segurosref.requests.CommissionPaymentRequest;
 import com.referidos.app.segurosref.requests.CommissionReportRequest;
 import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
 import com.referidos.app.segurosref.requests.GenerateTransactionRequest;
 import com.referidos.app.segurosref.requests.SelectPlanRequest;
-import com.referidos.app.segurosref.requests.RegisterInsurerRequest;
 import com.referidos.app.segurosref.requests.SearchVehicleRequest;
 import com.referidos.app.segurosref.requests.SearchPlanRequest;
 
 public interface QuoterService {
 
-    // SERVICIOS PARA INGRESAR O BUSCAR DATA RELACIONADA A LA MARCA/MODELOS DE UN VEHÍCULO PARA REALIZAR LAS COTIZACIONES
-    ResponseEntity<?> registerVehicleBrands(VehicleBrandRequest vehicleBrands);
+    // Servicio para buscar marcas/modelos registrados
     ResponseEntity<?> searchVehicleBrands(String emailAuth);
-
-    // SERVICIOS PARA INGRESAR O BUSCAR ASEGURADORAS QUE PROVEEN DE LOS PLANES PARA REALIZAR LAS COTIZACIONES
-    ResponseEntity<?> registerInsurer(RegisterInsurerRequest registerInsurer);
+    // Servicio para buscar aseguradoras registrados
     ResponseEntity<?> searchInsurers(String emailAuth, String updateCredential, String device);
-
-    // SERVICIOS QUE FORMAN PARTE DEL FLUJO COMPLETO DE LA COTIZACIÓN
+    // Servicios que forman parte del flujo completo de la cotización
     ResponseEntity<?> searchVehicle(SearchVehicleRequest searchVehicle, String emailAuth);
     ResponseEntity<?> searchPlan(SearchPlanRequest vehicleQuote, String emailAuth);
     ResponseEntity<?> selectPlan(SelectPlanRequest planSelected, String emailAuth);

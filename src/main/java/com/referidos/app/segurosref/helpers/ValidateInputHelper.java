@@ -23,13 +23,13 @@ public class ValidateInputHelper {
         if(DataHelper.isNull(name)) {
             return env.getProperty("message.field.null");
         }
-        final int NAME_LENGTH = name.trim().length(); // CON TRIM() INCLUIDO (No permite saltos en línea)
+        final int NAME_LENGTH = name.strip().length(); // Usamos strip() para quitar espacios al inicio y final
         final String NAME_REGEX = "^[a-zA-ZáéíóúñçýÁÉÍÓÚÑÇÝ]+$";
         if(NAME_LENGTH < 2) {
             return env.getProperty("message.field.min.characters.2");
         } else if(NAME_LENGTH > 40) {
             return env.getProperty("message.field.max.characters.40");
-        } else if(!name.trim().matches(NAME_REGEX)) { // CON TRIM() INCLUIDO (No permite saltos en línea)
+        } else if(!name.strip().matches(NAME_REGEX)) {
             return env.getProperty("message.field.non.allow.characters");
         }
         return "";
@@ -40,13 +40,13 @@ public class ValidateInputHelper {
         if(DataHelper.isNull(surname)) {
             return env.getProperty("message.field.null");
         }
-        final int SURNAME_LENGTH = surname.trim().length(); // CON TRIM() INCLUIDO (No permite saltos en línea)
+        final int SURNAME_LENGTH = surname.strip().length(); // Usamos strip() para quitar espacios al inicio y final
         final String SURNAME_REGEX = "^[a-zA-ZáéíóúñçýÁÉÍÓÚÑÇÝ]+$";
         if(SURNAME_LENGTH < 2) {
             return env.getProperty("message.field.min.characters.2");
         } else if(SURNAME_LENGTH > 40) {
             return env.getProperty("message.field.max.characters.40");
-        } else if(!surname.trim().matches(SURNAME_REGEX)) { // CON TRIM() INCLUIDO (No permite saltos en línea)
+        } else if(!surname.strip().matches(SURNAME_REGEX)) {
             return env.getProperty("message.field.non.allow.characters");
         }
         return "";
@@ -150,7 +150,7 @@ public class ValidateInputHelper {
 
     // Validación del celular del usuario - Opcional
     public String verifyPhoneOptional(String phone) {
-        final String PHONE_REGEX = "^\\+56+[0-9]{9}$";
+        final String PHONE_REGEX = "^\\+569+[0-9]{8}$";
         if(!DataHelper.isNull(phone) && !phone.matches(PHONE_REGEX)) {
             return env.getProperty("message.field.bad.format.phone");
         }
@@ -160,7 +160,7 @@ public class ValidateInputHelper {
     // Validación de la dirección del usuario - Opcional
     public String verifyAddressOptional(String address) {
         if(!DataHelper.isNull(address)) {
-            final int ADDRESS_LENGTH = address.trim().length(); // CON TRIM() INCLUIDO (permite saltos de línea) - dato opcional
+            final int ADDRESS_LENGTH = address.strip().length(); // Usamos strip() para quitar espacios al inicio y final - dato opcional
             final String ADDRESS_REGEX = "^[a-zA-Z0-9áéíóúñçýÁÉÍÓÚÑÇÝ.,_/#\\s\\-]+$";
             if(ADDRESS_LENGTH < 8) {
                 return env.getProperty("message.field.min.characters.8");
@@ -192,7 +192,7 @@ public class ValidateInputHelper {
 
     // Validación de la foto perfil del usuario - Opcional
     public String verifyProfilePictureOptional(MultipartFile file) {
-        if(file != null && !DataHelper.verifyImageFile(file)) {
+        if(file != null && !ImageHelper.verifyImageFile(file)) {
             return env.getProperty("message.field.bad.format");
         }
         return "";
@@ -256,7 +256,7 @@ public class ValidateInputHelper {
         if(DataHelper.isNull(holderName)) {
             return env.getProperty("message.field.null");
         }
-        final int HOLDER_NAME_LENGTH = holderName.trim().length(); // CON TRIM() INCLUIDO (permite saltos en línea)
+        final int HOLDER_NAME_LENGTH = holderName.strip().length(); // Usamos strip() para quitar espacios al inicio y final
         final String HOLDER_NAME_REGEX = "^[a-zA-ZáéíóúñçýÁÉÍÓÚÑÇÝ\\s]+$";
         if(HOLDER_NAME_LENGTH < 2) {
             return env.getProperty("message.field.min.characters.2");
@@ -271,7 +271,7 @@ public class ValidateInputHelper {
     // Validación de alias en creación de cuenta bancaria - Opcional
     public String verifyAliasOptional(String alias) {
         if(!DataHelper.isNull(alias)) {
-            final int ALIAS_LENGTH = alias.trim().length();  // CON TRIM() INCLUIDO (permite saltos en línea) - dato opcional
+            final int ALIAS_LENGTH = alias.strip().length();  // Usamos strip() para quitar espacios al inicio y final - dato opcional
             if(ALIAS_LENGTH < 2) {
                 return env.getProperty("message.field.min.characters.2");
             } else if(ALIAS_LENGTH > 40) {
@@ -321,8 +321,8 @@ public class ValidateInputHelper {
             return env.getProperty("message.field.null");
         }
         final String ACCOUNT_NUMBER_REGEX = "^[^\\s]{4,}$";
-        String accountNumberToTrim = accountNumber.trim(); // CON TRIM() INCLUIDO (no permite saltos en línea)
-        if(!accountNumberToTrim.matches(ACCOUNT_NUMBER_REGEX)) { 
+        String accountNumberToStrip = accountNumber.strip(); // Usamos strip() para quitar espacios al inicio y final
+        if(!accountNumberToStrip.matches(ACCOUNT_NUMBER_REGEX)) { 
             return env.getProperty("message.field.min.characters.4");
         }
         return "";
@@ -415,7 +415,7 @@ public class ValidateInputHelper {
         }
         try {
             int year = Integer.parseInt(yearStr);
-            if(year <= 1900 || year > LocalDate.now().getYear()) {
+            if(year <= 1990 || year > LocalDate.now().getYear()) {
                 return env.getProperty("message.field.bad.format.year");
             }
         } catch(NumberFormatException e) {
@@ -445,7 +445,7 @@ public class ValidateInputHelper {
         if(DataHelper.isNull(insurerAlias)) {
             return env.getProperty("message.field.null");
         }
-        final int INSURER_LENGTH = insurerAlias.trim().length(); // CON TRIM() INCLUIDO (permite saltos en línea)
+        final int INSURER_LENGTH = insurerAlias.strip().length(); // Usamos strip() para quitar espacios al inicio y final
         if(INSURER_LENGTH > 20) {
             return env.getProperty("message.field.max.characters.20");
         }
@@ -467,7 +467,7 @@ public class ValidateInputHelper {
         if(DataHelper.isNull(insurer)) {
             return env.getProperty("message.field.null");
         }
-        final int INSURER_LENGTH = insurer.trim().length(); // CON TRIM() INCLUIDO (permite saltos en línea)
+        final int INSURER_LENGTH = insurer.strip().length(); // Usamos strip() para quitar espacios al inicio y final
         if (INSURER_LENGTH < 4) {
             return env.getProperty("message.field.min.characters.4");
         }
@@ -479,7 +479,7 @@ public class ValidateInputHelper {
         if(DataHelper.isNull(planName)) {
             return env.getProperty("message.field.null");
         }
-        final int PLAN_NAME_LENGTH = planName.trim().length(); // CON TRIM() INCLUIDO (permite saltos en línea)
+        final int PLAN_NAME_LENGTH = planName.strip().length(); // Usamos strip() para quitar espacios al inicio y final
         if (PLAN_NAME_LENGTH < 4) {
             return env.getProperty("message.field.min.characters.4");
         }
@@ -491,7 +491,7 @@ public class ValidateInputHelper {
         if(DataHelper.isNull(street)) {
             return env.getProperty("message.field.null");
         }
-        final int STREET_LENGTH = street.trim().length(); // CON TRIM() INCLUIDO (permite saltos en línea)
+        final int STREET_LENGTH = street.strip().length(); // Usamos strip() para quitar espacios al inicio y final
         final String STREET_REGEX = "^[a-zA-Z0-9áéíóúñçýÁÉÍÓÚÑÇÝ.,_/#\\s\\-]+$";
         if(STREET_LENGTH < 4) {
             return env.getProperty("message.field.min.characters.4");
@@ -508,7 +508,7 @@ public class ValidateInputHelper {
         if(DataHelper.isNull(streetNumber)) {
             return env.getProperty("message.field.null");
         }
-        final int STREET_NUMBER_LENGTH = streetNumber.trim().length(); // CON TRIM() INCLUIDO (permite saltos en línea)
+        final int STREET_NUMBER_LENGTH = streetNumber.strip().length(); // Usamos strip() para quitar espacios al inicio y final
         final String STREET_NUMBER_REGEX = "^[a-zA-Z0-9.,_/#\\s\\-]+$";
         if(STREET_NUMBER_LENGTH > 20) {
             return env.getProperty("message.field.max.characters.20");
@@ -521,7 +521,7 @@ public class ValidateInputHelper {
     // Validación del número de departamento del comprador del plan en recopilación de datos del plan - Opcional
     public String verifyDepartment(String department) {
         if(!DataHelper.isNull(department)) {
-            if(department.trim().length() > 20) { // CON TRIM() INCLUIDO (permite saltos en línea) - opcional
+            if(department.strip().length() > 20) { // Usamos strip() para quitar espacios al inicio y final - opcional
                 return env.getProperty("message.field.max.characters.20");
             }
         }

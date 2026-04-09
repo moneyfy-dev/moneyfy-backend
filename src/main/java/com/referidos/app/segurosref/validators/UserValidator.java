@@ -41,8 +41,8 @@ public class UserValidator implements Validator {
     public void validateRegister(Object target, Errors errors) {
         UserRegisterRequest user = (UserRegisterRequest) target;
         
-        String name = this.validateInput.verifyName(user.name()); // CON TRIM() INCLUIDO (No permite saltos en línea)
-        String surname = this.validateInput.verifySurname(user.surname()); // CON TRIM() INCLUIDO (No permite saltos en línea)
+        String name = this.validateInput.verifyName(user.name());
+        String surname = this.validateInput.verifySurname(user.surname());
         String email = this.validateInput.verifyEmail(user.email());
         String pwd = this.validateInput.verifyPwd(user.pwd());
         
@@ -52,10 +52,10 @@ public class UserValidator implements Validator {
     public void validateUpdate(Object target, BindingHelper bindingHelper) {
         UserUpdateRequest user = (UserUpdateRequest) target;
         
-        String name = this.validateInput.verifyName(user.name()); // CON TRIM() INCLUIDO (No permite saltos en línea)
-        String surname = this.validateInput.verifySurname(user.surname()); // CON TRIM() INCLUIDO (No permite saltos en línea)
+        String name = this.validateInput.verifyName(user.name());
+        String surname = this.validateInput.verifySurname(user.surname());
         String phone = this.validateInput.verifyPhoneOptional(user.phone());
-        String address = this.validateInput.verifyAddressOptional(user.address()); // CON TRIM() INCLUIDO (permite saltos de línea) - dato opcional
+        String address = this.validateInput.verifyAddressOptional(user.address());
         String dateOfBirth = this.validateInput.verifyDateOfBirthOptional(user.dateOfBirth());
         String profilePicture = this.validateInput.verifyProfilePictureOptional(user.profilePicture());
 
@@ -77,7 +77,6 @@ public class UserValidator implements Validator {
         if(!profilePicture.equals("")) {
             bindingHelper.addError("profilePicture", profilePicture);
         }
-        bindingHelper.validateData();
     }
 
     @SuppressWarnings("null")

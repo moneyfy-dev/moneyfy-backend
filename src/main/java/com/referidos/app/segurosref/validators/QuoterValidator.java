@@ -48,14 +48,14 @@ public class QuoterValidator implements Validator {
         String brand = this.validateInput.verifyBrand(searchPlan.brand());
         String model = this.validateInput.verifyModel(searchPlan.model());
         String year = this.validateInput.verifyYear(searchPlan.year());
-        String insurerAlias = this.validateInput.verifyInsurerAlias(searchPlan.insurerAlias()); // CON TRIM() INCLUIDO (permite saltos en línea)
+        String insurerAlias = this.validateInput.verifyInsurerAlias(searchPlan.insurerAlias());
         String requestType = this.validateInput.verifyRequestTypeForSearchPlan(searchPlan.requestType());
         String purchaserId = this.validateInput.verifyPersonalId(searchPlan.purchaserId());
-        String purchaserName = this.validateInput.verifyName(searchPlan.purchaserName()); // CON TRIM() INCLUIDO (no permite saltos en línea)
-        String purchaserPaternalSur = this.validateInput.verifySurname(searchPlan.purchaserPaternalSur()); // CON TRIM() INCLUIDO (no permite saltos en línea)
-        String purchaserMaternalSur = this.validateInput.verifySurname(searchPlan.purchaserMaternalSur()); // CON TRIM() INCLUIDO (no permite saltos en línea)
+        String purchaserName = this.validateInput.verifyName(searchPlan.purchaserName());
+        String purchaserPaternalSur = this.validateInput.verifySurname(searchPlan.purchaserPaternalSur());
+        String purchaserMaternalSur = this.validateInput.verifySurname(searchPlan.purchaserMaternalSur());
         String purchaserEmail = this.validateInput.verifyEmail(searchPlan.purchaserEmail());
-        String purchaserPhone = this.validateInput.verifyPhoneOptional(searchPlan.purchaserPhone()); // Opcional
+        String purchaserPhone = this.validateInput.verifyPhoneOptional(searchPlan.purchaserPhone());
         String ownerRelationOption = this.validateInput.verifyOwnerOption(searchPlan.ownerRelationOption());
         
         this.verifyPlanFinderData(quoterId, ppu, brand, model, year, insurerAlias, requestType, purchaserId, purchaserName,

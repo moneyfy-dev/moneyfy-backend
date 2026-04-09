@@ -1,12 +1,13 @@
 package com.referidos.app.segurosref.services;
 
-// import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
+import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,18 +34,15 @@ import com.referidos.app.segurosref.models.ReferredModel;
 import com.referidos.app.segurosref.models.UserDataModel;
 import com.referidos.app.segurosref.models.UserModel;
 import com.referidos.app.segurosref.models.WalletModel;
-import com.referidos.app.segurosref.models.WhiteListModel;
 import com.referidos.app.segurosref.provider.EmailServiceProvider;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
-import com.referidos.app.segurosref.repositories.WhiteListRepository;
 import com.referidos.app.segurosref.requests.ConfirmUserRequest;
 import com.referidos.app.segurosref.requests.PasswordResetRequest;
 import com.referidos.app.segurosref.requests.UserLoginRequest;
 import com.referidos.app.segurosref.requests.UserRegisterRequest;
 import com.referidos.app.segurosref.responses.GeneralResponses;
-import com.referidos.app.segurosref.seeder.RunUserSeeder;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -56,9 +54,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Autowired
     private DeviceRepository deviceRepository;
-
-    @Autowired
-    private WhiteListRepository whiteListRepository;
 
     @Autowired
     private ReferredRepository referredRepository;
@@ -109,35 +104,34 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if(userReferring == null) {
             return ResponseHelper.locked("el código del referido es inválido", null);
         }
-        // El código del referido es correcto y ahora se crea la estructura del usuario,
-        UserDataModel userData = this.createUserData(userRegister.name().trim(), userRegister.surname().trim(), // CON TRIM() INCLUIDO (No permite saltos en línea)
+        // El código del referido sea a encontrando o no se ha incluido, se puede proseguir con la solicitud
+        UserDataModel userData = this.createUserData(userRegister.name().strip(), userRegister.surname().strip(), // Usamos strip() para quitar espacios al inicio y final
                 userRegister.pwd(), userRegister.email().toLowerCase(), "ROLE_USER");  // Dejamos email en minúsculas
         WalletModel wallet = new WalletModel(0, 0, 0, 0);
-        NotificationModel notifs = new NotificationModel(false, true, true,
+        NotificationModel notifs = new NotificationModel(true, true, true,
                 false, false, true, false, false, false, new ArrayList<>());
         return this.createUnconfirmedUser(userReferring, userData, wallet, notifs);
     }
 
+    @SuppressWarnings("null")
     @Transactional
     private ResponseEntity<GeneralResponses> createUnconfirmedUser(String[] userReferring, UserDataModel userData,
             WalletModel wallet, NotificationModel notifs) {
-        // El código del referido ha sido validado en caso de que venga o sino su valor es "Sin Usuario". Ahora se
-        // valida si el usuario ya existe.
-        LocalDateTime currenDateTime = LocalDateTime.now();
-        String email = userData.getEmail(); // El email ya está en minúsculas
+        // En caso de no sea haya incluído el código de referido se los valores de userReferring son "Sin Usuario"
+        String email = userData.getEmail(); // Mail se trabaja en minúsculas
         Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(email);
         if(userOptional.isPresent()) {
             UserModel userDB = userOptional.get();
             UserDataModel userDataDB = userDB.getPersonalData();
             if(!userDataDB.getSessionToken().equals("") || !userDataDB.getRefreshToken().equals("")) {
-                // Usuario que al menos una vez estuvo: "Activado"
+                // Si el usuario tiene valor en alguno de los tokens, quiere decir que en algún momento se creó con éxito
                 String statusUserDB = userDataDB.getStatus();
                 switch(statusUserDB) {
                     case "Activado" -> {
                         return ResponseHelper.gone("usuario existente", null);
                     }
                     case "Desactivado" -> {
-                        if(!userHelper.makeUserObsolete(userRepository, deviceRepository, whiteListRepository, referredRepository, userDB)) {
+                        if(!userHelper.makeUserObsolete(userRepository, deviceRepository, referredRepository, userDB)) {
                             // El usuario no ha quedado obsoleto, por lo tanto, aún se puede habilitar
                             return ResponseHelper.gone("usuario existente", null);
                         }
@@ -145,8 +139,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         break;
                     }
                     default -> {
-                        // No se puede crear un usuario con el email de un usuario obsoleto, porque la estructura no ee
-                        // correcta.
+                        // Es imposible llegar a está instancia, por seguridad se agrega dentro del flujo
                         return ResponseHelper.failedDependency("datos anticuados", null);
                     }
                 }
@@ -169,10 +162,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         // Se genera el nuevo usuario (no confirmado), además del registro del referido...
         String userReferringState = (userReferring[0].equals("Sin usuario")) ? "Desactivado" : "Activado";
+        LocalDateTime currenDateTime = LocalDateTime.now();
         userData.setCodeAuth(pwdEncoder.encode(codeAuth));
         userData.setCodeExpirationTime(currenDateTime); // Se establece el tiempo actual al código de confirmación que tiene una validad de 3 minutos
         UserModel userModel = new UserModel("", DataHelper.deprecatedDateTime(), userData, wallet, notifs);
-        ReferredModel referredModel = new ReferredModel(userReferring[0], userReferring[1], email, userReferringState, "Activado", currenDateTime, currenDateTime);
+        ReferredModel referredModel = new ReferredModel(userReferring[0], userReferring[1], email, userReferringState, "Desactivado", currenDateTime, currenDateTime);
         userRepository.save(userModel);
         referredRepository.save(referredModel);
 
@@ -211,10 +205,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         userData.setRefreshToken(refreshToken);
         userData.setStatus("Activado");
         
-        // En filtro ya se verifica que el dispositvo no sea nulo
-        String device = request.getHeader("User-Agent");
-        String firstIp = (!DataHelper.isNull(request.getRemoteAddr())) ? request.getRemoteAddr() : "desconocido";
         LocalDateTime currenDateTime = LocalDateTime.now();
+        String[] userDeviceInfo = userHelper.checkUserAgent(request, userEmail);
+        String device = userDeviceInfo[0];
+        String firstIp = userDeviceInfo[1];
         // Se relaciona el registro del usuario con el dispositivo que hizo la consulta de confirmar registro
         DeviceModel deviceModel = new DeviceModel(device, userEmail, refreshToken, Collections.singleton(firstIp), currenDateTime, currenDateTime);
         
@@ -222,25 +216,36 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         userDB = userRepository.save(userDB);
         deviceRepository.save(deviceModel);
 
-        // Enviamos email, si se registro con el código de un sugerido
         Optional<ReferredModel> referredByUserAOptional = referredRepository.findByReferred(userEmail);
-        if(referredByUserAOptional.isPresent() && referredByUserAOptional.get().getUserReferringStatus().equals("Activado")) {
-            String userAEmail = referredByUserAOptional.get().getUserReferring();
-            Optional<UserModel> userAOptional = userRepository.findByPersonalData_Email(userAEmail);
-            if(userAOptional.isPresent()) {
-                // Enviar email al usuario A, por un nuevo usuario que se registro con su código de referidos, además de
-                // agregarlo a su estructura de notificaciones.
-                UserModel userA = userAOptional.get();
-                String userACodeToRefer = userA.getCodeToRefer();
-                String fullNameReferredUser = userData.getName() + " " + userData.getSurname();
-                emailProvider.novaUserRegisteredByCodeToRefer(userAEmail, userACodeToRefer, fullNameReferredUser);
-                String message = "El usuario " + fullNameReferredUser + ", se ha acaba de registrar con tu código de referidos!";
-                NotificationDataModel notifUserA = DataHelper.novaNotification(message, "Usuario Referido", currenDateTime);
-                userA.getNotifPreference().addNotif(notifUserA);
-                userRepository.save(userA);
+        if(referredByUserAOptional.isPresent()) {
+            // Actualizamos el registro del referido a "Activado"
+            ReferredModel referredByUserA = referredByUserAOptional.get();
+            referredByUserA.setReferredStatus("Activado");
+            referredByUserA.setUpdatedDate(currenDateTime);
+            referredRepository.save(referredByUserA);
+            
+            // Crear notificación de referido, si existe el usuario A, y luego enviar notificación de mail, en caso de estar activada
+            if(referredByUserA.getUserReferringStatus().equals("Activado")) {
+                try {
+                    String fullNameReferredUser = userData.getName() + " " + userData.getSurname();
+                    String userAEmail = referredByUserA.getUserReferring();
+                    UserModel userA = userRepository.findByPersonalData_Email(userAEmail).orElseThrow();
+                    // Creamos notificación y se la guardamos al usuario A
+                    String message = "El usuario " + fullNameReferredUser + ", se ha acaba de registrar con tu código de referidos!";
+                    NotificationModel userANotifPreference = userA.getNotifPreference();
+                    NotificationDataModel newNotifUserA = DataHelper.novaNotification(message, "Usuario Referido", currenDateTime);
+                    userANotifPreference.addNotif(newNotifUserA);
+                    userRepository.save(userA);
+                    // Enviamos notificación por mail, solo si el usuario A la tiene notificación activada
+                    if(userANotifPreference.isByEmail() && userANotifPreference.isReferredRegistered()) {
+                        String userACodeToRefer = userA.getCodeToRefer();
+                        emailProvider.novaUserRegisteredByCodeToRefer(userAEmail, userACodeToRefer, fullNameReferredUser);
+                    }
+                } catch(NoSuchElementException e) {
+                    LOGGER_MESSAGES.info("No es posible identificar al usuario que ha referido");
+                }
             }
         }
-        
         return ResponseHelper.created("usuario registrado exitosamente", DataHelper.buildUser(userDB));
     }
 
@@ -256,29 +261,29 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             // Usuario que al menos una vez estuvo: "Activado"
             UserDataModel userData = userDB.getPersonalData();
             LocalDateTime currentDateTime = LocalDateTime.now();
-            String device = request.getHeader("User-Agent");
-            String deviceIp = (!DataHelper.isNull(request.getRemoteAddr())) ? request.getRemoteAddr() : "desconocido";
+            String[] userDeviceInfo = userHelper.checkUserAgent(request, email);
+            String device = userDeviceInfo[0];
+            String deviceIp = userDeviceInfo[1];
             String statusUserDB = userData.getStatus();
             // Manejamos los diferentes escenarios de los estados del usuario
             switch(statusUserDB) {
                 case "Activado" -> {
                      // Antes verificamos que no sea un usuario de prueba o un usuario por defecto
-                    if(RunUserSeeder.isTestUser(email) || RunUserSeeder.isDefaulUser(email)) {
+                    if(UserHelper.isTestUser(email) || UserHelper.isDefaulUser(email)) {
                         // Actualizamos/generamos el dispositivo del usuario "seeder", e iniciamos sesión
                         userHelper.updateUserDevice(deviceRepository, email, userData.getRefreshToken(), device, deviceIp, currentDateTime);
                         return ResponseHelper.ok("se ha iniciado sesión exitosamente con usuario de prueba", DataHelper.buildUser(userDB));
                     }
+                    // No es un usuario de prueba y se tiene que verificar que el usuario este relacionado al dispositivo que está haciendo la consulta
                     Optional<DeviceModel> optionalDevice = deviceRepository.findByUserAndDevice(email, device);
                     if(optionalDevice.isEmpty()) {
+                        // No existe dispositivo y puede que el usuario este intentando entrar desde otro, se envía código para actualizar dispositivo
                         String[] toUsers = {email};
                         String code = userData.generateRandomCode();
                         emailProvider.sendAuthCodeToChangeDevice(toUsers, code);
-        
-                        // Actualizar datos de código
                         userData.setCodeAuth(pwdEncoder.encode(code));
                         userData.setCodeExpirationTime(currentDateTime);
                         userRepository.save(userDB);
-        
                         String responseMessage = "se ha enviado un nuevo código de confirmación al email " + email + ", para actualizar el dispositivo relacionado a la cuenta.";
                         return ResponseHelper.imUsed(responseMessage, null);
                     } else {
@@ -286,12 +291,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         // Se actualiza su token de session, el filtro maneja el token de refresco para actualizarlo
                         userData.setSessionToken(JwtConfig.createSessionToken(email, Collections.singletonList(new SimpleGrantedAuthority(userData.getProfileRole()))));
                         userDB = userRepository.save(userDB);
-            
                         return ResponseHelper.ok("se ha iniciado sesión exitosamente", DataHelper.buildUser(userDB));
                     }
                 }
                 case "Desactivado" -> {
-                    UserModel activateUser = userHelper.checkUserAccount(userRepository, deviceRepository, whiteListRepository, referredRepository, userDB, device, deviceIp);
+                    UserModel activateUser = userHelper.checkUserAccount(userRepository, deviceRepository, referredRepository, userDB, device, deviceIp);
                     if(activateUser != null) {
                         emailProvider.userAccountActivated(email, device, deviceIp);
                         return ResponseHelper.accepted("el usuario se ha activado nuevamente", DataHelper.buildUser(activateUser));
@@ -321,10 +325,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             boolean isCodeActive = userData.isCodeActive(currentDateTime, 3);
             boolean codesMatch = pwdEncoder.matches(confirm.code(), userData.getCodeAuth());
             if(isCodeActive && codesMatch) {
-                // El código no ha expirado, hace match con el código de autenticación, por lo tanto, actualizamos el
-                // dispositivo del usuario.
-                String device = request.getHeader("User-Agent");
-                String deviceIp = (!DataHelper.isNull(request.getRemoteAddr())) ? request.getRemoteAddr() : "desconocido";
+                // El código no ha expirado, hace match con el código de autenticación, por lo tanto, actualizamos el dispositivo del usuario.
+                String[] userDeviceInfo = userHelper.checkUserAgent(request, userEmail);
+                String device = userDeviceInfo[0];
+                String deviceIp = userDeviceInfo[1];
                 userHelper.updateUserDevice(deviceRepository, userEmail, userData.getRefreshToken(), device, deviceIp, currentDateTime);                
                 // Finalmente retornamos el usuario logeado, con el nuevo dispositivo registrado
                 return ResponseHelper.ok("se ha realizado el cambio de dispositivo exitosamente", DataHelper.buildUser(userDB));
@@ -340,7 +344,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public ResponseEntity<GeneralResponses> restorePassword(String email) {
         // Verificamos primero si es un usuario de prueba
         String userEmail = email.toLowerCase();
-        if(RunUserSeeder.isTestUser(userEmail)) {
+        if(UserHelper.isTestUser(userEmail)) {
             return ResponseHelper.failedDependency("el usuario de prueba, no puede reestablecer su contraseña", null);
         }
         // No es un usuario 'seeder', se puede seguir con la lógica
@@ -357,7 +361,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     break;
                 }
                 case "Desactivado" -> {
-                    if(userHelper.makeUserObsolete(userRepository, deviceRepository, whiteListRepository, referredRepository, userDB)) {
+                    if(userHelper.makeUserObsolete(userRepository, deviceRepository, referredRepository, userDB)) {
                         // Usuario quedo obsoleto
                         return ResponseHelper.failedDependency("datos anticuados", null);
                     } else {
@@ -382,6 +386,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Transactional
     public ResponseEntity<GeneralResponses> confirmPasswordReset(PasswordResetRequest passwordReset, HttpServletRequest request) {
         String userEmail = passwordReset.email().toLowerCase();
+        // Verificamos primero si es un usuario de prueba
+        if(UserHelper.isTestUser(userEmail)) {
+            return ResponseHelper.failedDependency("el usuario de prueba, no puede reestablecer su contraseña", null);
+        }
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
         UserDataModel userData = userDB.getPersonalData();
         LocalDateTime currentDateTime = LocalDateTime.now();
@@ -393,8 +401,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             if(this.validateInputHelper.verifyPwd(newPwd).equals("") && !DataHelper.isNull(repeatedPwd) &&
                     newPwd.equals(repeatedPwd) && !userData.getSessionToken().equals("") && !userData.getRefreshToken().equals("")) {
                 // Usuario que al menos una vez estuvo: "Activado", y cumple con las validaciones
-                String device = request.getHeader("User-Agent");
-                String deviceIp = (!DataHelper.isNull(request.getRemoteAddr())) ? request.getRemoteAddr() : "desconocido";
+                String[] userDeviceInfo = userHelper.checkUserAgent(request, userEmail);
+                String device = userDeviceInfo[0];
+                String deviceIp = userDeviceInfo[1];
                 String statusUserDB = userData.getStatus();
                 switch (statusUserDB) {
                     case "Activado" -> {
@@ -402,16 +411,20 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         break;
                     }
                     case "Desactivado" -> {
-                        // Ya se valido en el paso anterior que el usuario puede volver a habilitarse: "restorePassword"
-                        userDB = userHelper.enableUserAccount(userRepository, referredRepository, deviceRepository, userDB, device, deviceIp, currentDateTime);
-                        emailProvider.userAccountActivated(userEmail, device, deviceIp); // Se ha vuelto ha activar el usuario
+                        userDB = userHelper.checkUserAccount(userRepository, deviceRepository, referredRepository, userDB, device, deviceIp);
+                        if(userDB != null) {
+                            emailProvider.userAccountActivated(userEmail, device, deviceIp); // Se ha vuelto ha activar el usuario
+                        } else {
+                            // Usuario quedo obsoleto
+                            return ResponseHelper.failedDependency("datos anticuados", null);
+                        }
                         break;
                     }
                     default -> {
                         return ResponseHelper.failedDependency("datos anticuados", null);
                     }
                 }
-                // Si todo va bien, actualizamos la contraseña
+                // Si todo va bien, el usuario está activado o se acaba de habilitar nuevamente
                 userData.setPwd(pwdEncoder.encode(newPwd));
                 userDB = userRepository.save(userDB);
                 return ResponseHelper.ok("se ha restablecido exitosamente la contraseña del usuario", DataHelper.buildUser(userDB));
@@ -427,7 +440,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public ResponseEntity<GeneralResponses> resendUserCode(String email, String type) {
         // Verificamos primero si es un usuario de prueba
         String userEmail = email.toLowerCase();
-        if(RunUserSeeder.isTestUser(userEmail)) {
+        if(UserHelper.isTestUser(userEmail)) {
             return ResponseHelper.failedDependency("el usuario de prueba, no puede obtener códigos de confirmación", null);
         }
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
@@ -436,22 +449,20 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         String[] toUsers = {userEmail};
         String code = userData.generateRandomCode();
         boolean isValid = false;
-
-        // Hacer una validación que general que el código de expiración del usuario sea haya creado como máximo
-        // hace 6 horas, para mayor seguridad.
-
-        if(!DataHelper.isNull(type) && (userStatusDB.equals("Activado") || userStatusDB.equals("Desactivado"))) {
+        // Verificamos el tipo de flujo para enviar el mail correcto
+        if(!DataHelper.isNull(type)) {
             switch(type) {
                 case "registerUser": {
-                    if(userData.getSessionToken().equals("") && userData.getRefreshToken().equals("")) {
+                    if(userData.getSessionToken().equals("") && userData.getRefreshToken().equals("")
+                        && userStatusDB.equals("Desactivado")) {
                         emailProvider.sendAuthCodeToRegisterUser(toUsers, code);
                         isValid = true;
                     }
                     break;
                 }
                 case "changeDevice": {
-                    if(!userData.getSessionToken().equals("") && !userData.getRefreshToken().equals("") &&
-                            userStatusDB.equals("Activado")) {
+                    if(!userData.getSessionToken().equals("") && !userData.getRefreshToken().equals("")
+                        && userStatusDB.equals("Activado")) {
                         emailProvider.sendAuthCodeToChangeDevice(toUsers, code);
                         isValid = true;
                     }
@@ -480,8 +491,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     // SERVICIO PARA DESHABILITAR/ELIMINAR USUARIO DE LA APLICACIÓN
+    @SuppressWarnings("null")
     @Transactional
-    public ResponseEntity<GeneralResponses> disableAccount(String emailAuth, String device) {
+    public ResponseEntity<GeneralResponses> disableAccount(String emailAuth) {
+        // Verificamos primero si es un usuario de prueba
+        if(UserHelper.isTestUser(emailAuth)) {
+            return ResponseHelper.failedDependency("el usuario de prueba, no puede desactivarse", null);
+        }
         // No se puede deshabilitar/eliminar, si el usuario tiene transacciones pendientes o tiene dinero disponible en su wallet
         UserModel userB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         if(userB.getWallet().getTotalBalance() > 0) {
@@ -496,11 +512,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         Optional<DeviceModel> deviceOptional = deviceRepository.findByUser(emailAuth);
         if(deviceOptional.isPresent()) {
             deviceRepository.delete(deviceOptional.get());
-        }
-        // Se verifica si existe una lista en el white list
-        Optional<WhiteListModel> whiteListOptional = whiteListRepository.findByUser(emailAuth);
-        if(whiteListOptional.isPresent()) {
-            whiteListRepository.delete(whiteListOptional.get());
         }
         // Se recupera la data de referidos para desactivar los registros
         List<ReferredModel> updateTheReferreds = new ArrayList<>();
@@ -569,10 +580,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             return ResponseHelper.locked("el código del referido es inválido", null);
         }
         // El código del referido es correcto y ahora se crea la estructura del usuario
-        UserDataModel userData = this.createUserData(userRegister.name().trim(), userRegister.surname().trim(), // CON TRIM() INCLUIDO (No permite saltos en línea)
+        UserDataModel userData = this.createUserData(userRegister.name().strip(), userRegister.surname().strip(), // Usamos strip() para quitar espacios al inicio y final
                 userRegister.pwd(), userRegister.email().toLowerCase(), userRegister.profileRole()); // Dejamos email en minúsculas
         WalletModel wallet = new WalletModel(0, 0, 0, 0);
-        NotificationModel notifs = new NotificationModel(false, true, true,
+        NotificationModel notifs = new NotificationModel(true, true, true,
                 false, false, true, false, false, false, new ArrayList<>());
         return this.createUnconfirmedUser(userReferring, userData, wallet, notifs);
     }

@@ -33,8 +33,8 @@ public class LogServiceImpl implements LogService {
     @Autowired
     private EmailServiceProvider emailProvider;
 
-    @Value(value="${log.endpoint.keyword}")
-    private String logEndpointKeyword;
+    @Value(value="${api.key.moneyfy.seed}")
+    private String apiKeyMoneyFy;
 
     // Servicio para la búsqueda de todos los logs de la aplicación, además de los logs de errores
     @Transactional(readOnly = true)
@@ -42,7 +42,7 @@ public class LogServiceImpl implements LogService {
     public ResponseEntity<?> findAllLogs(LogRequest logRequest) {
         // Recuperamos la llave y verificamos que sea correcta
         String key = logRequest.key();
-        if(key == null || !key.equals(logEndpointKeyword)) {
+        if(key == null || !key.equals(apiKeyMoneyFy)) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
         }
         // Recuperamos todos los logs, además de filtrar los logs de error que están activos
@@ -63,7 +63,7 @@ public class LogServiceImpl implements LogService {
         // Recuperamos los datos y verificamos que traigan valor o sean correctos
         String key = logRequest.key();
         List<String> logs = logRequest.logs();
-        if(key == null || !key.equals(logEndpointKeyword) || logs == null || logs.size() < 1) {
+        if(key == null || !key.equals(apiKeyMoneyFy) || logs == null || logs.size() < 1) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
         }
         // Buscamos registro por log, verificando que la referencia del log es por la cuenta bancaria no encontrada
@@ -105,7 +105,7 @@ public class LogServiceImpl implements LogService {
         // Recuperamos los datos y verificamos que traigan valor o sean correctos
         String key = logRequest.key();
         String type = logRequest.type();
-        if(key == null || !key.equals(logEndpointKeyword) || type == null) {
+        if(key == null || !key.equals(apiKeyMoneyFy) || type == null) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
         }
         // Dependiento del tipo de log se realiza una lógica u otra para actualizar los registros

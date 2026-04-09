@@ -7,28 +7,23 @@ import java.util.Map;
 // no pueda recuperarse como: Content-Type: "application/json"
 public class BindingHelper {
 
-    private Map<String, Object> data;
-    private boolean error;
+    private Map<String, Object> errors;
     
     public BindingHelper() {
-        this.data = new HashMap<>();
+        this.errors = new HashMap<>();
     }
 
     public Map<String, Object> getData() {
-        return data;
+        return errors;
     }
-    public void setData(Map<String, Object> data) {
-        this.data = data;
+    public void setData(Map<String, Object> errors) {
+        this.errors = errors;
     }
-    public boolean isError() {
-        return error;
-    }
-
     public void addError(String field, Object message) {
-        this.data.put(field, "The field " + field + " " + message);
+        this.errors.put(field, "The field " + field + " " + message);
     }
-    public void validateData() {
-        this.error = (this.data.size() != 0); // No hay error, si no hay data. Si hay data, se agrego un error
+    public boolean findErrors() {
+        return (this.errors.size() != 0);
     }
 
 }

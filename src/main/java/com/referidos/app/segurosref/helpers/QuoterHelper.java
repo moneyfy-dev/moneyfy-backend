@@ -22,9 +22,6 @@ import com.referidos.app.segurosref.dtos.commission.CommissionDataDto;
 import com.referidos.app.segurosref.dtos.commission.CommissionPaymentDto;
 import com.referidos.app.segurosref.dtos.commission.CommissionReportDto;
 import com.referidos.app.segurosref.models.AccountModel;
-import com.referidos.app.segurosref.models.BrandDataModel;
-import com.referidos.app.segurosref.models.BrandInsurerModel;
-import com.referidos.app.segurosref.models.BrandModel;
 import com.referidos.app.segurosref.models.LogModel;
 import com.referidos.app.segurosref.models.PaymentModel;
 import com.referidos.app.segurosref.models.QuoterAddressModel;
@@ -38,7 +35,6 @@ import com.referidos.app.segurosref.models.TransactionComissionModel;
 import com.referidos.app.segurosref.models.TransactionModel;
 import com.referidos.app.segurosref.models.UserModel;
 import com.referidos.app.segurosref.models.WalletModel;
-import com.referidos.app.segurosref.repositories.BrandRepository;
 import com.referidos.app.segurosref.repositories.LogRepository;
 import com.referidos.app.segurosref.repositories.TransactionRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
@@ -48,190 +44,43 @@ import com.referidos.app.segurosref.requests.CommissionReportRequest;
 @Component 
 public class QuoterHelper {
 
-    @Value(value="${commission.cutoff-date}")
+    @Value(value="${report.commission.cutoff-date}")
     private int commissionCutoffDate;
 
-    @Value(value="${commission.payment-date}")
+    @Value(value="${report.commission.payment-date}")
     private int commissionPaymentDate;
 
-    // LÓGICA PARA ACTUALIZAR LA DATA MARCA/MODELOS EN LA BASE DE DATOS
-    public List<BrandModel> updateVehicleBrands(BrandRepository brandRepository, List<BrandModel> brands) {
-        // Recuperamos todas las marcas actuales registradas en la base de datos
-        List<BrandModel> brandsDB = brandRepository.findAll();
-        // Vamos revisando las marcas de vehículos comparando con la base de datos.
-        // 1. Si existe la marca, se revisa si tiene los ids de la marca de las aseguradoras, y si no existe la marca se genera objeto completo.
-        // 2. Si existe la marca, hay que revisar si tiene los modelos.
-        // 3. Si existe el modelo, se revisa si tiene los ids de los modelos de las aseguradoras, y si no existe el modelo se genera el objeto completo.
-        for(BrandModel brandModel : brands) {
-            String brandName = (!DataHelper.isNull(brandModel.getBrand())) ? brandModel.getBrand().trim().toUpperCase() : null;
-            List<BrandInsurerModel> insurersBrandId = brandModel.getInsurersId();
-            List<BrandDataModel> models = brandModel.getModels();
-            if(brandName == null || insurersBrandId == null || models == null) {
-                return null; // "data incorrecta"
-            }
-            boolean existBrandDB = false;
-            for(BrandModel brandDB : brandsDB) {
-                if(brandName.equals(brandDB.getBrand())) {
-                    // EXISTE LA MARCA, ahora verificamos si existen los ids de la marca de las aseguradoras en la BD
-                    existBrandDB = true;
-                    for(BrandInsurerModel insurerBrandId : insurersBrandId) {
-                        String insurerNameForBrandId = (!DataHelper.isNull(insurerBrandId.getName())) ? insurerBrandId.getName().trim() : null;
-                        insurerBrandId.setName(insurerNameForBrandId);
-                        if(insurerNameForBrandId == null) {
-                            return null; // "el nombre de la aseguradora para el id de la marca, no es válido"
-                        }
-                        boolean existsInsurerBrandId = false;
-                        for(BrandInsurerModel insurerBrandIdDB : brandDB.getInsurersId()) {
-                            String insurerNameForBrandIdDB = insurerBrandIdDB.getName();
-                            if(insurerNameForBrandId.equals(insurerNameForBrandIdDB)) {
-                                existsInsurerBrandId = true;
-                                break;
-                            }
-                        }
-                        if(!existsInsurerBrandId) { // Si no existe el id de la marca de la aseguradora en la base de datos, se agrega el objeto completo.
-                            brandDB.addInsurerBrandId(insurerBrandId);
-                        }
-                    }
-                    // EXISTE LA MARCA, y nos aseguramos de saber que los ids de la marca de las aseguradoras este en nuestra bd.
-                    // Ahora, queremos saber si existen los modelos de la marca en la BD
-                    for(BrandDataModel dataModel : models) {
-                        String modelName = (!DataHelper.isNull(dataModel.getModel())) ? dataModel.getModel().trim().toUpperCase() : null;
-                        if(modelName == null) {
-                            return null; // "el nombre del modelo de la marca, no es válido"
-                        }
-                        boolean existModelName = false;
-                        for(BrandDataModel dataModelDB : brandDB.getModels()) {
-                            String modelNameDB = dataModelDB.getModel();
-                            if(modelName.equals(modelNameDB)) {
-                                // EXISTE EL MODELO EN LA MARCA, ahora hay que verificar si están los ids del modelo de las aseguradoras en la BD.
-                                existModelName = true;
-                                for(BrandInsurerModel insurerModelId : dataModel.getInsurersId()) {
-                                    String insurerNameForModelId = (!DataHelper.isNull(insurerModelId.getName())) ? insurerModelId.getName().trim() : null;
-                                    insurerModelId.setName(insurerNameForModelId);
-                                    if(insurerNameForModelId == null) {
-                                        return null; // "el nombre de la aseguradora para el id del modelo, no es válido"
-                                    }
-                                    boolean existsInsurerModelId = false;
-                                    for(BrandInsurerModel insurerModelIdDB : dataModelDB.getInsurersId()) {
-                                        String insurerNameForModelIdDB = insurerModelIdDB.getName();
-                                        if(insurerNameForModelId.equals(insurerNameForModelIdDB)) {
-                                            existsInsurerModelId = true;
-                                            break; // Ya se verificó que existe el id del modelo de la aseguradora en la BD.
-                                        }
-                                    }
-                                    if(!existsInsurerModelId) { // Si no existe el id del modelo de la aseguradora en la base de datos, se agrega el objeto completo.
-                                        // Existe el modelo, solo que no existe el id de ese modelo, de la aseguradora.
-                                        dataModelDB.addInsurerModelId(insurerModelId);
-                                    }
-                                }
-                                // Como existe el modelo y ya se verifico que existen los ids de modelo de las asegurados, se sale del for
-                                break;
-                            }
-                        }
-                        if(!existModelName) { // No existe el modelo de la marca encontrada en la base de datos, por lo tanto, se agrega el objeto completo
-                            dataModel.setModelId(new ObjectId()); // Se le debe crear un id al modelo, para la aplicación, porque es un nuevo modelo que es agregado.
-                            dataModel.setModel(modelName);
-                            for(BrandInsurerModel insurerModelId : dataModel.getInsurersId()) { // Nos aseguramos que los nombres de las aseguradoras estén sin espacios
-                                String insurerNameForModelId = (!DataHelper.isNull(insurerModelId.getName())) ? insurerModelId.getName().trim() : null;
-                                if(insurerNameForModelId == null) {
-                                    return null; // "el nombre de la aseguradora para el id del modelo, no es válido"
-                                }
-                                insurerModelId.setName(insurerNameForModelId);
-                            }
-                            brandDB.addModel(dataModel);
-                        }
-                    }
-                    // Como sabemos que existe la marca y ya se actualizo lo que se debía de actualizar, se sale del for
-                    break;
-                }
-            }
-            // Si no se encontró la marca del vehículo, con el objeto proporcionado, se agrega el objeto a la estructura
-            // actual de la base de datos, pero, a cada uno de los modelos de la marca se le genera un id, antes de agregar
-            // el objeto, ya que, como es primera vez del ingreso de la marca, los modelos no tienen id en la aplicación
-            if(!existBrandDB) {
-                // Además, si se registra la marca, se tiene que mantener un único formato: marca/modelo, en mayúsculas y
-                // sin saltos de líneas extra, y los nombres de las aseguradoras: sin saltos extras.
-                for(BrandInsurerModel insurerBrandId : insurersBrandId) {
-                    String insurerNameForBrandId = (!DataHelper.isNull(insurerBrandId.getName())) ? insurerBrandId.getName().trim() : null;
-                    if(insurerNameForBrandId == null) {
-                        return null; // "el nombre de la aseguradora para el id de la marca, no es válido"
-                    }
-                    insurerBrandId.setName(insurerNameForBrandId);
-                }
-                for(BrandDataModel model : models) {
-                    String modelName = (!DataHelper.isNull(model.getModel())) ? model.getModel().trim().toUpperCase() : null;
-                    if(modelName == null) {
-                        return null; // "el nombre del modelo de la marca, no es válido"
-                    }
-                    model.setModelId(new ObjectId());
-                    model.setModel(modelName);
-                    for(BrandInsurerModel insurerModelId : model.getInsurersId()) {
-                        String insurerNameForModelId = (!DataHelper.isNull(insurerModelId.getName())) ? insurerModelId.getName().trim() : null;
-                        if(insurerNameForModelId == null) {
-                            return null; // "el nombre de la aseguradora para el id del modelo, no es válido"
-                        }
-                        insurerModelId.setName(insurerNameForModelId);
-                    }
-                }
-                brandsDB.add(brandModel);
-            }
-        } // FIN DEL FOR QUE ESTÁ VERIFICANDO SI EXISTE LA MARCA
-        return brandsDB;
-    }
-
-    // FUNCIONES DE APOYO - DATOS DE PRUEBA - LOGICA
+    // Funciones de apoyo con data de prueba
     public List<QuoterCarModel> vehicleList() {
         List<QuoterCarModel> list = new ArrayList<>();
-
-        // Generar la info del auto buscado por el cotizador
-        QuoterCarModel car1 = new QuoterCarModel("11AA22", "Chevrolet", "Captiva", "2021",
-            "Plateado", "AA1234BB5678", "FAEBDC892354A1B3C6", "SAIC-GM-Wuling");
-
-        QuoterCarModel car2 = new QuoterCarModel("AB1234", "Toyota", "Corolla", "2019",
-            "Blanco", "123ABC456DEF", "789GHI012JKL", "Toyota Motor Corporation");
-
-        QuoterCarModel car3 = new QuoterCarModel("DE5678", "BMW", "3 Series", "2022",
-            "Negro", "456DEF789GHI", "012JKL345MNO", "BMW AG");
-
-        QuoterCarModel car4 = new QuoterCarModel("GH9012", "Ford", "Fiesta", "2018",
-            "Azul", "789GHI012JKL", "345MNO678PQR", "Ford Motor Company");
-
-        QuoterCarModel car5 = new QuoterCarModel("JK34DL", "Mercedes-Benz", "C-Class", "2021",
-            "Gris", "012JKL345MNO", "678PQR901STU", "Mercedes-Benz AG");
-
+        QuoterCarModel car1 = new QuoterCarModel("11AA22", "Chevrolet", "Captiva", "2021", "Plateado", "AA1234BB5678", "FAEBDC892354A1B3C6", "SAIC-GM-Wuling");
+        QuoterCarModel car2 = new QuoterCarModel("AB1234", "Toyota", "Corolla", "2019", "Blanco", "123ABC456DEF", "789GHI012JKL", "Toyota Motor Corporation");
+        QuoterCarModel car3 = new QuoterCarModel("DE5678", "BMW", "3 Series", "2022", "Negro", "456DEF789GHI", "012JKL345MNO", "BMW AG");
+        QuoterCarModel car4 = new QuoterCarModel("GH9012", "Ford", "Fiesta", "2018", "Azul", "789GHI012JKL", "345MNO678PQR", "Ford Motor Company");
+        QuoterCarModel car5 = new QuoterCarModel("JK34DL", "Mercedes-Benz", "C-Class", "2021", "Gris", "012JKL345MNO", "678PQR901STU", "Mercedes-Benz AG");
         list.add(car1);
         list.add(car2);
         list.add(car3);
         list.add(car4);
         list.add(car5);
-
         return list;
+    }
+    public QuoterCarModel buildDefaultVehicle(boolean update, String ppu, String brand, String model, String year) {
+        return update ? (new QuoterCarModel(ppu, brand, model, year, "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis")) : (new QuoterCarModel(ppu, "OPEL", "CORSA", "2023", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis"));
     }
 
     public List<QuoterOwnerModel> ownerList() {
         List<QuoterOwnerModel> list = new ArrayList<>();
-
-        QuoterOwnerModel owner1 = new QuoterOwnerModel("11.111.111-1", "Pepe",
-                "Rodriguez", "Fuentes");
-        
-        QuoterOwnerModel owner2 = new QuoterOwnerModel("22.222.222-2", "Maria",
-                "Fuentes", "Silva");
-
-        QuoterOwnerModel owner3 = new QuoterOwnerModel("33.333.333-3", "Camila",
-                "Avellaneda", "González");
-
-        QuoterOwnerModel owner4 = new QuoterOwnerModel("44.444.444-4", "Octaquio",
-                "Alfonso", "Riquelme");
-
-        QuoterOwnerModel owner5 = new QuoterOwnerModel("55.555.555-5", "Valentina",
-                "Carrasco", "Zamora");
-
+        QuoterOwnerModel owner1 = new QuoterOwnerModel("11.111.111-1", "Pepe", "Rodriguez", "Fuentes");
+        QuoterOwnerModel owner2 = new QuoterOwnerModel("22.222.222-2", "Maria", "Fuentes", "Silva");
+        QuoterOwnerModel owner3 = new QuoterOwnerModel("33.333.333-3", "Camila", "Avellaneda", "González");
+        QuoterOwnerModel owner4 = new QuoterOwnerModel("44.444.444-4", "Octaquio", "Alfonso", "Riquelme");
+        QuoterOwnerModel owner5 = new QuoterOwnerModel("55.555.555-5", "Valentina", "Carrasco", "Zamora");
         list.add(owner1);
         list.add(owner2);
         list.add(owner3);
         list.add(owner4);
         list.add(owner5);
-
         return list;
     }
 
@@ -240,36 +89,31 @@ public class QuoterHelper {
         double valueUF = 37000.00;
         String stolenCar = "Valor comercial";
         String workshopType = "Oficial de la marca";
-
+        // Creamos planes de prueba
         TestPlanDto plan1 = new TestPlanDto("TRACTOR045678987", "Tractor Seguros Automotriz",
                 "Plan protector de auto", valueUF, 24.86, 11, 24.86/11,
                 (24.86/11)*valueUF, 3, "Deducible 3 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan1, "70%", "800 UF", "90", "3");
-
         TestPlanDto plan2 = new TestPlanDto("TRACTOR123456789", "Tractor Seguros Automotriz",
                 "Seguro auto completo", valueUF, 22.72, 11, 22.72/11,
                 (22.72/11)*valueUF, 5, "Deducible 5 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan2, "80%", "1200 UF", "120", "4");
-
         TestPlanDto plan3 = new TestPlanDto("TRACTOR987654321", "Tractor Seguros Automotriz",
                 "Plan seguro auto asegurado", valueUF, 27.81, 11, 27.81/11,
                 (27.81/11)*valueUF, 0, "Deducible 0 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan3, "60%", "1500 UF", "90", "4");
-
         TestPlanDto plan4 = new TestPlanDto("TRACTOR12975678953", "Tractor Seguros Automotriz",
                 "Seguro auto premium", valueUF, 20.12, 11, 20.12/11,
                 (20.12/11)*valueUF, 10, "Deducible 10 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan4, "75%", "900 UF", "120", "3");
-
         list.add(plan1);
         list.add(plan2);
         list.add(plan3);
         list.add(plan4);
-
         return list;
     }
 
@@ -278,22 +122,19 @@ public class QuoterHelper {
         double valueUF = 37000.00;
         String stolenCar = "Valor comercial";
         String workshopType = "Oficial de la marca";
-
+        // Creamos planes de prueba
         TestPlanDto plan1 = new TestPlanDto("SEGUROSALAMEDA045678987", "Seguros Alameda",
                 "Asistencia en viaje", valueUF, 23.55, 11, 23.55/11,
                 (23.55/11)*valueUF, 5, "Deducible 5 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan1, "70%", "1200 UF", "90", "3");
-
         TestPlanDto plan2 = new TestPlanDto("SEGUROSALAMEDA123456789", "Seguros Alameda",
                 "Tu trasporte asegurado", valueUF, 27.01, 11, 27.01/11,
                 (27.01/11)*valueUF, 3, "Deducible 3 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan2, "80%", "800 UF", "120", "4");
-
         list.add(plan1);
         list.add(plan2);
-
         return list;
     }
 
@@ -302,29 +143,25 @@ public class QuoterHelper {
         double valueUF = 37000.00;
         String stolenCar = "Valor comercial";
         String workshopType = "Oficial de la marca";
-
+        // Creamos planes de prueba
         TestPlanDto plan1 = new TestPlanDto("LOSALAMOS045678987", "Los Alamos Seguros Automotriz",
                 "Proteción ultra automóvil", valueUF, 22.03, 11, 22.03/11,
                 (22.03/11)*valueUF, 3, "Deducible 3 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan1, "65%", "1500 uf", "180", "3");
-
         TestPlanDto plan2 = new TestPlanDto("LOSALAMOS123456789", "Los Alamos Seguros Automotriz",
                 "Plan de automóvil asegurado", valueUF, 21.41, 11, 21.41/11,
                 (21.41/11)*valueUF, 3, "Deducible 3 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan2, "75%", "1000 UF", "120", "4");
-
         TestPlanDto plan3 = new TestPlanDto("LOSALAMOS987654321", "Los Alamos Seguros Automotriz",
                 "Seguro MAX automóvil", valueUF, 23.38, 11, 23.38/11,
                 (23.38/11)*valueUF, 5, "Deducible 5 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan3, "75%", "1200 UF", "90", "3");
-
         list.add(plan1);
         list.add(plan2);
         list.add(plan3);
-
         return list;
     }
 
@@ -339,48 +176,6 @@ public class QuoterHelper {
         testPlan.setTotalLoss(totalLoss);
         testPlan.setDamageThirdParty(damageThirdParty);
         testPlan.addDetail(detailReplacement).add(detailRenewal);
-    }
-
-    public List<QuoterCarModel> vehiclesByOwnerId(String ownerId) {
-        List<QuoterCarModel> vehicleList = new ArrayList<>();
-        
-        // ownerId ya viene validado, se le asignan autos directamente
-        // Número random entre 2 y 3, para agregar esa cantidad de vehículos al cotizador
-        // Obtener número random entre 2 rangos, para eso se tiene que conocer el rango (limiteSuperior-limiteInferior+1)
-        // Al obtener el número del rango, se obtiene un número entre ese rango y se le suma la parte inferior
-        int vehicleNumbers = ((int) ((Math.random()*(3-2+1))+2)); // Ejemplo: el rango entre 2-3 es 2, porque se puede obtener solo 2 o 3, entonces se obtiene el número que puede ser 0 o 1 y se le agrega el limite inferior (2), y se obtiene el número entre rango 2 o 3.
-        int[] vehicleIndexes = new int[vehicleNumbers];
-        // Nos aseguramos que los valores de los índices no se repitan para que se generen vehículos distintos
-        boolean repeatedVehicle;
-
-        do {
-            repeatedVehicle = false;    
-            for(int i=0; i<vehicleNumbers; i++) {
-                vehicleIndexes[i] = ((int) (Math.random()*5)); // Número entre 0 y 4, porque existen 5 registros de autos de prueba
-            }
-
-            // Se generarón los indexes de los vehículos de prueba, ahora se verifica que no se repitan los índices
-            // para no generar autos copiados al cotizador
-            for(int i=0; i<vehicleNumbers; i++) {
-                for(int j=i+1; j<vehicleNumbers; j++) {
-                    if(vehicleIndexes[i] == vehicleIndexes[j]) {
-                        repeatedVehicle=true;
-                        break;
-                    }
-                }
-                if(repeatedVehicle) {
-                    break;
-                }
-            }
-        } while(repeatedVehicle);
-
-        // Los índices de vehículos son distintos
-        List<QuoterCarModel> vehicleData = this.vehicleList(); // Existen 5 registros de autos de prueba
-        for(int i=0; i<vehicleNumbers; i++) {
-            vehicleList.add(vehicleData.get(vehicleIndexes[i]));
-        }
-
-        return vehicleList;
     }
 
     // Creación de un cotizador para los flujos: "Iniciando" o "Cotizando"

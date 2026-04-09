@@ -13,7 +13,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-@JsonPropertyOrder(value = {"planId", "insurer", "planName", "deductible", "stolenVehicle", "totalLoss",
+@JsonPropertyOrder(value = {"planId", "insurer", "planName", "deductibleDesc", "stolenVehicle", "totalLoss",
         "damageThirdParty", "workshopType", "details", "createdDate", "updatedDate"})
 @Document(collection = "plans")
 public class PlanModel {
@@ -22,7 +22,7 @@ public class PlanModel {
     private String planId;
     private String insurer;
     private String planName;
-    private int deductible; // El plan puede ser distinto dependiendo del deducible
+    private String deductibleDesc;
     private String stolenVehicle;
     private String totalLoss;
     private String damageThirdParty;

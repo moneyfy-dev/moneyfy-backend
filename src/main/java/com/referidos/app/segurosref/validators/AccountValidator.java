@@ -26,12 +26,12 @@ public class AccountValidator implements Validator {
         AccountRequest account = (AccountRequest) target;
 
         String personalId = this.validateInputHelper.verifyPersonalId(account.personalId());
-        String holderName = this.validateInputHelper.verifyHolderName(account.holderName()); // CON TRIM() INCLUIDO (permite saltos en línea)
-        String alias = this.validateInputHelper.verifyAliasOptional(account.alias()); // CON TRIM() INCLUIDO (permite saltos en línea) - dato opcional
+        String holderName = this.validateInputHelper.verifyHolderName(account.holderName());
+        String alias = this.validateInputHelper.verifyAliasOptional(account.alias());
         String email = this.validateInputHelper.verifyEmail(account.email());
         String bank = this.validateInputHelper.verifyBank(account.bank());
         String accountType = this.validateInputHelper.verifyAccountType(account.accountType());
-        String accountNumber = this.validateInputHelper.verifyAccountNumber(account.accountNumber()); // CON TRIM() INCLUIDO (no permite saltos en línea)
+        String accountNumber = this.validateInputHelper.verifyAccountNumber(account.accountNumber());
 
         this.verifyData(personalId, holderName, alias, email, bank, accountType, accountNumber, errors);
     }

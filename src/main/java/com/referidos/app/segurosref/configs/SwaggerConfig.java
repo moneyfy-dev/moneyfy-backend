@@ -30,16 +30,16 @@ import io.swagger.v3.oas.annotations.servers.Server;
     ),
     servers = {
         @Server(
-            description = "DEV SERVER",
+            description = "Dev Server",
             url = "http://localhost:9000"
         ),
         @Server(
-            description = "QA SERVER",
+            description = "QA Server",
             url = "http://localhost:8080/segurosref"
         ),
         @Server(
-            description = "QA SERVER 2",
-            url = "https://app-moneyfy-qa.connect360.cl/segurosref"
+            description = "Test Server",
+            url = "https://api.moneyfy.cl/"
         )
     },
     security = @SecurityRequirement(
