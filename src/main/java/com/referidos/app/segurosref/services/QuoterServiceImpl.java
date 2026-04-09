@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 
-import com.referidos.app.segurosref.configs.JwtConfig;
 import com.referidos.app.segurosref.dtos.ResultQuoteDto;
 import com.referidos.app.segurosref.dtos.TestPlanDto;
 import com.referidos.app.segurosref.dtos.VehicleBrandDto;
@@ -28,6 +27,7 @@ import com.referidos.app.segurosref.dtos.commission.CommissionReportDto;
 import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.QuoterHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
+import com.referidos.app.segurosref.helpers.UserHelper;
 import com.referidos.app.segurosref.models.InsurerModel;
 import com.referidos.app.segurosref.models.LogModel;
 import com.referidos.app.segurosref.models.PaymentModel;
@@ -42,7 +42,6 @@ import com.referidos.app.segurosref.models.QuoterPurchaserModel;
 import com.referidos.app.segurosref.models.ReferredModel;
 import com.referidos.app.segurosref.models.TransactionComissionModel;
 import com.referidos.app.segurosref.models.TransactionModel;
-import com.referidos.app.segurosref.models.UserDataModel;
 import com.referidos.app.segurosref.models.UserModel;
 import com.referidos.app.segurosref.models.BrandDataModel;
 import com.referidos.app.segurosref.models.BrandModel;
@@ -63,7 +62,6 @@ import com.referidos.app.segurosref.requests.CommissionReportRequest;
 import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
 import com.referidos.app.segurosref.requests.GenerateTransactionRequest;
 import com.referidos.app.segurosref.requests.SelectPlanRequest;
-import com.referidos.app.segurosref.requests.RegisterInsurerRequest;
 import com.referidos.app.segurosref.requests.SearchVehicleRequest;
 import com.referidos.app.segurosref.requests.SearchPlanRequest;
 import com.referidos.app.segurosref.validators.QuoterValidator;
@@ -129,9 +127,8 @@ public class QuoterServiceImpl implements QuoterService {
         }
         List<BrandModel> brandsDB = brandRepository.findAll();
         List<VehicleBrandDto> brandsDto = new ArrayList<>();
-        // Por cada registro de marcas de vehículos, generamos un objeto dto
+        // Por cada registro de marcas de vehículos, generamos un objeto dto de la marca, que se le anidan los objetos dto de los modelos de la marca
         for(BrandModel brandDB : brandsDB) {
-            // Buscamos todos los modelos de la marca primero y los vamos agregando a los modelos del vehículo dto
             List<VehicleModelDto> modelsDto = new ArrayList<>();
             for(BrandDataModel modelDB : brandDB.getModels()) {
                 modelsDto.add(new VehicleModelDto(modelDB.getModelId(), modelDB.getModel()));
@@ -141,64 +138,24 @@ public class QuoterServiceImpl implements QuoterService {
         return ResponseHelper.ok("se ha traido la lista de las marcas de los vehículos disponibles", DataHelper.buildUser(userDB, "brands", brandsDto));
     }
 
-    // SERVICIOS PARA INGRESAR O BUSCAR ASEGURADORAS QUE PROVEEN DE LOS PLANES PARA REALIZAR LAS COTIZACIONES
-    @Transactional
-    @Override
-    public ResponseEntity<?> registerInsurer(RegisterInsurerRequest registerInsurer) {
-        String name = registerInsurer.name();
-        String alias = registerInsurer.alias();
-        String endpoint = registerInsurer.endpoint();
-        String darkLogo = registerInsurer.darkLogo();
-        String lightLogo = registerInsurer.lightLogo();
-
-        if(DataHelper.isNull(name) || DataHelper.isNull(alias) || DataHelper.isNull(endpoint)
-                || DataHelper.isNull(darkLogo) || DataHelper.isNull(lightLogo)) {
-            return ResponseHelper.failedDependency("debe ingresar información válida", null);
-        }
-        // Vemos si ya existe por nombre o alias
-        if(insurerRepository.existsByNameOrAlias(name, alias)) {
-            return ResponseHelper.locked("aseguradora existente", null);
-        }
-
-        // Ingresar palabra clave para registrar la aseguradora
-        String key = registerInsurer.key();
-        if(!DataHelper.isNull(key) && key.equals(apiKeyMoneyFy)) {
-            InsurerModel newInsurer = new InsurerModel(name, alias, endpoint, darkLogo, lightLogo);
-            insurerRepository.save(newInsurer);
-            return ResponseHelper.created("aseguradora agregada", Map.of("insurer", newInsurer));
-        }
-        
-        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
-    }
-
     @Transactional
     @Override
     public ResponseEntity<?> searchInsurers(String emailAuth, String updateCredential, String device) {
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         List<String> insurers = new ArrayList<>();
-
         insurerRepository.findAll().forEach(insurerDB -> {
             insurers.add(insurerDB.getAlias());
         });
-        
-        // Revisar si se tiene que actualizar el refresh token
+        // Endpoint que se utiliza para actualizar token de refresco, si es necesario
         if(updateCredential.equals("Dated")) {
-            UserDataModel userData = userDB.getPersonalData();
             Optional<DeviceModel> deviceOptional = deviceRepository.findByUserAndDevice(emailAuth, device);
             if(deviceOptional.isPresent()) {
-                // Si se encontró el dispositivo se actualiza el token, porque caducó o no se puede leer porque se actualizó la app
-                DeviceModel deviceDB = deviceOptional.get();
-                userData.setRefreshToken(JwtConfig.createRefreshToken(emailAuth));
-                deviceDB.setRefreshToken(userData.getRefreshToken());
-                userDB = userRepository.save(userDB);
-                deviceRepository.save(deviceDB);
+                UserHelper.updateRefreshToken(userRepository, userDB, deviceOptional.get(), deviceRepository);
             }
         }
-        
         return ResponseHelper.ok("se ha traido la lista de aseguradoras disponibles", DataHelper.buildUser(userDB, "insurers", insurers));
     }
 
-    // SERVICIOS QUE FORMAN PARTE DEL FLUJO COMPLETO DE LA COTIZACIÓN
     @Transactional
     @Override
     public ResponseEntity<?> searchVehicle(SearchVehicleRequest searchVehicle, String emailAuth) {
@@ -207,30 +164,24 @@ public class QuoterServiceImpl implements QuoterService {
         if(!DataHelper.accountAvailable(userDB)) {
             return ResponseHelper.locked("debe asegurarse de tener una cuenta bancaria para recibir las comisiones, antes de cotizar seguros", null);
         }
-
-        // Obtención de datos verificados
         String ppu = searchVehicle.ppu().toUpperCase(); // Patente del vehículo a mayúsculas
         String ownerId = searchVehicle.ownerId().toUpperCase(); // Rut de propietario a mayúsculas por la 'k'
-
-        // SIMULACIÓN DE LÓGICA PARA BÚSQUEDA DE VEHÍCULO
-        // Primero buscamos vehículo por el propietario
-        List<QuoterCarModel> vehiclesByOwnerId = quoterHelper.vehiclesByOwnerId(ownerId); // Simulación de obtención de vehículos por rut con formato
+        // Búsqueda temporal 'simulada' con lista de vehículos de prueba, ya que, luego se debería buscar vehículo por patente o rut del propietario
+        List<QuoterCarModel> testVehicles = quoterHelper.vehicleList();
         QuoterCarModel vehicleFound = null;
-        for(QuoterCarModel ownerVehicle : vehiclesByOwnerId) {
-            if(ownerVehicle.getPpu().equals(ppu)) {
-                vehicleFound = ownerVehicle;
+        for(QuoterCarModel testVehicle : testVehicles) {
+            if(testVehicle.getPpu().equals(ppu)) {
+                vehicleFound = testVehicle;
                 break;
             }
         }
-        // Si no se encontro vehículo, se asigna uno de prueba
+        // Si no se encontro vehículo de prueba por ppu (patente), se asigna uno por defecto
         if(vehicleFound == null) {
-            vehicleFound = new QuoterCarModel(ppu, "OPEL", "CORSA", "2023", "Negro",
-                    "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis");
+            vehicleFound = quoterHelper.buildDefaultVehicle(false, ppu, "", "", "");
         }
-
-        // Buscamos si existe un cotizador con los datos de la cotización, para asignar el id del cotizador
+        // Buscamos si existe ya existe el registro para volver a cargarlo y no crear duplicidad
         List<QuoterModel> quoters = userDB.getQuoters();
-        String quoterId = "";
+        QuoterModel userQuoter = null;
         for(QuoterModel quoterDB : quoters) {
             String quoterStatus = quoterDB.getQuoterStatus();
             String quoterOwnerId = quoterDB.getQuoterOwnerData().getPersonalId();
@@ -238,22 +189,20 @@ public class QuoterServiceImpl implements QuoterService {
             if(quoterStatus.equals("Iniciando") && quoterOwnerId.equals(ownerId) &&
                     quoterCar.getPpu().equals(ppu) && quoterCar.getBrand().equals(vehicleFound.getBrand()) &&
                     quoterCar.getModel().equals(vehicleFound.getModel()) && quoterCar.getYear().equals(vehicleFound.getYear())) {
-                quoterId = quoterDB.getQuoterId();
+                userQuoter = quoterDB;
+                break;
             }
         }
-
-        // Si el id del cotizador sigue vacío, es porque no se encontro un registro y por lo tanto se crea uno nuevo
-        if(quoterId.equals("")) {
+        // Si no se encontró registro existente, se crea una nueva cotización
+        if(userQuoter == null) {
             QuoterOwnerModel quoterOwner = new QuoterOwnerModel(ownerId, "", "", "");
             QuoterPurchaserModel quoterPurchaser = new QuoterPurchaserModel("", "", "", "", "", "", "");
-            QuoterModel novaQuoter = quoterHelper.createQuoteStructure(quoterOwner, vehicleFound, quoterPurchaser,
+            userQuoter = quoterHelper.createQuoteStructure(quoterOwner, vehicleFound, quoterPurchaser,
                     "Iniciando", LocalDateTime.now());
-            quoterId = novaQuoter.getQuoterId();
-            userDB.addQuoter(novaQuoter);
+            userDB.addQuoter(userQuoter);
             userDB = userRepository.save(userDB);
         }
-
-        return ResponseHelper.created("se ha realizado la cotización exitosamente", DataHelper.buildUser(userDB, "vehicle", vehicleFound, "quoterId", quoterId));
+        return ResponseHelper.created("se ha realizado la cotización exitosamente", DataHelper.buildUser(userDB, "vehicle", vehicleFound, "quoterId", userQuoter.getQuoterId()));
     }
 
     @SuppressWarnings("unchecked")
@@ -262,53 +211,38 @@ public class QuoterServiceImpl implements QuoterService {
     public ResponseEntity<?> searchPlan(SearchPlanRequest searchPlan, String emailAuth) {
         // Si llega, es porque se validaron los datos, por lo tanto, los recuperamos
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
-        String quoterId = (!DataHelper.isNull(searchPlan.quoterId())) ? searchPlan.quoterId() : "No informado"; // Campo opcional
+        // Campo opcional, porque se puede realizar una solitud directa sin pasar por la búsqueda de vehículo
+        String quoterId = (!DataHelper.isNull(searchPlan.quoterId())) ? searchPlan.quoterId() : "";
         String ppu = searchPlan.ppu().toUpperCase();
-        String brand = searchPlan.brand().trim().toUpperCase();
-        String model = searchPlan.model().trim().toUpperCase();
+        String brand = searchPlan.brand().toUpperCase();
+        String model = searchPlan.model().toUpperCase();
         String year = searchPlan.year();
-        String insurerAlias = searchPlan.insurerAlias().trim(); // CON TRIM() INCLUIDO (permite saltos en línea)
-        
-        // SIMULACIÓN DE LÓGICA PARA BÚSQUEDA DE VEHÍCULO
-        // Resulta que si se hace manual, tiene que existir la validación de que exista el vehículo para obtener los datos del dueño
-        // String requestType = searchPlan.requestType(); // Para validar si la búsqueda de planes se está haciendo "Manual" o "Auto"
-        
-        String purchaserId = searchPlan.purchaserId(); // id del comprador (rut)
-        String purchaserName = searchPlan.purchaserName().trim(); // CON TRIM() INCLUIDO (no permite saltos en línea)
-        String purchaserPaternalSur = searchPlan.purchaserPaternalSur().trim(); // CON TRIM() INCLUIDO (no permite saltos en línea)
-        String purchaserMaternalSur = searchPlan.purchaserMaternalSur().trim(); // CON TRIM() INCLUIDO (no permite saltos en línea)
+        String insurerAlias = searchPlan.insurerAlias().strip(); // Usamos strip() para quitar espacios al inicio y final
+        // Hay 2 tipos de busqueda para el vehículo 'Manual' o 'Auto', pero por ahora se simula la búsqueda del auto solamente
+        // String requestType = searchPlan.requestType();
+        String purchaserId = searchPlan.purchaserId();
+        String purchaserName = searchPlan.purchaserName().strip();
+        String purchaserPaternalSur = searchPlan.purchaserPaternalSur().strip();
+        String purchaserMaternalSur = searchPlan.purchaserMaternalSur().strip();
         String purchaserEmail = searchPlan.purchaserEmail();
         String purchaserPhone = !DataHelper.isNull(searchPlan.purchaserPhone()) ? searchPlan.purchaserPhone() : ""; // Opcional
-        String ownerRelationOption = searchPlan.ownerRelationOption(); // Depende de la aseguradora si se usará el campo - // SIMULACIÓN DE LÓGICA PARA BÚSQUEDA DE VEHÍCULO - Si es la primera opción, el rut del propietario es el mismo que el del comprador de la póliza
-
-        // Se hizo correctamente la solicitud, se guarda la cotización con estado de "Cotizando", ya sea,
-        // actualizando el registro si se encuentra el cotizador con el id que se inicio o creando un nuevo registro
-        // con este estado, pero verificando que no se haya creado antes.
+        String ownerRelationOption = searchPlan.ownerRelationOption(); // Depende de la aseguradora si se usará el campo
+        // Intentamos encontrar la cotización, si existe actualizamos los datos, si no existe se crea la cotización
+        QuoterModel userQuoter = null;
         List<QuoterModel> quoters = userDB.getQuoters();
+        String quoterCurrentStatus = "Cotizando";
         LocalDateTime currentDateTime = LocalDateTime.now();
-        String currentStatus = "Cotizando";
-        boolean isFound = false;
-        String returnQuoterId = "";
-
-        if(!quoterId.equals("No informado")) {
+        if(!quoterId.equals("")) {
             for(QuoterModel quoterDB : quoters) {
                 String quoterDBId = quoterDB.getQuoterId();
                 if(quoterDBId.equals(quoterId)) {
-                    if(!quoterDB.getQuoterStatus().equals("Iniciando") && !quoterDB.getQuoterStatus().equals(currentStatus)) {
-                        return ResponseHelper.locked("El cotización ya ha pasado por este proceso", null);
+                    if(!quoterDB.getQuoterStatus().equals("Iniciando") && !quoterDB.getQuoterStatus().equals(quoterCurrentStatus)) {
+                        return ResponseHelper.locked("La cotización se esta procesando", null);
                     }
-                    returnQuoterId = quoterDBId;
-                    // Cotización encontrada por id, verificamos si el registro ya se actualizó por el estado del cotizador.
-                    // Hacemos la verificación por medio del estado del cotizador, ya que, es un endpoint que se consumirá
-                    // tantas veces dependiendo de las aseguradoras.
+                    // En caso de que sea una cotización que venga del proceso anterior actualizamos los datos, recordar que este es un endpoint que se puede repetir como tantas aseguradoras existan
                     if(quoterDB.getQuoterStatus().equals("Iniciando")) {
                         // Se actualiza la data del vehículo del cotizador
-                        QuoterCarModel quoterCarDB = quoterDB.getQuoterCarData();
-                        quoterCarDB.setPpu(ppu);
-                        quoterCarDB.setBrand(brand);
-                        quoterCarDB.setModel(model);
-                        quoterCarDB.setYear(year);
-
+                        quoterDB.setQuoterCarData(quoterHelper.buildDefaultVehicle(true, ppu, brand, model, year));
                         // Se actualiza la data del comprador de la cotización
                         QuoterPurchaserModel quoterPurchaserDB = quoterDB.getQuoterPurchaserData();
                         quoterPurchaserDB.setPersonalId(purchaserId);
@@ -318,68 +252,54 @@ public class QuoterServiceImpl implements QuoterService {
                         quoterPurchaserDB.setEmail(purchaserEmail);
                         quoterPurchaserDB.setPhone(purchaserPhone);
                         quoterPurchaserDB.setOwnerRelationOption(ownerRelationOption);
-
-                        // Finalmente se actualiza el estado a Cotizando, el campo de actualización de registo y se
-                        // actualiza en la base de datos
-                        quoterDB.setQuoterStatus(currentStatus);
+                        // Se actualiza el estado actual de la cotización y el usuario para que persistan los cambios
+                        quoterDB.setQuoterStatus(quoterCurrentStatus);
                         quoterDB.setUpdatedDate(currentDateTime);
                         userDB = userRepository.save(userDB);
                     }
-
-                    isFound = true;
+                    userQuoter = quoterDB;
                     break;
                 }
             }
         }
-
-        // Si no se encontro registro por el id (puede que sea manual), por lo tanto, se crea un registro de cotizador
-        // con los datos de cotización, siempre y cuando no exista antes.
-        if(!isFound) {
-            boolean exists = false;
-
+        // Si la cotización aún no existe se debe crear
+        if(userQuoter == null) {
+            // Primero se busca una cotización existente con los datos más relevante del proceso actual, incluyendo el estado
+            boolean isQuoter = false;
             for(QuoterModel quoterDB : quoters) {
                 QuoterCarModel quoterCarDB = quoterDB.getQuoterCarData();
                 QuoterPurchaserModel quoterPurchaserDB = quoterDB.getQuoterPurchaserData();
-                if(quoterDB.getQuoterStatus().equals(currentStatus) && quoterCarDB.getPpu().equals(ppu) && 
+                if(quoterDB.getQuoterStatus().equals(quoterCurrentStatus) && quoterCarDB.getPpu().equals(ppu) && 
                         quoterCarDB.getBrand().equals(brand) && quoterCarDB.getModel().equals(model) &&
                         quoterCarDB.getYear().equals(year) && quoterPurchaserDB.getPersonalId().equals(purchaserId) &&
-                        quoterPurchaserDB.getName().equals(purchaserName) && quoterPurchaserDB.getPaternalSurname().equals(purchaserPaternalSur) &&
-                        quoterPurchaserDB.getMaternalSurname().equals(purchaserMaternalSur) && quoterPurchaserDB.getEmail().equals(purchaserEmail) &&
-                        quoterPurchaserDB.getOwnerRelationOption().equals(ownerRelationOption)) {
-                    returnQuoterId = quoterDB.getQuoterId();
-                    exists = true;
+                        quoterPurchaserDB.getName().equals(purchaserName) && quoterPurchaserDB.getEmail().equals(purchaserEmail)) {
+                    userQuoter = quoterDB;
+                    isQuoter = true;
                     break;
                 }
             }
-
-            // Si no existe creamos el registro
-            if(!exists) {
-                // Se debería encontrar alguna data del dueño del vehículo
+            // Si la cotización no se encontró con los datos actuales de la solicitud, se crea porque definitivamente no existe
+            if(!isQuoter) {
                 QuoterOwnerModel quoterOwner = new QuoterOwnerModel("", "", "", "");
-                QuoterCarModel quoterCar = new QuoterCarModel(ppu, brand, model, year, "", "", "", "");
-                QuoterPurchaserModel quoterPurchaser = new QuoterPurchaserModel(purchaserId, purchaserName,
-                        purchaserPaternalSur, purchaserMaternalSur, purchaserEmail, purchaserPhone, ownerRelationOption);
-                QuoterModel novaQuoter = quoterHelper.createQuoteStructure(quoterOwner, quoterCar, quoterPurchaser, currentStatus, currentDateTime);
-                returnQuoterId = novaQuoter.getQuoterId();
-                // Guardamos el nuevo cotizante en la bd, ya que, no se pudo hallar y puede ser por que la cotización se
-                // hizo de manera manual.
-                userDB.addQuoter(novaQuoter);
+                QuoterCarModel quoterCar = quoterHelper.buildDefaultVehicle(true, ppu, brand, model, year);
+                QuoterPurchaserModel quoterPurchaser = new QuoterPurchaserModel(purchaserId, purchaserName, purchaserPaternalSur, purchaserMaternalSur, purchaserEmail, purchaserPhone, ownerRelationOption);
+                // Creamos nueva cotización y la persistimos
+                userQuoter = quoterHelper.createQuoteStructure(quoterOwner, quoterCar, quoterPurchaser, quoterCurrentStatus, currentDateTime);
+                userDB.addQuoter(userQuoter);
                 userDB = userRepository.save(userDB);
             }
         }
-
         // Ahora entregaremos los planes, dependiendo de la aseguradora, enviando los datos del vehículo verificado.
         List<TestPlanDto> planList = new ArrayList<>();
         InsurerModel returnInsurerDB = new InsurerModel("", "", "", "", "");
-        returnInsurerDB.setInsurerId(new ObjectId()); // Para que tenga un dato por defecto en el id
-
+        returnInsurerDB.setInsurerId(new ObjectId());
         Optional<InsurerModel> insurerOptional = insurerRepository.findByAlias(insurerAlias);
         String errorPlanFinder = "1"; // Error no se encontró una aseguradora para la búsqueda de planes
         String errorMessage = "No se encontro la aseguradora con el alias '" + insurerAlias + "'";
         String requestBody = "";
         String responseStr = "";
+        // Si es una consulta a una aseguradora de prueba, se juega con delay para mejor simulación
         if(insurerOptional.isPresent()) {
-            // Obtener lista de vehículos con/sin delay, dependiendo de la aseguradora
             returnInsurerDB = insurerOptional.get();
             switch(insurerAlias) {
                 case "aseguradora1" -> {
@@ -390,7 +310,7 @@ public class QuoterServiceImpl implements QuoterService {
                 }
                 case "aseguradora2" -> {
                     try {
-                        Thread.sleep(7000);
+                        Thread.sleep(5000);
                         planList = quoterHelper.planList2(); // Planes de pruebas
                         errorPlanFinder = "0";
                         errorMessage = "Se encontro la aseguradora con los planes";
@@ -401,7 +321,7 @@ public class QuoterServiceImpl implements QuoterService {
                 }
                 case "aseguradora3" -> {
                     try {
-                        Thread.sleep(4000);
+                        Thread.sleep(3000);
                         planList = quoterHelper.planList3(); // Planes de pruebas
                         errorPlanFinder = "0";
                         errorMessage = "Se encontro la aseguradora con los planes";
@@ -414,14 +334,17 @@ public class QuoterServiceImpl implements QuoterService {
                     String[] brandAndModelId = apiBciProvider.findBrandAndModelId(brandRepository, "BCI", brand, model);
                     errorPlanFinder = brandAndModelId[0];
                     errorMessage = brandAndModelId[1];
-                    if(errorPlanFinder.equals("0")) { // No existe error, se encontró el id de marca y modelo de la aseguradora, y ahora se realiza la solicitud
-                        Map<String, Object> dataFromInsurer4 = apiBciProvider.getPlansFromBCI(purchaserId, brandAndModelId[2], brandAndModelId[3], Integer.parseInt(year), logRepository, currentDateTime);
-                        errorPlanFinder = (String) dataFromInsurer4.get("errorPlanFinder");
-                        errorMessage = (String) dataFromInsurer4.get("errorMessage");
-                        requestBody = (String) dataFromInsurer4.get("requestBody");
-                        responseStr = (String) dataFromInsurer4.get("responseStr");
+                    if(errorPlanFinder.equals("") && errorMessage.equals("")) {
+                        // Se pudo encontrar el ids de la aseguradora tanto para consultar por marca y modelo
+                        String brandId = brandAndModelId[2];
+                        String modelId = brandAndModelId[3];
+                        Map<String, Object> searchPlanBCI = apiBciProvider.getPlansFromBCI(purchaserId, brandId, modelId, Integer.parseInt(year));
+                        errorPlanFinder = (String) searchPlanBCI.get("errorPlanFinder");
+                        errorMessage = (String) searchPlanBCI.get("errorMessage");
+                        requestBody = (String) searchPlanBCI.get("requestBody");
+                        responseStr = (String) searchPlanBCI.get("responseStr");
                         if(errorPlanFinder.equals("0")) {
-                            planList = (List<TestPlanDto>) dataFromInsurer4.get("plans");
+                            planList = (List<TestPlanDto>) searchPlanBCI.get("plans");
                         }
                     }
                     
@@ -429,25 +352,22 @@ public class QuoterServiceImpl implements QuoterService {
             }
         }
 
-        // ACTUALIZAR ESTRUCTURA DEL PLAN, PARA SER GUARDADO EN LA BASE DE DATOS
-        // Buscar planes en la base de datos => anteriormente en la captura de los planes dependiendo de la aseguradora
-        // estos deben de ser procesados y validados, por lo cual, aquí solo recojemos los datos
+        // Guardar planes en BD en caso de no existir
         for(TestPlanDto insurerPlan : planList) {
-            // Buscamos si existe o no un registro de plan, mediante Id del plan
-            String planId = insurerPlan.getPlanId();
-            Optional<PlanModel> optionalPlan = planRepository.findById(planId);
-            // Si no se encuentra, se crea el plan
+            String insurerPlanId = insurerPlan.getPlanId();
+            @SuppressWarnings("null")
+            Optional<PlanModel> optionalPlan = planRepository.findById(insurerPlanId);
             if(optionalPlan.isEmpty()) {
-                // Guardamos en la base de datos
-                PlanModel novaPlan = new PlanModel(planId, insurerPlan.getInsurer(), insurerPlan.getPlanName(),
-                        insurerPlan.getDeductible(), insurerPlan.getStolenVehicle(), insurerPlan.getTotalLoss(),
+                PlanModel novaPlan = new PlanModel(insurerPlanId, insurerPlan.getInsurer(), insurerPlan.getPlanName(),
+                        insurerPlan.getDeductibleDesc(), insurerPlan.getStolenVehicle(), insurerPlan.getTotalLoss(),
                         insurerPlan.getDamageThirdParty(), insurerPlan.getWorkshopType(), insurerPlan.getDetails(),
                         currentDateTime, currentDateTime);
                 planRepository.save(novaPlan);
             }
         }
 
-        ResultQuoteDto resultQuote = new ResultQuoteDto(returnQuoterId, errorPlanFinder, errorMessage, requestBody, responseStr, returnInsurerDB, planList);
+        @SuppressWarnings("null") // Se validaron todos los escenarios y siempre se crea una cotización, por lo tanto, existe id
+        ResultQuoteDto resultQuote = new ResultQuoteDto(userQuoter.getQuoterId(), errorPlanFinder, errorMessage, requestBody, responseStr, returnInsurerDB, planList);
         return ResponseHelper.ok("se ha realizado la cotización", resultQuote);
     }
 

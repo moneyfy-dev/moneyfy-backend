@@ -1,13 +1,11 @@
 package com.referidos.app.segurosref.provider;
 
-import java.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -16,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -24,12 +23,10 @@ import com.referidos.app.segurosref.dtos.TestPlanDto;
 import com.referidos.app.segurosref.models.BrandDataModel;
 import com.referidos.app.segurosref.models.BrandInsurerModel;
 import com.referidos.app.segurosref.models.BrandModel;
-import com.referidos.app.segurosref.models.LogModel;
 import com.referidos.app.segurosref.pojo.bci.QuoteBciPojo;
 import com.referidos.app.segurosref.pojo.bci.QuoteProductBciPojo;
 import com.referidos.app.segurosref.pojo.bci.QuoteRateBciPojo;
 import com.referidos.app.segurosref.repositories.BrandRepository;
-import com.referidos.app.segurosref.repositories.LogRepository;
 
 @Component
 public class ApiBciProvider {
@@ -41,8 +38,7 @@ public class ApiBciProvider {
     private String apiKeyBCITarifacion;
 
     @Transactional
-    public Map<String, Object> getPlansFromBCI(String purchaserId, String brandIdBCI, String modelIdBCI, int year,
-            LogRepository logRepository, LocalDateTime currentDateTime) {
+    public Map<String, Object> getPlansFromBCI(String purchaserId, String brandIdBCI, String modelIdBCI, int year) {
         String errorMessage = "";
         int code = 0;
         String requestBody = "";
@@ -92,58 +88,27 @@ public class ApiBciProvider {
             requestBodyMap.put("NumeroPin", "1");
             requestBodyMap.put("EmiteCotizacion", false);
 
-            String referenceId = year + purchaserIdFormatted + brandIdBCI + modelIdBCI;
-            Optional<LogModel> logOptional = logRepository.findByTypeAndStatusAndReferenceAndReferenceId("INFO",
-                "Informe", "Verificar solicitud aseguradora BCI", referenceId);
-            LogModel logDB;
-            LogModel novaLog = new LogModel(new ObjectId(), "INFO", "Verificar solicitud aseguradora BCI",
-                urlBCITarifacion, "Informe", "", "", referenceId, new HashMap<>(),
-                currentDateTime, currentDateTime);
-            if(logOptional.isPresent()) {
-                logDB = logOptional.get();
-                logDB.getData().clear();
-            } else {
-                logDB = logRepository.save(novaLog);
-            }
-
-            logDB.addData("MarcaId", brandIdBCI);
-            logDB.addData("ModeloId", modelIdBCI);
-            logRepository.save(logDB);
-
-            requestBody = mapper.writeValueAsString(requestBodyMap);
-            logDB.addData("requestBody", requestBody);
-            logRepository.save(logDB);
-
             // Creamos la solicitud con el cuerpo de la respuesta y los headers, y la realizamos
+            requestBody = mapper.writeValueAsString(requestBodyMap);
             HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
-            
-            // Puede que aquí tenga error
+            @SuppressWarnings("null")
             ResponseEntity<QuoteBciPojo> response = restTemplate.exchange(urlBCITarifacion, HttpMethod.POST, requestEntity, QuoteBciPojo.class);
             
             // Si el código de la respuesta es correcto seguimos con la lógica, si no, retornamos un error.
             if(response.getStatusCode() == HttpStatus.OK) {
                 QuoteBciPojo quoteBci = mapper.convertValue(response.getBody(), QuoteBciPojo.class);
-                
-                responseStr = mapper.writeValueAsString(response.getBody());
-                logDB.addData("responseStr", responseStr);
-                logRepository.save(logDB);
-
                 if(quoteBci == null) {
-                    errorMessage = "El cuerpo de la respuesta es nulo: " + response.getBody();
-                    return Map.of("errorPlanFinder", "9", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr); // Opción 9, error: objeto nulo
+                    return Map.of("errorPlanFinder", "10", "errorMessage", "El cuerpo de la respuesta es nulo", "requestBody", requestBody, "responseStr", responseStr); // Opción 9, error: objeto nulo
                 }
-
                 if(quoteBci.getError() != null) {
-                    errorMessage = "Existe error en el cuerpo de la solicitud: " + quoteBci.getError();
-                    return Map.of("errorPlanFinder", "10", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr); // Opción 10, error: la cotización no se ha podido a llevar a cabo
+                    errorMessage = "Existe error mapeada de API: " + quoteBci.getError();
+                    return Map.of("errorPlanFinder", "11", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr); // Opción 10, error: la cotización no se ha podido a llevar a cabo
                 }
-
                 // Obtenemos la data principal
                 List<TestPlanDto> plans = new ArrayList<>();
                 double valueUF = quoteBci.getTasaCambioUF();
                 double discount = quoteBci.getDescuento();
                 int totalMonths = quoteBci.getCantidadCuotas();
-
                 // Iteramos por cada producto
                 for(QuoteProductBciPojo product : quoteBci.getProductos()) {
                     String planName = product.getNombreProducto();
@@ -154,18 +119,11 @@ public class ApiBciProvider {
                         double grossPriceUF = rate.getPrimaAnualBruta();
                         double monthlyPriceUF = grossPriceUF / totalMonths;
                         double monthlyPrice = (double) rate.getValorCuotaPesos();
-                        int deductible = this.getDeductibleBCI(deductibleId);
-
-                        // Verificamos el valor del deducible para saber si se recupero correctamente
+                        // Ajustar deducible a String, como viene de la API
+                        int deductible = this.getDeductibleBCI(deductibleId); 
                         deductible = (deductible == -1) ? this.getNoneDetectedDeductible(deductibleDesc) : deductible;
-                        if(deductible == -1) {
-                            errorMessage = "No se ha podido identificar el deducible del plan: " + deductibleDesc;
-                            return Map.of("errorPlanFinder", "11", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr); // Error de deducible, no mapeado
-                        }
-
-                        // Obtenemos el plan id, dependiendo del deducible también
-                        String planId = product.getIdProducto() + "_" + deductibleId;
-                        
+                        // Creamos el id del plan único con el id del tipo de plan y id del deducible
+                        String planId = String.valueOf(product.getIdProducto()) + "_" + deductibleId;
                         // FALTA AGREGAR LOS DETALLES DEPENDIENDO DEL PLAN ----
                         TestPlanDto novaPlan = new TestPlanDto(planId, "BCI", planName, valueUF,
                                 grossPriceUF, totalMonths, monthlyPriceUF, monthlyPrice, deductible, deductibleDesc,
@@ -174,70 +132,71 @@ public class ApiBciProvider {
                     }
                 }
                 errorMessage = "Se encontro la aseguradora con los planes";
-                return Map.of("errorPlanFinder", "0", "errorMessage", errorMessage, "requestBody", requestBody, "plans", plans, "responseStr", responseStr); // Opción 0, ok: Se pudo recuperar los planes y se envían de vuelta
+                return Map.of("errorPlanFinder", "0", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr, "plans", plans);
             }
             code = response.getStatusCode().value();
         } catch(JsonProcessingException e) {
             errorMessage = "No se pudo construir el cuerpo de la solicitud: " + e.getMessage() + "\n\n" + e.getCause().getMessage();
-            return Map.of("errorPlanFinder", "7", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr); // Opción 7, error: no se ha podido procesar el cuerpo de la solicitud.
+            return Map.of("errorPlanFinder", "6", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr);
+        } catch(RestClientException e) {
+            errorMessage = "Error al construir objeto de solicitud: " + e.getMessage() + "\n\n" + e.getCause().getMessage();
+            return Map.of("errorPlanFinder", "7", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr);
         } catch(Exception e) {
             errorMessage = "No se pudo realizar la consulta: " + e.getMessage() + "\n\n" + e.getCause().getMessage();
-            return Map.of("errorPlanFinder", "8", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr); // Opción 8, error: no se ha podido realizar la solicitud.
+            return Map.of("errorPlanFinder", "8", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr);
         }
         errorMessage = "El código de error no es correcto: " + code;
-        return Map.of("errorPlanFinder", "6", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr); // Opción 6, error: solicitud incorrecta.
+        return Map.of("errorPlanFinder", "9", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr);
     }
 
     public String[] findBrandAndModelId(BrandRepository brandRepository, String insurer, String brand, String model) {
         List<BrandModel> brandsDB = brandRepository.findAll();
         String errorMessage = "";
+        String brandId = "0";
+        String modelId = "0";
         for(BrandModel brandDB : brandsDB) {
             String brandNameDB = brandDB.getBrand();
             // Primero buscamos para saber si existe la marca
             if(brand.equals(brandNameDB)) {
                 // Existe la marca, ahora buscamos si la aseguradora tiene el id de la marca para ser cotizada
-                boolean existsInsurerBrandId = false;
-                String brandId = "0";
-                String modelId = "0";
+                boolean isInsurerBrandId = false;
                 for(BrandInsurerModel insurerBrandId : brandDB.getInsurersId()) {
-                    String insurerNameDB = insurerBrandId.getName();
-                    if(insurerNameDB.equals(insurer)) {
+                    String insurerNameForBrandIdDB = insurerBrandId.getName();
+                    if(insurer.equals(insurerNameForBrandIdDB)) {
                         // Existe el id de la marca en la aseguradora
-                        existsInsurerBrandId = true;
+                        isInsurerBrandId = true;
                         brandId = Integer.toString(insurerBrandId.getId());
                         break;
                     }
                 }
                 // Consultamos si se encontro el id de la marca en la aseguradora consultante
-                if(existsInsurerBrandId) {
+                if(isInsurerBrandId) {
                     // Existe el id de la marca en la aseguradora, ahora buscamos si existe el modelo
                     for(BrandDataModel modelDB : brandDB.getModels()) {
-                        String brandModelDB = modelDB.getModel();
-                        if(brandModelDB.equals(model)) {
+                        String modelNameDB = modelDB.getModel();
+                        if(model.equals(modelNameDB)) {
                             // Existe el modelo, ahora buscamos si existe el id del modelo en la aseguradora
                             for(BrandInsurerModel insurerModelId : modelDB.getInsurersId()) {
-                                String insurerNameDB = insurerModelId.getName();
-                                if(insurerNameDB.equals(insurer)) {
+                                String insurerNameForModelIdDB = insurerModelId.getName();
+                                if(insurer.equals(insurerNameForModelIdDB)) {
                                     // Existe el id del modelo en la aseguradora
                                     modelId = Integer.toString(insurerModelId.getId());
-                                    errorMessage = "Se puede realizar la solicitud de búsqueda de planes";
-                                    return new String[] {"0", errorMessage, brandId, modelId}; // Opción 0, ok: se han podido encontrar el id de la marca y modelo de la aseguradora.
+                                    return new String[] {"", "", brandId, modelId};
                                 }
                             }
                             errorMessage = "Existe el modelo, pero no se encontro el id del modelo en la aseguradora: " + insurer;
-                            return new String[] {"5", errorMessage, "0", "0"}; // Opción 5, error: existe el modelo consultado pero no existe en la aseguradora.
+                            return new String[] {"5", errorMessage, "0", "0"};
                         }
                     }
                     errorMessage = "No existe el modelo consultado en la BD: " + model;
-                    return new String[] {"4", errorMessage, "0", "0"}; // Opción 4, error: no existe el modelo consultado en la base de datos.
-                } else {
-                    errorMessage = "Existe la marca, pero no se encontro el id de la marca en la aseguradora: " + insurer;
-                    return new String[] {"3", errorMessage, "0", "0"}; // Opción 3, error: existe la marca consultada pero no existe en la aseguradora.
+                    return new String[] {"4", errorMessage, "0", "0"};
                 }
+                errorMessage = "Existe la marca, pero no se encontro el id de la marca en la aseguradora: " + insurer;
+                return new String[] {"3", errorMessage, "0", "0"};
             }
         }
         errorMessage = "No existe la marca consulta en la BD: " + brand;
-        return new String[] {"2", errorMessage, "0", "0"}; // Opción 2, error: no existe la marca consultada en la base de datos
+        return new String[] {"2", errorMessage, "0", "0"};
     }
 
     // CREAR LA ESTRUCTURA PARA COTIZAR UN PRODUCTO/PLAN DE BCI
@@ -283,7 +242,7 @@ public class ApiBciProvider {
 
     private int getNoneDetectedDeductible(String deductibleDesc) {
         try {
-            return Integer.parseInt(deductibleDesc.substring(10, deductibleDesc.length() - 3).trim()); // Ejemplo: "Deducible X UF"
+            return Integer.parseInt(deductibleDesc.substring(10, deductibleDesc.length() - 3).strip()); // Ejemplo: "Deducible X UF"
         } catch(Exception e) {
             return -1;
         }

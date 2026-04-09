@@ -26,9 +26,42 @@ import jakarta.servlet.http.HttpServletRequest;
 @Component
 public class UserHelper {
 
+    // Lista de los usuarios de prueba
+    public static List<String> testUsers() {
+        return List.of("nuser.random01@gmail.com");
+    }
+    // Verificar usuario de pruba
+    public static boolean isTestUser(String emailAuth) {
+        List<String> testUsers = testUsers();
+        for(String testUser : testUsers) {
+            if(testUser.equals(emailAuth)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Lista de los usuarios por defecto
+    public static List<String> defaultUsers() {
+        return List.of("nuser.random@gmail.com",
+            "gottafindshape@gmail.com",
+            "eliu.martineez@gmail.com"
+        );
+    }
+    // Verificar usuario por defecto
+    public static boolean isDefaulUser(String emailAuth) {
+        List<String> defaultUsers = defaultUsers();
+        for(String defaultUser : defaultUsers) {
+            if(defaultUser.equals(emailAuth)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Actualizar token de refresco
     @Transactional
-    public void updateRefreshToken(UserRepository userRepository, UserModel userDB, DeviceModel deviceDB, DeviceRepository deviceRepository) {
+    public static void updateRefreshToken(UserRepository userRepository, UserModel userDB, DeviceModel deviceDB, DeviceRepository deviceRepository) {
         UserDataModel userDataDB = userDB.getPersonalData();
         String newRefreshToken = JwtConfig.createRefreshToken(userDataDB.getEmail());
         userDataDB.setRefreshToken(newRefreshToken);
@@ -172,39 +205,6 @@ public class UserHelper {
             String device = (!DataHelper.isNull(request.getHeader("User-Agent"))) ? request.getHeader("User-Agent") : "Se está verificando la información del dispositivo:" + userEmail;
             String deviceIp = (!DataHelper.isNull(request.getRemoteAddr())) ? request.getRemoteAddr() : "Se está verificando la IP del dispositivo:" + userEmail;
         return new String[] {device, deviceIp};
-    }
-
-    // Lista de los usuarios de prueba
-    public static List<String> testUsers() {
-        return List.of("nuser.random01@gmail.com");
-    }
-    // Verificar usuario de pruba
-    public static boolean isTestUser(String emailAuth) {
-        List<String> testUsers = testUsers();
-        for(String testUser : testUsers) {
-            if(testUser.equals(emailAuth)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // Lista de los usuarios por defecto
-    public static List<String> defaultUsers() {
-        return List.of("nuser.random@gmail.com",
-            "gottafindshape@gmail.com",
-            "eliu.martineez@gmail.com"
-        );
-    }
-    // Verificar usuario por defecto
-    public static boolean isDefaulUser(String emailAuth) {
-        List<String> defaultUsers = defaultUsers();
-        for(String defaultUser : defaultUsers) {
-            if(defaultUser.equals(emailAuth)) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }

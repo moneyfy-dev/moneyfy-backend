@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 public class QuoteProductBciPojo {
 
-    private int IdProducto;
+    private Long IdProducto;
     private String NombreProducto;
     private List<QuoteRateBciPojo> Tarifas;
 

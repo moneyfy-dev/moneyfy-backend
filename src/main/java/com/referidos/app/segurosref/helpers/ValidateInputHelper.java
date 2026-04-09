@@ -150,7 +150,7 @@ public class ValidateInputHelper {
 
     // Validación del celular del usuario - Opcional
     public String verifyPhoneOptional(String phone) {
-        final String PHONE_REGEX = "^\\+56+[0-9]{9}$";
+        final String PHONE_REGEX = "^\\+569+[0-9]{8}$";
         if(!DataHelper.isNull(phone) && !phone.matches(PHONE_REGEX)) {
             return env.getProperty("message.field.bad.format.phone");
         }
@@ -415,7 +415,7 @@ public class ValidateInputHelper {
         }
         try {
             int year = Integer.parseInt(yearStr);
-            if(year <= 1900 || year > LocalDate.now().getYear()) {
+            if(year <= 1990 || year > LocalDate.now().getYear()) {
                 return env.getProperty("message.field.bad.format.year");
             }
         } catch(NumberFormatException e) {

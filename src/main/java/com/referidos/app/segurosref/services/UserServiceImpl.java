@@ -67,9 +67,6 @@ public class UserServiceImpl implements UserService {
     private UserValidator userValidator;
 
     @Autowired
-    private UserHelper userHelper;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     // SERVICIOS PARA FLUJOS RELACIONADOS AL USUARIO
@@ -129,11 +126,11 @@ public class UserServiceImpl implements UserService {
         // Endpoint utilizado para refrescar la data de la aplicación, por lo tanto, un buen lugar para
         // actualizar el refresh token, en caso de ser necesario.
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
-        // Revisar si se tiene que actualizar el refresh token
+        // Revisar si realmente se tiene que actualizar el refresh token
         if(updateCredential.equals("Dated")) {
             Optional<DeviceModel> deviceOptional = deviceRepository.findByUserAndDevice(emailAuth, device);
             if(deviceOptional.isPresent()) {
-                userHelper.updateRefreshToken(userRepository, userDB, deviceOptional.get(), deviceRepository);
+                UserHelper.updateRefreshToken(userRepository, userDB, deviceOptional.get(), deviceRepository);
             }
         }
         return ResponseHelper.ok("la información de hidratación del usuario fue recuperada correctamente", DataHelper.buildUser(userDB));
@@ -203,13 +200,13 @@ public class UserServiceImpl implements UserService {
                 continue;
             } 
             earnings += userBEarnings + userCEarnings;
-            referredsDto.add(new ReferredDto(userEmailB, nameUserB, surnameUserB, showStatusUserB, referredsC.size(), earnings));
+            referredsDto.add(new ReferredDto((showStatusUserB.equals("Eliminado")) ? "No encontrado" : userEmailB, nameUserB, surnameUserB, showStatusUserB, referredsC.size(), earnings));
         }
         // Revisamos si se tiene que actualizar el refresh token
         if(updateCredential.equals("Dated")) {
             Optional<DeviceModel> deviceOptional = deviceRepository.findByUserAndDevice(emailAuth, device);
             if(deviceOptional.isPresent()) {
-                userHelper.updateRefreshToken(userRepository, userA, deviceOptional.get(), deviceRepository);
+                UserHelper.updateRefreshToken(userRepository, userA, deviceOptional.get(), deviceRepository);
             }
         }
         return ResponseHelper.ok("se han recuperado los referidos", DataHelper.buildUser(userA, "referreds", referredsDto));
@@ -287,7 +284,7 @@ public class UserServiceImpl implements UserService {
                 .withNano(0);
         // Buscamos todas las transacciones con algún estado aceptado y que la fecha en la que fue aprobada la
         // transacción, haya sea igual o superior a la fecha previamente obtenida.
-        List<TransactionModel> transactionsDB = transactionRepository.findAllByApprovalDateAfterAndStatusAccepted(lastMonth);
+        List<TransactionModel> transactionsDB = transactionRepository.findAllByApprovalDateAfterAndCommissions_UserIdAndStatusAccepted(lastMonth, userId);
         MonthlyEarningDto monthlyEarningDto = new MonthlyEarningDto(this.addMonthsToMonthlyEarnings(lastMonth, formatterDate),
                 0, 0, lastMonth.format(formatterDate));
         int finalCommissions = 0;

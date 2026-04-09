@@ -50,59 +50,37 @@ public class QuoterHelper {
     @Value(value="${report.commission.payment-date}")
     private int commissionPaymentDate;
 
-    // FUNCIONES DE APOYO - DATOS DE PRUEBA - LOGICA
+    // Funciones de apoyo con data de prueba
     public List<QuoterCarModel> vehicleList() {
         List<QuoterCarModel> list = new ArrayList<>();
-
-        // Generar la info del auto buscado por el cotizador
-        QuoterCarModel car1 = new QuoterCarModel("11AA22", "Chevrolet", "Captiva", "2021",
-            "Plateado", "AA1234BB5678", "FAEBDC892354A1B3C6", "SAIC-GM-Wuling");
-
-        QuoterCarModel car2 = new QuoterCarModel("AB1234", "Toyota", "Corolla", "2019",
-            "Blanco", "123ABC456DEF", "789GHI012JKL", "Toyota Motor Corporation");
-
-        QuoterCarModel car3 = new QuoterCarModel("DE5678", "BMW", "3 Series", "2022",
-            "Negro", "456DEF789GHI", "012JKL345MNO", "BMW AG");
-
-        QuoterCarModel car4 = new QuoterCarModel("GH9012", "Ford", "Fiesta", "2018",
-            "Azul", "789GHI012JKL", "345MNO678PQR", "Ford Motor Company");
-
-        QuoterCarModel car5 = new QuoterCarModel("JK34DL", "Mercedes-Benz", "C-Class", "2021",
-            "Gris", "012JKL345MNO", "678PQR901STU", "Mercedes-Benz AG");
-
+        QuoterCarModel car1 = new QuoterCarModel("11AA22", "Chevrolet", "Captiva", "2021", "Plateado", "AA1234BB5678", "FAEBDC892354A1B3C6", "SAIC-GM-Wuling");
+        QuoterCarModel car2 = new QuoterCarModel("AB1234", "Toyota", "Corolla", "2019", "Blanco", "123ABC456DEF", "789GHI012JKL", "Toyota Motor Corporation");
+        QuoterCarModel car3 = new QuoterCarModel("DE5678", "BMW", "3 Series", "2022", "Negro", "456DEF789GHI", "012JKL345MNO", "BMW AG");
+        QuoterCarModel car4 = new QuoterCarModel("GH9012", "Ford", "Fiesta", "2018", "Azul", "789GHI012JKL", "345MNO678PQR", "Ford Motor Company");
+        QuoterCarModel car5 = new QuoterCarModel("JK34DL", "Mercedes-Benz", "C-Class", "2021", "Gris", "012JKL345MNO", "678PQR901STU", "Mercedes-Benz AG");
         list.add(car1);
         list.add(car2);
         list.add(car3);
         list.add(car4);
         list.add(car5);
-
         return list;
+    }
+    public QuoterCarModel buildDefaultVehicle(boolean update, String ppu, String brand, String model, String year) {
+        return update ? (new QuoterCarModel(ppu, brand, model, year, "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis")) : (new QuoterCarModel(ppu, "OPEL", "CORSA", "2023", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis"));
     }
 
     public List<QuoterOwnerModel> ownerList() {
         List<QuoterOwnerModel> list = new ArrayList<>();
-
-        QuoterOwnerModel owner1 = new QuoterOwnerModel("11.111.111-1", "Pepe",
-                "Rodriguez", "Fuentes");
-        
-        QuoterOwnerModel owner2 = new QuoterOwnerModel("22.222.222-2", "Maria",
-                "Fuentes", "Silva");
-
-        QuoterOwnerModel owner3 = new QuoterOwnerModel("33.333.333-3", "Camila",
-                "Avellaneda", "González");
-
-        QuoterOwnerModel owner4 = new QuoterOwnerModel("44.444.444-4", "Octaquio",
-                "Alfonso", "Riquelme");
-
-        QuoterOwnerModel owner5 = new QuoterOwnerModel("55.555.555-5", "Valentina",
-                "Carrasco", "Zamora");
-
+        QuoterOwnerModel owner1 = new QuoterOwnerModel("11.111.111-1", "Pepe", "Rodriguez", "Fuentes");
+        QuoterOwnerModel owner2 = new QuoterOwnerModel("22.222.222-2", "Maria", "Fuentes", "Silva");
+        QuoterOwnerModel owner3 = new QuoterOwnerModel("33.333.333-3", "Camila", "Avellaneda", "González");
+        QuoterOwnerModel owner4 = new QuoterOwnerModel("44.444.444-4", "Octaquio", "Alfonso", "Riquelme");
+        QuoterOwnerModel owner5 = new QuoterOwnerModel("55.555.555-5", "Valentina", "Carrasco", "Zamora");
         list.add(owner1);
         list.add(owner2);
         list.add(owner3);
         list.add(owner4);
         list.add(owner5);
-
         return list;
     }
 
@@ -111,36 +89,31 @@ public class QuoterHelper {
         double valueUF = 37000.00;
         String stolenCar = "Valor comercial";
         String workshopType = "Oficial de la marca";
-
+        // Creamos planes de prueba
         TestPlanDto plan1 = new TestPlanDto("TRACTOR045678987", "Tractor Seguros Automotriz",
                 "Plan protector de auto", valueUF, 24.86, 11, 24.86/11,
                 (24.86/11)*valueUF, 3, "Deducible 3 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan1, "70%", "800 UF", "90", "3");
-
         TestPlanDto plan2 = new TestPlanDto("TRACTOR123456789", "Tractor Seguros Automotriz",
                 "Seguro auto completo", valueUF, 22.72, 11, 22.72/11,
                 (22.72/11)*valueUF, 5, "Deducible 5 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan2, "80%", "1200 UF", "120", "4");
-
         TestPlanDto plan3 = new TestPlanDto("TRACTOR987654321", "Tractor Seguros Automotriz",
                 "Plan seguro auto asegurado", valueUF, 27.81, 11, 27.81/11,
                 (27.81/11)*valueUF, 0, "Deducible 0 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan3, "60%", "1500 UF", "90", "4");
-
         TestPlanDto plan4 = new TestPlanDto("TRACTOR12975678953", "Tractor Seguros Automotriz",
                 "Seguro auto premium", valueUF, 20.12, 11, 20.12/11,
                 (20.12/11)*valueUF, 10, "Deducible 10 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan4, "75%", "900 UF", "120", "3");
-
         list.add(plan1);
         list.add(plan2);
         list.add(plan3);
         list.add(plan4);
-
         return list;
     }
 
@@ -149,22 +122,19 @@ public class QuoterHelper {
         double valueUF = 37000.00;
         String stolenCar = "Valor comercial";
         String workshopType = "Oficial de la marca";
-
+        // Creamos planes de prueba
         TestPlanDto plan1 = new TestPlanDto("SEGUROSALAMEDA045678987", "Seguros Alameda",
                 "Asistencia en viaje", valueUF, 23.55, 11, 23.55/11,
                 (23.55/11)*valueUF, 5, "Deducible 5 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan1, "70%", "1200 UF", "90", "3");
-
         TestPlanDto plan2 = new TestPlanDto("SEGUROSALAMEDA123456789", "Seguros Alameda",
                 "Tu trasporte asegurado", valueUF, 27.01, 11, 27.01/11,
                 (27.01/11)*valueUF, 3, "Deducible 3 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan2, "80%", "800 UF", "120", "4");
-
         list.add(plan1);
         list.add(plan2);
-
         return list;
     }
 
@@ -173,29 +143,25 @@ public class QuoterHelper {
         double valueUF = 37000.00;
         String stolenCar = "Valor comercial";
         String workshopType = "Oficial de la marca";
-
+        // Creamos planes de prueba
         TestPlanDto plan1 = new TestPlanDto("LOSALAMOS045678987", "Los Alamos Seguros Automotriz",
                 "Proteción ultra automóvil", valueUF, 22.03, 11, 22.03/11,
                 (22.03/11)*valueUF, 3, "Deducible 3 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan1, "65%", "1500 uf", "180", "3");
-
         TestPlanDto plan2 = new TestPlanDto("LOSALAMOS123456789", "Los Alamos Seguros Automotriz",
                 "Plan de automóvil asegurado", valueUF, 21.41, 11, 21.41/11,
                 (21.41/11)*valueUF, 3, "Deducible 3 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan2, "75%", "1000 UF", "120", "4");
-
         TestPlanDto plan3 = new TestPlanDto("LOSALAMOS987654321", "Los Alamos Seguros Automotriz",
                 "Seguro MAX automóvil", valueUF, 23.38, 11, 23.38/11,
                 (23.38/11)*valueUF, 5, "Deducible 5 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan3, "75%", "1200 UF", "90", "3");
-
         list.add(plan1);
         list.add(plan2);
         list.add(plan3);
-
         return list;
     }
 
@@ -210,48 +176,6 @@ public class QuoterHelper {
         testPlan.setTotalLoss(totalLoss);
         testPlan.setDamageThirdParty(damageThirdParty);
         testPlan.addDetail(detailReplacement).add(detailRenewal);
-    }
-
-    public List<QuoterCarModel> vehiclesByOwnerId(String ownerId) {
-        List<QuoterCarModel> vehicleList = new ArrayList<>();
-        
-        // ownerId ya viene validado, se le asignan autos directamente
-        // Número random entre 2 y 3, para agregar esa cantidad de vehículos al cotizador
-        // Obtener número random entre 2 rangos, para eso se tiene que conocer el rango (limiteSuperior-limiteInferior+1)
-        // Al obtener el número del rango, se obtiene un número entre ese rango y se le suma la parte inferior
-        int vehicleNumbers = ((int) ((Math.random()*(3-2+1))+2)); // Ejemplo: el rango entre 2-3 es 2, porque se puede obtener solo 2 o 3, entonces se obtiene el número que puede ser 0 o 1 y se le agrega el limite inferior (2), y se obtiene el número entre rango 2 o 3.
-        int[] vehicleIndexes = new int[vehicleNumbers];
-        // Nos aseguramos que los valores de los índices no se repitan para que se generen vehículos distintos
-        boolean repeatedVehicle;
-
-        do {
-            repeatedVehicle = false;    
-            for(int i=0; i<vehicleNumbers; i++) {
-                vehicleIndexes[i] = ((int) (Math.random()*5)); // Número entre 0 y 4, porque existen 5 registros de autos de prueba
-            }
-
-            // Se generarón los indexes de los vehículos de prueba, ahora se verifica que no se repitan los índices
-            // para no generar autos copiados al cotizador
-            for(int i=0; i<vehicleNumbers; i++) {
-                for(int j=i+1; j<vehicleNumbers; j++) {
-                    if(vehicleIndexes[i] == vehicleIndexes[j]) {
-                        repeatedVehicle=true;
-                        break;
-                    }
-                }
-                if(repeatedVehicle) {
-                    break;
-                }
-            }
-        } while(repeatedVehicle);
-
-        // Los índices de vehículos son distintos
-        List<QuoterCarModel> vehicleData = this.vehicleList(); // Existen 5 registros de autos de prueba
-        for(int i=0; i<vehicleNumbers; i++) {
-            vehicleList.add(vehicleData.get(vehicleIndexes[i]));
-        }
-
-        return vehicleList;
     }
 
     // Creación de un cotizador para los flujos: "Iniciando" o "Cotizando"

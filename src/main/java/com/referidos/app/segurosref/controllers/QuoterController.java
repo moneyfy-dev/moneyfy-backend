@@ -3,13 +3,11 @@ package com.referidos.app.segurosref.controllers;
 import static com.referidos.app.segurosref.configs.JwtConfig.CONTENT_TYPE;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,7 +20,6 @@ import com.referidos.app.segurosref.requests.CommissionReportRequest;
 import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
 import com.referidos.app.segurosref.requests.GenerateTransactionRequest;
 import com.referidos.app.segurosref.requests.SelectPlanRequest;
-import com.referidos.app.segurosref.requests.RegisterInsurerRequest;
 import com.referidos.app.segurosref.requests.SearchVehicleRequest;
 import com.referidos.app.segurosref.requests.SearchPlanRequest;
 import com.referidos.app.segurosref.responses.GeneralResponses;
@@ -49,6 +46,7 @@ public class QuoterController {
     @Autowired
     private QuoterService quoterService;
 
+    // Endpoint para buscar marcas/modelos registrados
     @GetMapping(value = "/search/vehicle/brands")
     @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
     @Operation(
@@ -86,44 +84,7 @@ public class QuoterController {
         return quoterService.searchVehicleBrands(auth.getPrincipal().toString());
     }
 
-    // ENDPOINTS PARA INGRESAR O BUSCAR ASEGURADORAS QUE PROVEEN DE LOS PLANES PARA REALIZAR LAS COTIZACIONES
-    @PostMapping(value = "/register/insurer")
-    @PreAuthorize(value = "permitAll()")
-    @Operation(
-        summary = "Register a insurer",
-        description = "Register a insurer that provides the insurances",
-        tags = {"Quoter Controller"},
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Provide the data to register the insurer",
-            required = true,
-            content = @Content(
-                mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
-                schema = @Schema(implementation = RegisterInsurerRequest.class)
-            )
-        ),
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The insurer was created successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
-                )
-            )
-        }
-    )
-    public ResponseEntity<?> registerInsurer(@ModelAttribute RegisterInsurerRequest registerInsurer) {
-        return quoterService.registerInsurer(registerInsurer);
-    }
-
+    // Endpoint para buscar aseguradoras registrados
     @GetMapping(value = "/search/insurers")
     @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
     @Operation(
@@ -161,7 +122,6 @@ public class QuoterController {
         return quoterService.searchInsurers(auth.getPrincipal().toString(), auth.getCredentials().toString(), request.getHeader("User-Agent"));
     }
 
-    // ENDPOINTS QUE FORMAN PARTE DEL FLUJO COMPLETO DE LA COTIZACIÓN
     @PostMapping(value = "/search/vehicle")
     @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
     @Operation(
@@ -255,7 +215,7 @@ public class QuoterController {
     )
     public ResponseEntity<?> searchPlan(@RequestBody SearchPlanRequest searchPlan, BindingResult bindingResult,
             Authentication auth) {
-        quoterService.validatePlanFinder(searchPlan, bindingResult); // VALIDACIÓN ACTUALIZADA
+        quoterService.validatePlanFinder(searchPlan, bindingResult);
         if(bindingResult.hasErrors()) {
             return ResponseHelper.preconditionMap("información no aceptada", ResponseHelper.buildErrorFields(bindingResult));
         }

@@ -5,9 +5,11 @@ import lombok.Data;
 @Data
 public class QuoteRateBciPojo {
 
-    private int IdDeducible;
+    private Integer IdDeducible;
     private String DescripcionDeducible;
-    private double PrimaAnualBruta;
-    private int ValorCuotaPesos;
+    private Double PrimaAnualNeta;
+    private Double PrimaAnualBruta;
+    private Double Impuesto;
+    private Integer ValorCuotaPesos;
 
 }
