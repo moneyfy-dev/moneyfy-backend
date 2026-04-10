@@ -66,26 +66,26 @@ public class QuoterValidator implements Validator {
         // Datos del plan
         String quoterId = this.validateInput.verifyQuoterId(selectPlan.quoterId());
         String planId = this.validateInput.verifyPlanId(selectPlan.planId());
-        String insurer = this.validateInput.verifyInsurer(selectPlan.insurer()); // CON TRIM() INCLUIDO (permite saltos en línea)
-        String planName = this.validateInput.verifyPlanName(selectPlan.planName()); // CON TRIM() INCLUIDO (permite saltos en línea)
+        String insurer = this.validateInput.verifyInsurer(selectPlan.insurer());
+        String planName = this.validateInput.verifyPlanName(selectPlan.planName());
         String valueUF = this.validateInput.verifyNumberValue(selectPlan.valueUF());
         String grossPriceUF = this.validateInput.verifyNumberValue(selectPlan.grossPriceUF());
         String totalMonths = this.validateInput.verifyNumberValue(selectPlan.totalMonths());
         String monthlyPriceUF = this.validateInput.verifyNumberValue(selectPlan.monthlyPriceUF());
         String monthlyPrice = this.validateInput.verifyNumberValue(selectPlan.monthlyPrice());
-        String deductible = this.validateInput.verifyNumberValue(selectPlan.deductible());
+        String deductibleDesc = this.validateInput.verifyDeductibleDesc(selectPlan.deductibleDesc());
         String discount = this.validateInput.verifyNumberValue(selectPlan.discount());
         // Datos del dueño del vehículo
-        String ownerName = this.validateInput.verifyName(selectPlan.ownerName()); // CON TRIM() INCLUIDO (No permite saltos en línea)
-        String ownerPaternalSur = this.validateInput.verifySurname(selectPlan.ownerPaternalSur()); // CON TRIM() INCLUIDO (No permite saltos en línea)
-        String ownerMaternalSur = this.validateInput.verifySurname(selectPlan.ownerMaternalSur()); // CON TRIM() INCLUIDO (No permite saltos en línea)
+        String ownerName = this.validateInput.verifyName(selectPlan.ownerName());
+        String ownerPaternalSur = this.validateInput.verifySurname(selectPlan.ownerPaternalSur());
+        String ownerMaternalSur = this.validateInput.verifySurname(selectPlan.ownerMaternalSur());
         // Datos para la inspección
-        String street = this.validateInput.verifyStreet(selectPlan.street()); // CON TRIM() INCLUIDO (permite saltos en línea)
-        String streetNumber = this.validateInput.verifyStreetNumber(selectPlan.streetNumber()); // CON TRIM() INCLUIDO (permite saltos en línea)
-        String department = this.validateInput.verifyDepartment(selectPlan.department()); // CON TRIM() INCLUIDO (permite saltos en línea) - opcional
+        String street = this.validateInput.verifyStreet(selectPlan.street());
+        String streetNumber = this.validateInput.verifyStreetNumber(selectPlan.streetNumber());
+        String department = this.validateInput.verifyDepartment(selectPlan.department());
         // Validar siguientes campos y verificar si tienen error los demás campos
         this.validatePlanData(quoterId, planId, insurer, planName, valueUF, grossPriceUF, totalMonths, monthlyPriceUF,
-                monthlyPrice, deductible, discount, ownerName, ownerPaternalSur, ownerMaternalSur, street, streetNumber,
+                monthlyPrice, deductibleDesc, discount, ownerName, ownerPaternalSur, ownerMaternalSur, street, streetNumber,
                 department, bindingResult);
     }
 
@@ -141,7 +141,7 @@ public class QuoterValidator implements Validator {
     
     @SuppressWarnings("null")
     private void validatePlanData(String quoterId, String planId, String insurer, String planName, String valueUF,
-            String grossPriceUF, String totalMonths, String monthlyPriceUF, String monthlyPrice, String deductible,
+            String grossPriceUF, String totalMonths, String monthlyPriceUF, String monthlyPrice, String deductibleDesc,
             String discount, String ownerName, String ownerPaternalSur, String ownerMaternalSur, String street,
             String streetNumber, String department, BindingResult errors) {
         if(!quoterId.equals("")) {
@@ -171,8 +171,8 @@ public class QuoterValidator implements Validator {
         if(!monthlyPrice.equals("")) {
             errors.rejectValue("monthlyPrice", null, monthlyPrice);
         }
-        if(!deductible.equals("")) {
-            errors.rejectValue("deductible", null, deductible);
+        if(!deductibleDesc.equals("")) {
+            errors.rejectValue("deductibleDesc", null, deductibleDesc);
         }
         if(!discount.equals("")) {
             errors.rejectValue("discount", null, discount);

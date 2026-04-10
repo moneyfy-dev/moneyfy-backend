@@ -33,7 +33,7 @@ public class LogServiceImpl implements LogService {
     @Autowired
     private EmailServiceProvider emailProvider;
 
-    @Value(value="${api.key.moneyfy.seed}")
+    @Value(value="${api.key.moneyfy}")
     private String apiKeyMoneyFy;
 
     // Servicio para la búsqueda de todos los logs de la aplicación, además de los logs de errores

@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 @JsonPropertyOrder(value = {"quoterPlanId", "insurer", "planName", "valueUF", "grossPriceUF", "totalMonths",
-        "monthlyPriceUF", "monthlyPrice", "deductible", "discount"})
+        "monthlyPriceUF", "monthlyPrice", "deductibleDesc", "discount"})
 public class QuoterPlanModel {
 
     private String quoterPlanId;
@@ -19,7 +19,7 @@ public class QuoterPlanModel {
     private int totalMonths; // Este campo debería ser fijo
     private double monthlyPriceUF; // Este campo debería ser fijo
     private double monthlyPrice; // Este campo varía según el valor del UF del día / COMO ACTUALIZARLO
-    private int deductible;
+    private String deductibleDesc;
     private double discount;
 
 }

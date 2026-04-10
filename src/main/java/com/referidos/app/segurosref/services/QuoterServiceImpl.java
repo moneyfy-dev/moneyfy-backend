@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
@@ -108,7 +109,7 @@ public class QuoterServiceImpl implements QuoterService {
     @Autowired
     private QuoterHelper quoterHelper;
 
-    @Value(value = "${api.key.moneyfy.seed}")
+    @Value(value = "${api.key.moneyfy}")
     private String apiKeyMoneyFy;
 
     private final int commissionUserC = 35000;
@@ -230,13 +231,13 @@ public class QuoterServiceImpl implements QuoterService {
         // Intentamos encontrar la cotización, si existe actualizamos los datos, si no existe se crea la cotización
         QuoterModel userQuoter = null;
         List<QuoterModel> quoters = userDB.getQuoters();
-        String quoterCurrentStatus = "Cotizando";
+        String pointOfQuoterCurrentStatus = "Cotizando";
         LocalDateTime currentDateTime = LocalDateTime.now();
         if(!quoterId.equals("")) {
             for(QuoterModel quoterDB : quoters) {
                 String quoterDBId = quoterDB.getQuoterId();
                 if(quoterDBId.equals(quoterId)) {
-                    if(!quoterDB.getQuoterStatus().equals("Iniciando") && !quoterDB.getQuoterStatus().equals(quoterCurrentStatus)) {
+                    if(!quoterDB.getQuoterStatus().equals("Iniciando") && !quoterDB.getQuoterStatus().equals(pointOfQuoterCurrentStatus)) {
                         return ResponseHelper.locked("La cotización se esta procesando", null);
                     }
                     // En caso de que sea una cotización que venga del proceso anterior actualizamos los datos, recordar que este es un endpoint que se puede repetir como tantas aseguradoras existan
@@ -253,7 +254,7 @@ public class QuoterServiceImpl implements QuoterService {
                         quoterPurchaserDB.setPhone(purchaserPhone);
                         quoterPurchaserDB.setOwnerRelationOption(ownerRelationOption);
                         // Se actualiza el estado actual de la cotización y el usuario para que persistan los cambios
-                        quoterDB.setQuoterStatus(quoterCurrentStatus);
+                        quoterDB.setQuoterStatus(pointOfQuoterCurrentStatus);
                         quoterDB.setUpdatedDate(currentDateTime);
                         userDB = userRepository.save(userDB);
                     }
@@ -269,7 +270,7 @@ public class QuoterServiceImpl implements QuoterService {
             for(QuoterModel quoterDB : quoters) {
                 QuoterCarModel quoterCarDB = quoterDB.getQuoterCarData();
                 QuoterPurchaserModel quoterPurchaserDB = quoterDB.getQuoterPurchaserData();
-                if(quoterDB.getQuoterStatus().equals(quoterCurrentStatus) && quoterCarDB.getPpu().equals(ppu) && 
+                if(quoterDB.getQuoterStatus().equals(pointOfQuoterCurrentStatus) && quoterCarDB.getPpu().equals(ppu) && 
                         quoterCarDB.getBrand().equals(brand) && quoterCarDB.getModel().equals(model) &&
                         quoterCarDB.getYear().equals(year) && quoterPurchaserDB.getPersonalId().equals(purchaserId) &&
                         quoterPurchaserDB.getName().equals(purchaserName) && quoterPurchaserDB.getEmail().equals(purchaserEmail)) {
@@ -284,7 +285,7 @@ public class QuoterServiceImpl implements QuoterService {
                 QuoterCarModel quoterCar = quoterHelper.buildDefaultVehicle(true, ppu, brand, model, year);
                 QuoterPurchaserModel quoterPurchaser = new QuoterPurchaserModel(purchaserId, purchaserName, purchaserPaternalSur, purchaserMaternalSur, purchaserEmail, purchaserPhone, ownerRelationOption);
                 // Creamos nueva cotización y la persistimos
-                userQuoter = quoterHelper.createQuoteStructure(quoterOwner, quoterCar, quoterPurchaser, quoterCurrentStatus, currentDateTime);
+                userQuoter = quoterHelper.createQuoteStructure(quoterOwner, quoterCar, quoterPurchaser, pointOfQuoterCurrentStatus, currentDateTime);
                 userDB.addQuoter(userQuoter);
                 userDB = userRepository.save(userDB);
             }
@@ -373,53 +374,47 @@ public class QuoterServiceImpl implements QuoterService {
 
     @Override
     public ResponseEntity<?> selectPlan(SelectPlanRequest planSelected, String emailAuth) {
-        // Los datos del plan seleccionado han sido validados anteriormente
+        // Los datos del plan seleccionado ya han sido validados
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         List<QuoterModel> quoters = userDB.getQuoters();
         String quoterId = planSelected.quoterId();
+        String pointOfQuoterCurrentStatus = "Recopilando";
         // Buscamos al cotizador mediante al id y por el estado del flujo anterior o el actual, en caso de que el
         // usuario desee cambiar de plan y datos de inspección
         for(QuoterModel quoterDB : quoters) {
-            String quoterStatus = quoterDB.getQuoterStatus();
+            String quoterStatusDB = quoterDB.getQuoterStatus();
             String quoterDBId = quoterDB.getQuoterId();
-            if((quoterStatus.equals("Cotizando") || quoterStatus.equals("Recopilando")) &&
+            if((quoterStatusDB.equals("Cotizando") || quoterStatusDB.equals(pointOfQuoterCurrentStatus)) &&
                     quoterId.equals(quoterDBId)) {
-                // Se encontró el cotizador, por lo tanto, se puede actualizar y seguir con el flujo
-
-                // Actualizamos/confirmamos la data del dueño
+                // Se encontró la cotización por lo tanto se pueden obtener los datos y seguir con el flujo
                 QuoterOwnerModel quoterOwner = quoterDB.getQuoterOwnerData();
-                quoterOwner.setName(planSelected.ownerName().trim()); // CON TRIM() INCLUIDO (no permite saltos en línea)
-                quoterOwner.setPaternalSurname(planSelected.ownerPaternalSur().trim()); // CON TRIM() INCLUIDO (no permite saltos en línea)
-                quoterOwner.setMaternalSurname(planSelected.ownerMaternalSur().trim()); // CON TRIM() INCLUIDO (no permite saltos en línea)
-
+                quoterOwner.setName(planSelected.ownerName().strip()); // Usamos strip() para quitar espacios al inicio y final
+                quoterOwner.setPaternalSurname(planSelected.ownerPaternalSur().strip());
+                quoterOwner.setMaternalSurname(planSelected.ownerMaternalSur().strip());
                 // Actualizamos el plan seleccionado del cotizador
                 QuoterPlanModel quoterPlan = quoterDB.getQuoterPlanData();
                 quoterPlan.setQuoterPlanId(planSelected.planId());
-                quoterPlan.setInsurer(planSelected.insurer().trim()); // CON TRIM() INCLUIDO (permite saltos en línea)
-                quoterPlan.setPlanName(planSelected.planName().trim()); // CON TRIM() INCLUIDO (permite saltos en línea)
+                quoterPlan.setInsurer(planSelected.insurer().strip());
+                quoterPlan.setPlanName(planSelected.planName().strip());
                 quoterPlan.setValueUF(planSelected.valueUF());
                 quoterPlan.setGrossPriceUF(planSelected.grossPriceUF());
                 quoterPlan.setTotalMonths(planSelected.totalMonths());
                 quoterPlan.setMonthlyPriceUF(planSelected.monthlyPriceUF());
                 quoterPlan.setMonthlyPrice(planSelected.monthlyPrice());
-                quoterPlan.setDeductible(planSelected.deductible());
+                quoterPlan.setDeductibleDesc(planSelected.deductibleDesc());
                 quoterPlan.setDiscount(planSelected.discount());
-
                 // Actualizamos la dirección de la cotización
                 QuoterAddressModel quoterAddress = quoterDB.getQuoterAddressData();
-                quoterAddress.setStreet(planSelected.street().trim());  // CON TRIM() INCLUIDO (permite saltos en línea)
-                quoterAddress.setStreetNumber(planSelected.streetNumber().trim()); // CON TRIM() INCLUIDO (permite saltos en línea)
-                quoterAddress.setDepartment((!DataHelper.isNull(planSelected.department())) ? planSelected.department().trim() : ""); // CON TRIM() INCLUIDO (permite saltos en línea) - opcional
-                
+                quoterAddress.setStreet(planSelected.street().strip()); 
+                quoterAddress.setStreetNumber(planSelected.streetNumber().strip());
+                quoterAddress.setDepartment((!DataHelper.isNull(planSelected.department())) ? planSelected.department().strip() : "");
                 // Actualizamos el estado del flujo, la fecha de actualización del cotizador y la base de datos.
-                quoterDB.setQuoterStatus("Recopilando");
+                quoterDB.setQuoterStatus(pointOfQuoterCurrentStatus);
                 quoterDB.setUpdatedDate(LocalDateTime.now());
                 userDB = userRepository.save(userDB);
-                
                 return ResponseHelper.ok("se ha seleccionado el plan de la cotización", DataHelper.buildUser(userDB, "quoterId", quoterId));
             }
         }
-
         return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
     }
 
@@ -427,97 +422,86 @@ public class QuoterServiceImpl implements QuoterService {
     @Override
     public ResponseEntity<?> generateTransaction(GenerateTransactionRequest generateTransaction, String emailAuth, String requestEndpoint) {
         UserModel userC = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
-        String quoterId = (!DataHelper.isNull(generateTransaction.quoterId()) && ObjectId.isValid(generateTransaction.quoterId()))
-                ? generateTransaction.quoterId() : "No informado";
-        if(!quoterId.equals("No informado")) {
+        String userCId = userC.getUserId();
+        String quoterId = generateTransaction.quoterId();
+        quoterId = (!DataHelper.isNull(quoterId) && ObjectId.isValid(quoterId)) ? quoterId : "";
+        if(!quoterId.equals("")) {
             // El id del cotizador cumple con el formato, para buscar un registro específico
             List<QuoterModel> quoters = userC.getQuoters();
             for(QuoterModel quoterDB : quoters) {
-                String quoterDBId = quoterDB.getQuoterId();
-                String quoterStatus = quoterDB.getQuoterStatus();
-                if(quoterId.equals(quoterDBId) && quoterStatus.equals("Recopilando")) {
-                    if(transactionRepository.existsByUserIdAndQuoterId(userC.getUserId(), quoterId)) {
+                String quoterIdDB = quoterDB.getQuoterId();
+                String quoterStatusDB = quoterDB.getQuoterStatus();
+                if(quoterId.equals(quoterIdDB) && quoterStatusDB.equals("Recopilando")) {
+                    if(transactionRepository.existsByUserIdAndQuoterId(userCId, quoterId)) {
                         return ResponseHelper.gone("transacción existente que está siendo procesada", null);
                     }
                     // Se comienza a generar la transacción con las comisiones debidas
-                    String transactionId = new ObjectId().toString(); // Nueva transacción
-                    int commissionScope = 1; // El nivel encontrado para entregar comisiones
+                    String transactionId = new ObjectId().toString();
+                    int commissionScope = 1; // Comienzo de nivel encontrado para entregar comisiones
                     int commissionTotal = commissionUserC; // Comienzo de la comisión total que se lleva la venta
-                    String currentStatus = "Pendiente"; // Estado del flujo actual
+                    String pointOfCurrentStatus = "Pendiente";
                     LocalDateTime currentDateTime = LocalDateTime.now();
-                    TransactionModel novaTransaction = quoterHelper.generateNovaTransactionStructure(transactionId, userC, quoterDB, commissionTotal, currentStatus, currentDateTime);
+                    TransactionModel novaTransaction = quoterHelper.generateNovaTransactionStructure(transactionId, userCId, quoterDB, pointOfCurrentStatus, commissionTotal, commissionScope, "La comisión está siendo procesada", currentDateTime);
                     List<UserModel> users = new ArrayList<>(); // Usuarios que se tienen que actualizar por el ajuste de la wallet
                     // Comenzamos a actualizar la data de la wallet del usuario.
                     WalletModel walletC = userC.getWallet();
                     walletC.setOutstandingBalance(walletC.getOutstandingBalance() + commissionUserC);
                     walletC.setTotalBalance(walletC.getOutstandingBalance() + walletC.getAvailableBalance());
-                    walletC.addTransactionId(transactionId);
                     users.add(userC);
-                    // Ver si existe el userB y userA, para actualizar sus wallets
+                    // Ver si existe el userB y userA, para ajustar transacción
+                    String emailUserB = "";
+                    String emailUserA = "";
+                    String message = "";
                     try {
                         // IMPORTANTE: Se busca un userB que haya referido al userC, para agregar la comisión correspondiente.
                         // Si el usuario que está refiriendo está activado, tiene que haber un registro en la colección de
                         // 'users', si no se encuentra se maneja con una respuesta errada con try/catch.
                         Optional<ReferredModel> referredByUserB = referredRepository.findByReferred(emailAuth);
                         if(referredByUserB.isPresent() && referredByUserB.get().getUserReferringStatus().equals("Activado")) {
-                            // Ajustamos valores de transacción
-                            commissionScope=2;
-                            commissionTotal += commissionUserB;
-                            // Buscamos el usuario referidor para actualizar su wallet
-                            String emailUserB = referredByUserB.get().getUserReferring();
+                            // Buscamos el usuario referidor y actualizamos wallet
+                            emailUserB = referredByUserB.get().getUserReferring();
                             UserModel userB = userRepository.findByPersonalData_Email(emailUserB).orElseThrow();
                             WalletModel walletB = userB.getWallet();
                             walletB.setOutstandingBalance(walletB.getOutstandingBalance() + commissionUserB);
                             walletB.setTotalBalance(walletB.getOutstandingBalance() + walletB.getAvailableBalance());
-                            walletB.addTransactionId(transactionId);
                             users.add(userB);
-                            // Agregamos nueva comisión
-                            novaTransaction.addCommission(new TransactionComissionModel(userB.getUserId(), commissionUserB, currentStatus));
+                            // Ajustamos valores de transacción y agregamos comisión
+                            commissionScope=2;
+                            commissionTotal += commissionUserB;
+                            novaTransaction.addCommission(new TransactionComissionModel(userB.getUserId(), commissionUserB, pointOfCurrentStatus));
                             // IMPORTANTE: Se busca un userA que haya referido al userB, para agregar la comisión correspondiente.
                             Optional<ReferredModel> referredByUserA = referredRepository.findByReferred(emailUserB);
                             if(referredByUserA.isPresent() && referredByUserA.get().getUserReferringStatus().equals("Activado")) {
-                                commissionScope=3;
-                                commissionTotal += commissionUserA;
-                                // Buscamos el usuario referidor para actualizar su wallet
-                                String emailUserA = referredByUserA.get().getUserReferring();
+                                // Buscamos el usuario referidor y actualizamos wallet
+                                emailUserA = referredByUserA.get().getUserReferring();
                                 UserModel userA = userRepository.findByPersonalData_Email(emailUserA).orElseThrow();
                                 WalletModel walletA = userA.getWallet();
                                 walletA.setOutstandingBalance(walletA.getOutstandingBalance() + commissionUserA);
                                 walletA.setTotalBalance(walletA.getOutstandingBalance() + walletA.getAvailableBalance());
-                                walletA.addTransactionId(transactionId);
                                 users.add(userA);
-                                // Agregamos nueva comisión
-                                novaTransaction.addCommission(new TransactionComissionModel(userA.getUserId(), commissionUserA, currentStatus));
+                                // Ajustamos valores de transacción y agregamos comisión
+                                commissionScope=3;
+                                commissionTotal += commissionUserA;
+                                novaTransaction.addCommission(new TransactionComissionModel(userA.getUserId(), commissionUserA, pointOfCurrentStatus));
                             }
                         }
-                    } catch(Exception e) {
-                        // Generamos log de error
-                        String endpoint = !DataHelper.isNull(requestEndpoint) ? requestEndpoint : "No informado";
-                        LogModel logReferredNotFound = new LogModel(null, "ERROR", "Referidor no encontrado al generar la transaccion",
-                                endpoint, "Grave", "", transactionId, "", new HashMap<>(), currentDateTime, currentDateTime);
-                        logReferredNotFound.addData("commissionScope", commissionScope);
-                        logRepository.save(logReferredNotFound);
-                        // Actualizamos estado de transacción problemática y devolvemos error
-                        novaTransaction.setStatus("Generando");
-                        transactionRepository.save(novaTransaction);
-                        String conflictMessage = "no se ha podido recuperar la data del referidor que recibe la comisión y la transacción N°" + transactionId + " se encuentra en inspección para ser resuelta.";
-                        return ResponseHelper.locked(conflictMessage, null);
+                    } catch(NoSuchElementException e) {
+                        // En caso de haber excepción, seguimos ya que no se alcanza a actualizar ningún dato esencial y entregamos mensaje de excepción
+                        String referredNotFound = (novaTransaction.getCommissionScope() == 1) ? emailUserB : emailUserA; 
+                        message = "Ha ocurrido un excepción en la transacción N°" + transactionId + ", el referido no fue encontrado: " + referredNotFound + "\n" + e.getMessage();
                     }
                     // Se actualiza el nivel de comisiones que se alcanzo a entregar la transacción (referidos).
                     novaTransaction.setCommissionScope(commissionScope);
                     novaTransaction.setCommissionTotal(commissionTotal);
-                    // Se actualizan el estado y fecha de actualización del cotizador.
-                    quoterDB.setQuoterStatus(currentStatus);
+                    // Se actualizan el estado, fecha de actualización y se envía el detalle del plan que se está cotizando al usuario
+                    quoterDB.setQuoterStatus(pointOfCurrentStatus);
                     quoterDB.setUpdatedDate(currentDateTime);
-
-                    // Se envía el detalle del plan que se está cotizando en la aseguradora
                     emailProvider.sendQuoteDetails(userC, quoterDB);
-
-                    // Guardamos en la base de datos
+                    // Guardamos en la base de datos y retornamos el usuario de la consulta (userC), id del cotizador, y id de la transacción
                     userRepository.saveAll(users);
                     transactionRepository.save(novaTransaction);
-                    // Retornamos el usuario de la consulta (userC), id del cotizador, y id de la transacción
-                    return ResponseHelper.ok("la trasacción se ha realizado correctamente", DataHelper.buildUser(userC, "quoterId", quoterId, "transactionId", transactionId));
+                    Map<String, Object> data = Map.of("quoterId", quoterId, "transactionId", transactionId, "message", message);
+                    return ResponseHelper.ok("la trasacción se ha realizado correctamente", DataHelper.buildUser(userC, data));
                 }
             }
         }

@@ -27,7 +27,7 @@ import jakarta.servlet.http.HttpServletRequest;
 @Service
 public class SeedServiceImpl implements SeedService {
 
-    @Value(value = "${api.key.moneyfy.seed}")
+    @Value(value = "${api.key.moneyfy}")
     private String apiKeyMF;
     
     @Autowired

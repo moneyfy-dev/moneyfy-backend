@@ -23,16 +23,13 @@ public interface QuoterService {
     ResponseEntity<?> selectPlan(SelectPlanRequest planSelected, String emailAuth);
     ResponseEntity<?> generateTransaction(GenerateTransactionRequest generateTransaction, String emailAuth, String requestEndpoint);
     ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote, String emailAuth, String requestEndpoint);
-
     // SERVICIOS QUE FORMAN PARTE DEL FLUJO DEL RETIRO DE DINERO DISPONIBLE DEL USUARIO
     ResponseEntity<?> commissionReport(CommissionReportRequest commissionReportRequest, String requestEndpoint);
     ResponseEntity<?> commissionPayments(CommissionPaymentRequest commissionPaymentRequest);
-
     // SERVICIOS UTILIZADOS PARA REALIZAR PRUEBAS Y LÓGICAS DE LA APLICACIÓN
     ResponseEntity<?> viewTestData();
     String testNovaFunctions();
-
-    // SERVICIOS DE VALIDACIONES DE DATOS
+    // Servicios para validaciones de datos
     void validateVehicleFinder(SearchVehicleRequest searchVehicle, BindingResult bindingResult);
     void validatePlanFinder(SearchPlanRequest searchPlan, BindingResult bindingResult);
     void validateSelectedPlan(SelectPlanRequest selectPlan, BindingResult bindingResult);

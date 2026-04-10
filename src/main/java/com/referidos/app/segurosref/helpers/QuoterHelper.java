@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,11 +54,11 @@ public class QuoterHelper {
     // Funciones de apoyo con data de prueba
     public List<QuoterCarModel> vehicleList() {
         List<QuoterCarModel> list = new ArrayList<>();
-        QuoterCarModel car1 = new QuoterCarModel("11AA22", "Chevrolet", "Captiva", "2021", "Plateado", "AA1234BB5678", "FAEBDC892354A1B3C6", "SAIC-GM-Wuling");
-        QuoterCarModel car2 = new QuoterCarModel("AB1234", "Toyota", "Corolla", "2019", "Blanco", "123ABC456DEF", "789GHI012JKL", "Toyota Motor Corporation");
-        QuoterCarModel car3 = new QuoterCarModel("DE5678", "BMW", "3 Series", "2022", "Negro", "456DEF789GHI", "012JKL345MNO", "BMW AG");
-        QuoterCarModel car4 = new QuoterCarModel("GH9012", "Ford", "Fiesta", "2018", "Azul", "789GHI012JKL", "345MNO678PQR", "Ford Motor Company");
-        QuoterCarModel car5 = new QuoterCarModel("JK34DL", "Mercedes-Benz", "C-Class", "2021", "Gris", "012JKL345MNO", "678PQR901STU", "Mercedes-Benz AG");
+        QuoterCarModel car1 = new QuoterCarModel("11AA22", "Chevrolet", "Captiva", "2021", "SUV", "Plateado", "AA1234BB5678", "FAEBDC892354A1B3C6", "SAIC-GM-Wuling");
+        QuoterCarModel car2 = new QuoterCarModel("AB1234", "Toyota", "Corolla", "2019", "SEDAN", "Blanco", "123ABC456DEF", "789GHI012JKL", "Toyota Motor Corporation");
+        QuoterCarModel car3 = new QuoterCarModel("DE5678", "BMW", "3 Series", "2022", "SEDAN", "Negro", "456DEF789GHI", "012JKL345MNO", "BMW AG");
+        QuoterCarModel car4 = new QuoterCarModel("GH9012", "Ford", "Fiesta", "2018", "HATCHBACK", "Azul", "789GHI012JKL", "345MNO678PQR", "Ford Motor Company");
+        QuoterCarModel car5 = new QuoterCarModel("JK34DL", "Mercedes-Benz", "C-Class", "2021", "SEDAN", "Gris", "012JKL345MNO", "678PQR901STU", "Mercedes-Benz AG");
         list.add(car1);
         list.add(car2);
         list.add(car3);
@@ -66,7 +67,7 @@ public class QuoterHelper {
         return list;
     }
     public QuoterCarModel buildDefaultVehicle(boolean update, String ppu, String brand, String model, String year) {
-        return update ? (new QuoterCarModel(ppu, brand, model, year, "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis")) : (new QuoterCarModel(ppu, "OPEL", "CORSA", "2023", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis"));
+        return update ? (new QuoterCarModel(ppu, brand, model, year, "", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis")) : (new QuoterCarModel(ppu, "OPEL", "CORSA", "2023", "HATCHBACK", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis"));
     }
 
     public List<QuoterOwnerModel> ownerList() {
@@ -182,7 +183,7 @@ public class QuoterHelper {
     public QuoterModel createQuoteStructure(QuoterOwnerModel quoterOwner, QuoterCarModel quoterCar,
             QuoterPurchaserModel quoterPurchaser, String quoterStatus, LocalDateTime currentDateTime) {
         // Estructura de los otros objetos del cotizador (vacíos por el momento)
-        QuoterPlanModel quoterPlan = new QuoterPlanModel("", "", "", 0.0, 0.0, 0, 0.0, 0.0, 0, 0.0);
+        QuoterPlanModel quoterPlan = new QuoterPlanModel("", "", "", 0.0, 0.0, 0, 0.0, 0.0, "", 0.0);
         QuoterAddressModel quoterAddress = new QuoterAddressModel("", "", "");
         QuoterPaymentModel quoterPayment = new QuoterPaymentModel("", "", "", "");
         return new QuoterModel(new ObjectId(), quoterStatus, quoterOwner, quoterCar, quoterPurchaser, quoterPlan,
@@ -258,15 +259,13 @@ public class QuoterHelper {
         return new Object[] {errorMessage, cutoffDate, paymentDate};
     }
 
-
     // Generamos el cuerpo de una nueva transacción
-    public TransactionModel generateNovaTransactionStructure(String transactionId, UserModel userC,
-            QuoterModel quoterDB, int commissionTotal, String currentStatus, LocalDateTime currentDateTime) {
-        String userCId = userC.getUserId();
-        TransactionModel novaTransaction = new TransactionModel(transactionId, quoterDB.getQuoterPlanData().getQuoterPlanId(),
-                userCId, quoterDB.getQuoterId(), currentStatus, commissionTotal, 1,
-                "La comisión está siendo procesada", currentDateTime, currentDateTime, DataHelper.deprecatedDateTime());
-        novaTransaction.addCommission(new TransactionComissionModel(userCId, commissionTotal, currentStatus));
+    public TransactionModel generateNovaTransactionStructure(String transactionId, String userCId, QuoterModel quoterDB, String status, int commissionTotal, int commissionScope, String observation, LocalDateTime currentDateTime) {
+        String planId = quoterDB.getQuoterPlanData().getQuoterPlanId();
+        String quoterId = quoterDB.getQuoterId();
+        TransactionModel novaTransaction = new TransactionModel(transactionId, planId, userCId, quoterId, status, commissionTotal,
+                commissionScope, observation, currentDateTime, currentDateTime, DataHelper.deprecatedDateTime());
+        novaTransaction.addCommission(new TransactionComissionModel(userCId, commissionTotal, status));
         return novaTransaction;
     }
 
@@ -497,7 +496,7 @@ public class QuoterHelper {
                 // Creación de objeto para el egreso de comisiones (SE DEBE AGREGAR LOS IDS DE LOS EGRESOS EN EL USUARIO)
                 PaymentModel novaPayment = new PaymentModel(new ObjectId(), userId, userAccount,
                         userPayment, availableBalance, payment.getVoucher(), currenDateTime.format(dateFormatter),
-                        currenDateTime, currenDateTime);
+                        new HashSet<>(), currenDateTime, currenDateTime);
                 // Finalmente, agregamos el usuario que se tiene que actualizar a la lista de usuarios y el nuevo egreso a la lista de egresos
                 userWallet.addPaymentId(novaPayment.getPaymentId());
                 updateUsers.add(userDB);

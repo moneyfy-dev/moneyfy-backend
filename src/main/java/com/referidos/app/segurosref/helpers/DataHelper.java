@@ -53,6 +53,13 @@ public class DataHelper {
         return Map.of("user", userModel, "tokens", tokens, key3, value3, key4, value4);
     }
 
+    public static Map<String, Object> buildUser(UserModel userModel, Map<String, Object> data) {
+        String jwtSession = userModel.getPersonalData().getSessionToken();
+        String jwtRefresh = userModel.getPersonalData().getRefreshToken();
+        TokensDto tokens = new TokensDto(jwtSession, jwtRefresh);
+        return Map.of("user", userModel, "tokens", tokens, "data", data);
+    }
+
     public static LocalDate deprecatedDate() {
         return LocalDate.of(1900, 1, 1);
     }

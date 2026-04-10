@@ -10,7 +10,7 @@ public record SelectPlanRequest(
     int totalMonths, // Este campo debería ser fijo
     double monthlyPriceUF, // Este campo debería ser fijo
     double monthlyPrice, // Este campo varía según el valor del UF del día / COMO ACTUALIZARLO
-    int deductible,
+    String deductibleDesc,
     double discount,
     String ownerName,
     String ownerPaternalSur,

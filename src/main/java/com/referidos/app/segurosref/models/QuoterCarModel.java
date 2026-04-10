@@ -11,6 +11,7 @@ public class QuoterCarModel {
     private String brand;
     private String model;
     private String year;
+    private String type;
     private String colour;
     private String engineNum;
     private String chassisNum;

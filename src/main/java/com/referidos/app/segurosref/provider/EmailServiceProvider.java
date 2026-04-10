@@ -175,47 +175,57 @@ public class EmailServiceProvider {
     }
 
     public void sendQuoteDetails(UserModel userDB, QuoterModel quoterDB) {
-        // Data relacionada al usuario de la aplicación
+        // Se envía email al usuario de la app para seguimiento de cotización y al comprador de la cotización
         UserDataModel userDataDB = userDB.getPersonalData();
         String userFullName = userDataDB.getName() + " " + userDataDB.getSurname();
         String[] toUsers1 = {userDataDB.getEmail()};
-        
-        // Data relacionada a la cotización
         String quoterId = quoterDB.getQuoterId();
-        
-        // Los asuntos van con el id de la cotización
-        String subjectPersonalized1 = subjectQuoterDetailsPurchaser + quoterId;
-        String subjectPersonalized2 = subjectVehicleDetailsUser + quoterId;
-
-        
+        String subjectPersonalized1 = subjectVehicleDetailsUser + quoterId;
+        String subjectPersonalized2 = subjectQuoterDetailsPurchaser + quoterId;
+        // Datos propietario, vehículo, comprador, plan, dirección
         QuoterOwnerModel quoterOwner = quoterDB.getQuoterOwnerData();
         String ownerFullName = quoterOwner.getName() + " " + quoterOwner.getPaternalSurname() + " " + quoterOwner.getMaternalSurname();
-        
         QuoterCarModel quoterCar = quoterDB.getQuoterCarData();
-        
         QuoterPurchaserModel quoterPurchaser = quoterDB.getQuoterPurchaserData();
         String[] toUsers2 = {quoterPurchaser.getEmail()};
         String purchaserFullName = quoterPurchaser.getName() + " " + quoterPurchaser.getPaternalSurname() + " " + quoterPurchaser.getMaternalSurname();
-        
+        String purchaserId = quoterPurchaser.getPersonalId();
         QuoterPlanModel quoterPlan = quoterDB.getQuoterPlanData();
-        
         QuoterAddressModel quoterAddress = quoterDB.getQuoterAddressData();
         String addressDetail = quoterAddress.getStreet() + " " + quoterAddress.getStreetNumber();
-        String departmentDetail = !DataHelper.isNull(quoterAddress.getDepartment()) ? quoterAddress.getDepartment() : "Sin especificar";
-
+        String departmentDetail = !DataHelper.isNull(quoterAddress.getDepartment()) ? quoterAddress.getDepartment() : "";
+        try {
+            // DESARROLLAMOS EL EMAIL PARA EL USUARIO, INCLUYENDO LA DATA DE LA PLANTILLA
+            Map<String, Object> templateData = new HashMap<>();
+            templateData.put("quoterId", quoterId);
+            templateData.put("userFullName", userFullName);
+            templateData.put("quoterCar", quoterCar);
+            // Dirigimos al usuario de la cotización
+            this.sendEmail(toUsers1, subjectPersonalized1, templateData, templateVehicleDetailsUser);
+        } catch(Exception e) {
+            LOGGER_MESSAGES.info("Ha ocurrido un proceso inesperado al enviar el email para la cotización, vinculada al usuario: " + e.getMessage());
+            StringBuilder sb = new StringBuilder("Hola " + userFullName + ",\n\n");
+            sb.append("Queremos informarte que se ha iniciado el proceso de una nueva cotización con el N°").append(quoterId).append(" vinculada a tu cuenta.\n\n");
+            sb.append("Vehículo Cotizado\n");
+            sb.append("Pantente: ").append(quoterCar.getPpu()).append("\nMarca: ").append(quoterCar.getBrand()).append("\n");
+            sb.append("Modelo: ").append(quoterCar.getModel()).append("\nAño: ").append(quoterCar.getYear()).append("\n\n");
+            sb.append("Te mantendremos al tanto en caso de cualquier novedad. ¡Gracias por confiar en nosotros!\n\n");
+            sb.append("Si necesitas ayuda, puedes comunicarte con: soporte@moneyfy.cl\nEste es un mensaje automático, por favor no lo responda.");
+            this.testEmail(toUsers1, subjectPersonalized1, sb.toString());
+        }
         try {
             // DESARROLLAMOS EL EMAIL PARA EL COMPRADOR, INCLUYENDO LA DATA DE LA PLANTILLA
             Map<String, Object> templateData = new HashMap<>();
             templateData.put("quoterId", quoterId);
+            templateData.put("quoterCar", quoterCar);
             templateData.put("ownerFullName", ownerFullName);
+            templateData.put("quoterPlan", quoterPlan);
             templateData.put("purchaserFullName", purchaserFullName);
+            templateData.put("purchaserId", purchaserId);
             templateData.put("addressDetail", addressDetail);
             templateData.put("departmentDetail", departmentDetail);
-            templateData.put("quoterCar", quoterCar);
-            templateData.put("quoterPurchaser", quoterPurchaser);
-            templateData.put("quoterPlan", quoterPlan);
             // Dirigimos al comprador de la cotización
-            this.sendEmail(toUsers2, subjectPersonalized1, templateData, templateQuoterDetailsPurchaser);
+            this.sendEmail(toUsers2, subjectPersonalized2, templateData, templateQuoterDetailsPurchaser);
         } catch (Exception e) {
             LOGGER_MESSAGES.info("Ha ocurrido un proceso inesperado al enviar el email de detalle de la cotización para el comprador: " + e.getMessage());
             // DESARROLLAMOS EL EMAIL PARA EL COMPRADOR, INCLUYENDO LA DATA DE LA PLANTILLA
@@ -228,35 +238,14 @@ public class EmailServiceProvider {
             sb.append("Plan Seleccionado\n");
             sb.append("Aseguradora: ").append(quoterPlan.getInsurer()).append("\nNombre del plan: ").append(quoterPlan.getPlanName()).append("\n");
             sb.append("Valor total: ").append(quoterPlan.getGrossPriceUF()).append(" UF\n").append("Valor mensual: ").append(quoterPlan.getMonthlyPriceUF()).append(" UF\n");
-            sb.append("Cuotas: ").append(quoterPlan.getTotalMonths()).append("\n").append("Deducible: ").append(quoterPlan.getDeductible()).append(" UF\n\n");
+            sb.append("Cuotas: ").append(quoterPlan.getTotalMonths()).append("\n").append("Deducible: ").append(quoterPlan.getDeductibleDesc()).append("\n\n");
             sb.append("Comprador\n");
             sb.append("Rut: ").append(quoterPurchaser.getPersonalId()).append("\n").append("Nombre: ").append(purchaserFullName).append("\n\n");
             sb.append("Dirección de Inspección").append("\n");
             sb.append("Calle: ").append(addressDetail).append("\n").append("Departamento (opcional): ").append(departmentDetail).append("\n\n");
             sb.append("Si necesitas ayuda, puedes comunicarte con: soporte@moneyfy.cl\nEste es un mensaje automático, por favor no lo responda.");
-            this.testEmail(toUsers2, subjectPersonalized1, sb.toString());
+            this.testEmail(toUsers2, subjectPersonalized2, sb.toString());
         }
-
-        try {
-            // DESARROLLAMOS EL EMAIL PARA EL USUARIO, INCLUYENDO LA DATA DE LA PLANTILLA
-            Map<String, Object> templateData = new HashMap<>();
-            templateData.put("quoterId", quoterId);
-            templateData.put("userFullName", userFullName);
-            templateData.put("quoterCar", quoterCar);
-            // Dirigimos al usuario de la cotización
-            this.sendEmail(toUsers1, subjectPersonalized2, templateData, templateVehicleDetailsUser);
-        } catch(Exception e) {
-            LOGGER_MESSAGES.info("Ha ocurrido un proceso inesperado al enviar el email para la cotización, vinculada al usuario: " + e.getMessage());
-            StringBuilder sb = new StringBuilder("Hola " + userFullName + ",\n\n");
-            sb.append("Queremos informarte que se ha iniciado el proceso de una nueva cotización con el N°").append(quoterId).append(" vinculada a tu cuenta.\n\n");
-            sb.append("Vehículo Cotizado\n");
-            sb.append("Pantente: ").append(quoterCar.getPpu()).append("\nMarca: ").append(quoterCar.getBrand()).append("\n");
-            sb.append("Modelo: ").append(quoterCar.getModel()).append("\nAño: ").append(quoterCar.getYear()).append("\n\n");
-            sb.append("Te mantendremos al tanto en caso de cualquier novedad. ¡Gracias por confiar en nosotros!\n\n");
-            sb.append("Si necesitas ayuda, puedes comunicarte con: soporte@moneyfy.cl\nEste es un mensaje automático, por favor no lo responda.");
-            this.testEmail(toUsers1, subjectPersonalized2, sb.toString());
-        }
-
     }
 
     public void notifyAccountNotFound(List<String> toUsers) {

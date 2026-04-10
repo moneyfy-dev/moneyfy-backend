@@ -42,16 +42,16 @@
         <p class="close-paragraph">Valor total: <span th:text="${quoterPlan.getGrossPriceUF()}"></span> UF</p>
         <p class="close-paragraph">Valor mensual: <span th:text="${quoterPlan.getMonthlyPriceUF()}"></span> UF</p>
         <p class="close-paragraph">Cuotas: <span th:text="${quoterPlan.getTotalMonths()}"></span></p>
-        <p class="close-paragraph">Deducible: <span th:text="${quoterPlan.getDeductible()}"></span> UF</p>
+        <p class="close-paragraph">Deducible: <span th:text="${quoterPlan.getDeductibleDesc()}"></span></p>
     </div>
     <p th:unless="${quoterPlan != null}" class="close-paragraph">Información del plan sin especificar</p>
 
     <h4>Comprador</h4>
-    <div th:if="${quoterPurchaser != null and purchaserFullName != null}">
-        <p class="close-paragraph">Rut: <span th:text="${quoterPurchaser.getPersonalId()}"></span></p>
+    <div th:if="${purchaserId != null and purchaserFullName != null}">
+        <p class="close-paragraph">Rut: <span th:text="${purchaserId}"></span></p>
         <p class="close-paragraph">Nombre: <span th:text="${purchaserFullName}"></span></p>
     </div>
-    <p th:unless="${quoterPurchaser != null or purchaserFullName != null}" class="close-paragraph">Información del comprador sin especificar</p>
+    <p th:unless="${purchaserId != null or purchaserFullName != null}" class="close-paragraph">Información del comprador sin especificar</p>
 
     <h4>Dirección de Inspección</h4>
     <div th:if="${addressDetail != null}">
