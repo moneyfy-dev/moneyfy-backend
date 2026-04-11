@@ -70,9 +70,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Autowired
     private PasswordEncoder pwdEncoder;
 
-    // @Autowired
-    // private ComplexQueryProvider complexQueryProvider;
-
     @Transactional(readOnly=true)
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -140,7 +137,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     }
                     default -> {
                         // Es imposible llegar a está instancia, por seguridad se agrega dentro del flujo
-                        return ResponseHelper.failedDependency("datos anticuados", null);
+                        return ResponseHelper.failedDependency("datos anticuados", "failed dependency");
                     }
                 }
             } else {
@@ -188,7 +185,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             }
             return ResponseHelper.gone("el código ha expirado o no es correcto", null);
         }
-        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
     }
 
     @Transactional
@@ -301,11 +298,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         return ResponseHelper.accepted("el usuario se ha activado nuevamente", DataHelper.buildUser(activateUser));
                     } else {
                         // El usuario deja de existir, ya que, queda obsoleto
-                        return ResponseHelper.failedDependency("datos anticuados", null);
+                        return ResponseHelper.failedDependency("datos anticuados", "failed dependency");
                     }
                 }
                 default -> {
-                    return ResponseHelper.failedDependency("datos anticuados", null);
+                    return ResponseHelper.failedDependency("datos anticuados", "failed dependency");
                 }
             }
         }
@@ -336,7 +333,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 return ResponseHelper.gone("el código ha expirado o no es correcto", null);
             }
         }
-        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
     }
 
     // SERVICIOS PARA EL FLUJO DE RESTABLECIMIENTO DE LA CONTRASEÑA DEL USUARIO DE LA APLICACIÓN
@@ -345,7 +342,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         // Verificamos primero si es un usuario de prueba
         String userEmail = email.toLowerCase();
         if(UserHelper.isTestUser(userEmail)) {
-            return ResponseHelper.failedDependency("el usuario de prueba, no puede reestablecer su contraseña", null);
+            return ResponseHelper.failedDependency("el usuario de prueba, no puede reestablecer su contraseña", "failed dependency");
         }
         // No es un usuario 'seeder', se puede seguir con la lógica
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
@@ -363,7 +360,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 case "Desactivado" -> {
                     if(userHelper.makeUserObsolete(userRepository, deviceRepository, referredRepository, userDB)) {
                         // Usuario quedo obsoleto
-                        return ResponseHelper.failedDependency("datos anticuados", null);
+                        return ResponseHelper.failedDependency("datos anticuados", "failed dependency");
                     } else {
                         // Todavía se puede habilitar
                         emailProvider.sendAuthCodeToRestorePassword(toUsers, codeAuth);
@@ -371,7 +368,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     break;
                 }
                 default -> {
-                    return ResponseHelper.failedDependency("datos anticuados", null);
+                    return ResponseHelper.failedDependency("datos anticuados", "failed dependency");
                 }
             }
             // Todo bien, porque el usuario está Activado o todavía se puede Habilitar.
@@ -380,7 +377,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             userRepository.save(userDB);
             return ResponseHelper.ok("se ha enviado un código de confirmación para restablecer la contraseña al email: " + userEmail, Map.of("info", "ok"));
         }
-        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
     }
 
     @Transactional
@@ -388,7 +385,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         String userEmail = passwordReset.email().toLowerCase();
         // Verificamos primero si es un usuario de prueba
         if(UserHelper.isTestUser(userEmail)) {
-            return ResponseHelper.failedDependency("el usuario de prueba, no puede reestablecer su contraseña", null);
+            return ResponseHelper.failedDependency("el usuario de prueba, no puede reestablecer su contraseña", "failed dependency");
         }
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
         UserDataModel userData = userDB.getPersonalData();
@@ -416,12 +413,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                             emailProvider.userAccountActivated(userEmail, device, deviceIp); // Se ha vuelto ha activar el usuario
                         } else {
                             // Usuario quedo obsoleto
-                            return ResponseHelper.failedDependency("datos anticuados", null);
+                            return ResponseHelper.failedDependency("datos anticuados", "failed dependency");
                         }
                         break;
                     }
                     default -> {
-                        return ResponseHelper.failedDependency("datos anticuados", null);
+                        return ResponseHelper.failedDependency("datos anticuados", "failed dependency");
                     }
                 }
                 // Si todo va bien, el usuario está activado o se acaba de habilitar nuevamente
@@ -432,7 +429,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         } else {
             return ResponseHelper.gone("el código ha expirado o no es correcto", null);
         }
-        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
     }
 
     // SERVICIO PARA REENVIAR CÓDIGO DE CONFIRMACIÓN EN FLUJO ACTIVO, YA SEA DE: REGISTRAR USUARIO, CAMBIO DE DISPOSITIVO O REESTABLECIMIENTO DE LA CONTRASEÑA
@@ -441,7 +438,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         // Verificamos primero si es un usuario de prueba
         String userEmail = email.toLowerCase();
         if(UserHelper.isTestUser(userEmail)) {
-            return ResponseHelper.failedDependency("el usuario de prueba, no puede obtener códigos de confirmación", null);
+            return ResponseHelper.failedDependency("el usuario de prueba, no puede obtener códigos de confirmación", "failed dependency");
         }
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
         UserDataModel userData = userDB.getPersonalData();
@@ -487,7 +484,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             }
         }
         
-        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
     }
 
     // SERVICIO PARA DESHABILITAR/ELIMINAR USUARIO DE LA APLICACIÓN
@@ -496,7 +493,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public ResponseEntity<GeneralResponses> disableAccount(String emailAuth) {
         // Verificamos primero si es un usuario de prueba
         if(UserHelper.isTestUser(emailAuth)) {
-            return ResponseHelper.failedDependency("el usuario de prueba, no puede desactivarse", null);
+            return ResponseHelper.failedDependency("el usuario de prueba, no puede desactivarse", "failed dependency");
         }
         // No se puede deshabilitar/eliminar, si el usuario tiene transacciones pendientes o tiene dinero disponible en su wallet
         UserModel userB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();

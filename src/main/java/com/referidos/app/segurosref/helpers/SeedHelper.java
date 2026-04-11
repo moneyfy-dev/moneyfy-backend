@@ -515,7 +515,7 @@ public class SeedHelper {
         int commissionUserC = 35000, commissionUserB = 10000, commissionUserA = 5000;
         TransactionModel novaTransaction = new TransactionModel(transactionId, userQuote.getQuoterPlanData().getQuoterPlanId(),
                 userCId, userQuote.getQuoterId(), transactionStatus, commissionUserC, 1,
-                observation, currentDate, currentDate, approvalDate);
+                true, observation, currentDate, currentDate, approvalDate);
         // Comenzamos ha agregar las comisiones, independiente del estado de la transacción
         novaTransaction.addCommission(new TransactionComissionModel(userCId, commissionUserC, transactionStatus));
         if(userB != null) {

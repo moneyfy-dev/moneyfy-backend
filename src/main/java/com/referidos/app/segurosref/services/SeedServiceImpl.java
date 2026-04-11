@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.helpers.SeedHelper;
+import com.referidos.app.segurosref.helpers.ValidateInputHelper;
 import com.referidos.app.segurosref.models.BrandModel;
 import com.referidos.app.segurosref.repositories.BrandRepository;
 import com.referidos.app.segurosref.repositories.CityRepository;
@@ -62,8 +63,8 @@ public class SeedServiceImpl implements SeedService {
 
     @Override
     public ResponseEntity<?> checkCities(HttpServletRequest request, SeedRequest seedRequest) {
-        if(!this.checkApiKeyMF(request.getHeader("Api-Key-MoneyFy"))) {
-            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        if(!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
+            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
         boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
         String ciudades = seedHelper.updateCities(cityRepository, refreshData);
@@ -72,8 +73,8 @@ public class SeedServiceImpl implements SeedService {
 
     @Override
     public ResponseEntity<?> checkUsers(HttpServletRequest request, SeedRequest seedRequest) {
-        if(!this.checkApiKeyMF(request.getHeader("Api-Key-MoneyFy"))) {
-            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        if(!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
+            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
         boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
         String testUsers = seedHelper.updateTestUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, passwordEncoder, refreshData);
@@ -83,8 +84,8 @@ public class SeedServiceImpl implements SeedService {
 
     @Override
     public ResponseEntity<?> checkInsurers(HttpServletRequest request, SeedRequest seedRequest) {
-        if(!this.checkApiKeyMF(request.getHeader("Api-Key-MoneyFy"))) {
-            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        if(!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
+            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
         boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
         String insurersMF = seedHelper.updateInsurers(insurerRepository, refreshData);
@@ -93,8 +94,8 @@ public class SeedServiceImpl implements SeedService {
 
     @Override
     public ResponseEntity<?> checkBrands(HttpServletRequest request, SeedRequest seedRequest) {
-        if(!this.checkApiKeyMF(request.getHeader("Api-Key-MoneyFy"))) {
-            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        if(!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
+            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
         boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
         Object[] objBrands = seedHelper.updateBrands(brandRepository, refreshData);
@@ -102,10 +103,6 @@ public class SeedServiceImpl implements SeedService {
         @SuppressWarnings("unchecked")
         List<BrandModel> brands = (List<BrandModel>) objBrands[1];
         return ResponseHelper.ok("se ha logrado hacer la petición", Map.of("info", message, "brands", brands));
-    }
-
-    private boolean checkApiKeyMF(String apiKeyParameter) {
-        return apiKeyMF.equals(apiKeyParameter);
     }
 
 }

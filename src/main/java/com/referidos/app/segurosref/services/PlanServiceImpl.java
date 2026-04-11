@@ -36,7 +36,7 @@ public class PlanServiceImpl implements PlanService {
     public ResponseEntity<?> findPlanById(String emailAuth, String planId) {
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         if(DataHelper.isNull(planId)) {
-            return ResponseHelper.failedDependency("el id del plan es nulo", null);
+            return ResponseHelper.failedDependency("el id del plan es nulo", "failed dependency");
         }
         // Buscamos un plan por id, y si se encuentra lo guardamos en una lista para mantener una estructura correcta.
         @SuppressWarnings("null")

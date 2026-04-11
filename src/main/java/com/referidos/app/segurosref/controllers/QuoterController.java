@@ -362,7 +362,7 @@ public class QuoterController {
         return quoterService.finalizeQuote(finalizeQuote, auth.getPrincipal().toString(), request.getRequestURI());
     }
 
-    // ENDPOINTS QUE FORMAN PARTE DEL FLUJO DEL RETIRO DE DINERO DISPONIBLE DEL USUARIO
+    // Endpoint que genera reporte de pago pendiente de comisiones, con fecha de recolección de comisiones hasta los días 5 del mes y que se pagan los días 10 del mes
     @PostMapping(value = "/commission/report")
     @PreAuthorize(value = "permitAll()")
     @Operation(
@@ -377,6 +377,14 @@ public class QuoterController {
                 schema = @Schema(implementation = CommissionReportRequest.class)
             )
         ),
+        parameters = {
+            @Parameter(
+                name = "Api-Key-MoneyFy",
+                in = ParameterIn.HEADER,
+                description = "Security parameter for some public endpoints",
+                required = true
+            )
+        },
         responses = {
             @ApiResponse(
                 responseCode = "200",
@@ -397,7 +405,7 @@ public class QuoterController {
         }
     )
     public ResponseEntity<?> commissionReport(@RequestBody CommissionReportRequest commissionReportRequest, HttpServletRequest request) {
-        return quoterService.commissionReport(commissionReportRequest, request.getRequestURI());
+        return quoterService.commissionReport(commissionReportRequest, request);
     }
 
     @PostMapping(value = "/commission/payments")

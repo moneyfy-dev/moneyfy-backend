@@ -4,19 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.referidos.app.segurosref.dtos.earnings.MonthlyCommissionDto;
 
 import lombok.Data;
 
 @Data
-@JsonPropertyOrder(value = {"userId", "status", "account", "payment", "commissions", "voucher"})
+@JsonPropertyOrder(value = {"userId", "status", "account", "payment", "voucher", "commissions"})
 public class CommissionPaymentDto {
 
     private String userId;
     private String status;
     private CommissionAccountDto account;
     private int payment;
-    private List<CommissionDataDto> commissions;
     private String voucher;
+    private List<MonthlyCommissionDto> commissions;
 
     // Constructor personalizado
     public CommissionPaymentDto(String userId, String status, CommissionAccountDto account, int payment, String voucher) {
@@ -29,7 +30,7 @@ public class CommissionPaymentDto {
     }
 
     // Métodos de lógica, propios de la clase
-    public List<CommissionDataDto> addCommission(CommissionDataDto commission) {
+    public List<MonthlyCommissionDto> addCommission(MonthlyCommissionDto commission) {
         this.commissions.add(commission);
         return this.commissions;
     }

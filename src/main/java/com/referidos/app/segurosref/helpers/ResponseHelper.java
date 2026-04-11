@@ -80,6 +80,11 @@ public class ResponseHelper {
         return ResponseHelper.response(buildMessage, HttpStatus.FAILED_DEPENDENCY.value(), Map.of("info", buildInfo));
     }
 
+    public static ResponseEntity<GeneralResponses> failedDependency(String message, Map<String, Object> data) {
+        String buildMessage = "Solicitud irreconocible: " + message;
+        return ResponseHelper.response(buildMessage, HttpStatus.FAILED_DEPENDENCY.value(), data);
+    }
+
     public static ResponseEntity<GeneralResponses> preconditionMap(String message, Map<String, Object> info) {
         Map<String, Object> buildInfo = (info != null) ? info : Map.of("info", "precondition required");
         String buildMessage = "Precondición requerida: " + message;

@@ -20,7 +20,7 @@ import org.springframework.validation.Errors;
 
 import com.referidos.app.segurosref.dtos.ReferredDto;
 import com.referidos.app.segurosref.dtos.UserCommissionDto;
-import com.referidos.app.segurosref.dtos.commission.CommissionDataDto;
+import com.referidos.app.segurosref.dtos.earnings.MonthlyCommissionDto;
 import com.referidos.app.segurosref.dtos.earnings.MonthlyDataDto;
 import com.referidos.app.segurosref.dtos.earnings.MonthlyEarningDto;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
@@ -107,7 +107,7 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<?> changePassword(ChangePwdRequest changePwd, String emailAuth) {
         // Verificamos primero si es un usuario de prueba
         if(UserHelper.isTestUser(emailAuth)) {
-            return ResponseHelper.failedDependency("el usuario de prueba, no puede cambiar su contraseña", null);
+            return ResponseHelper.failedDependency("el usuario de prueba, no puede cambiar su contraseña", "failed dependency");
         }
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         UserDataModel userData = userDB.getPersonalData();
@@ -220,7 +220,7 @@ public class UserServiceImpl implements UserService {
         String userId = userDB.getUserId();
         DateTimeFormatter formatStr = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         List<UserCommissionDto> userCommissions = new ArrayList<>();
-        List<TransactionModel> transactionsDB = transactionRepository.findAllByCommissions_UserId(userId);
+        List<TransactionModel> transactionsDB = transactionRepository.findAllByCommissions_UserIdAndStatusPassed(userId);
         // Buscamos por las comisiones de las transacciones, donde el id del usuario de la comisión, sea igual al id del
         // usuario que está realizando la consulta
         for(TransactionModel transactionDB : transactionsDB) {
@@ -245,10 +245,6 @@ public class UserServiceImpl implements UserService {
                         } catch (Exception e) {
                             seller = "Sin especificar";
                         }
-                    }
-                    // Revisamos si la comisión se encuentra en el estado "Confirmando"
-                    if(status.equals("Confirmando")) {
-                        observation = "Debe crear o seleccionar una cuenta bancaria predeterminada, para recibir su comisión";
                     }
                     userCommissions.add(new UserCommissionDto(transactionId, seller, status, userCommission, createdDate, observation));
                     break;
@@ -284,7 +280,7 @@ public class UserServiceImpl implements UserService {
                 .withNano(0);
         // Buscamos todas las transacciones con algún estado aceptado y que la fecha en la que fue aprobada la
         // transacción, haya sea igual o superior a la fecha previamente obtenida.
-        List<TransactionModel> transactionsDB = transactionRepository.findAllByApprovalDateAfterAndCommissions_UserIdAndStatusAccepted(lastMonth, userId);
+        List<TransactionModel> transactionsDB = transactionRepository.findAllByApprovalDateAfterAndCommissions_UserIdAndStatusPassed(lastMonth, userId);
         MonthlyEarningDto monthlyEarningDto = new MonthlyEarningDto(this.addMonthsToMonthlyEarnings(lastMonth, formatterDate),
                 0, 0, lastMonth.format(formatterDate));
         int finalCommissions = 0;
@@ -347,7 +343,7 @@ public class UserServiceImpl implements UserService {
                 int totalAmount = monthDto.getTotalAmount() + 1;
                 monthDto.setTotalCommission(totalCommissions);
                 monthDto.setTotalAmount(totalAmount);
-                monthDto.addCommission(new CommissionDataDto(transacionId, transactionCommission));
+                monthDto.addCommission(new MonthlyCommissionDto(transacionId, transactionCommission));
                 return true;
             }
         }

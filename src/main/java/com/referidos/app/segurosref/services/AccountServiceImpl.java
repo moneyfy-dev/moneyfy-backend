@@ -88,7 +88,7 @@ public class AccountServiceImpl implements AccountService {
                         DataHelper.buildUser(userDB));
             }
         }
-        return ResponseHelper.failedDependency("no se ha podido identificar el recurso", null);
+        return ResponseHelper.failedDependency("no se ha podido identificar el recurso", "failed dependency");
     }
 
     @Transactional
@@ -111,7 +111,7 @@ public class AccountServiceImpl implements AccountService {
                         DataHelper.buildUser(userDB));
             }
         }
-        return ResponseHelper.failedDependency("no se ha podido identificar el recurso", null);
+        return ResponseHelper.failedDependency("no se ha podido identificar el recurso", "failed dependency");
     }
 
     @Transactional
@@ -145,7 +145,7 @@ public class AccountServiceImpl implements AccountService {
                     DataHelper.buildUser(userDB));
         }
 
-        return ResponseHelper.failedDependency("no se ha podido identificar el recurso", null);
+        return ResponseHelper.failedDependency("no se ha podido identificar el recurso", "failed dependency");
     }
 
     // SERVICIO PARA VALDACION DE DATOS

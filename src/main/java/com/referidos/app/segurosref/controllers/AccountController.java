@@ -181,7 +181,7 @@ public class AccountController {
     )
     public ResponseEntity<GeneralResponses> delete(@PathVariable String accountId, Authentication auth) {
         if(!ObjectId.isValid(accountId)) {
-            return ResponseHelper.failedDependency("no se ha podido identificar el recurso", null);
+            return ResponseHelper.failedDependency("no se ha podido identificar el recurso", "failed dependency");
         }
         return accountService.delete(accountId, auth.getPrincipal().toString());
     }
@@ -227,7 +227,7 @@ public class AccountController {
     )
     public ResponseEntity<GeneralResponses> select(@PathVariable String accountId, Authentication auth) {
         if(!ObjectId.isValid(accountId)) {
-            return ResponseHelper.failedDependency("no se ha podido identificar el recurso", null);
+            return ResponseHelper.failedDependency("no se ha podido identificar el recurso", "failed dependency");
         }
         return accountService.select(accountId, auth.getPrincipal().toString());
     }

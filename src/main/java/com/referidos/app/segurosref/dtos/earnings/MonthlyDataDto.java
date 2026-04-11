@@ -3,7 +3,6 @@ package com.referidos.app.segurosref.dtos.earnings;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.referidos.app.segurosref.dtos.commission.CommissionDataDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,10 +15,10 @@ public class MonthlyDataDto {
     private String month;
     private int totalCommission;
     private int totalAmount;
-    private List<CommissionDataDto> commissions;
+    private List<MonthlyCommissionDto> commissions;
 
     // Métodos de lógica, propios de la clase
-    public List<CommissionDataDto> addCommission(CommissionDataDto commission) {
+    public List<MonthlyCommissionDto> addCommission(MonthlyCommissionDto commission) {
         this.commissions.add(commission);
         return this.commissions;
     }

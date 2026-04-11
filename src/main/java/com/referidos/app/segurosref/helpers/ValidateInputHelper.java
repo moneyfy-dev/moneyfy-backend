@@ -18,6 +18,10 @@ public class ValidateInputHelper {
     @Autowired
     private Environment env;
 
+    public static boolean checkApiKeyMF(String apiKeyMF, String apiKeyParameter) {
+        return apiKeyMF != null && apiKeyParameter != null && apiKeyMF.equals(apiKeyParameter);
+    }
+
     // Validación del nombre del usuario - Obligatorio
     public String verifyName(String name) {
         if(DataHelper.isNull(name)) {

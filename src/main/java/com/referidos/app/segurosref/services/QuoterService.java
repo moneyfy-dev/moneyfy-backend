@@ -8,6 +8,9 @@ import com.referidos.app.segurosref.requests.CommissionReportRequest;
 import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
 import com.referidos.app.segurosref.requests.GenerateTransactionRequest;
 import com.referidos.app.segurosref.requests.SelectPlanRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.referidos.app.segurosref.requests.SearchVehicleRequest;
 import com.referidos.app.segurosref.requests.SearchPlanRequest;
 
@@ -23,8 +26,9 @@ public interface QuoterService {
     ResponseEntity<?> selectPlan(SelectPlanRequest planSelected, String emailAuth);
     ResponseEntity<?> generateTransaction(GenerateTransactionRequest generateTransaction, String emailAuth, String requestEndpoint);
     ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote, String emailAuth, String requestEndpoint);
-    // SERVICIOS QUE FORMAN PARTE DEL FLUJO DEL RETIRO DE DINERO DISPONIBLE DEL USUARIO
-    ResponseEntity<?> commissionReport(CommissionReportRequest commissionReportRequest, String requestEndpoint);
+    // Servicio que genera reporte de pago pendiente de comisiones, con fecha de recolección de comisiones hasta los días 5 del mes y que se pagan los días 10 del mes
+    ResponseEntity<?> commissionReport(CommissionReportRequest commissionReportRequest, HttpServletRequest request);
+    // Otro
     ResponseEntity<?> commissionPayments(CommissionPaymentRequest commissionPaymentRequest);
     // SERVICIOS UTILIZADOS PARA REALIZAR PRUEBAS Y LÓGICAS DE LA APLICACIÓN
     ResponseEntity<?> viewTestData();

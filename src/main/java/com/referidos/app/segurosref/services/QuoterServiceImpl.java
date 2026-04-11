@@ -2,8 +2,11 @@ package com.referidos.app.segurosref.services;
 
 import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,13 +27,13 @@ import com.referidos.app.segurosref.dtos.TestPlanDto;
 import com.referidos.app.segurosref.dtos.VehicleBrandDto;
 import com.referidos.app.segurosref.dtos.VehicleModelDto;
 import com.referidos.app.segurosref.dtos.commission.CommissionPaymentDto;
-import com.referidos.app.segurosref.dtos.commission.CommissionReportDto;
+import com.referidos.app.segurosref.dtos.commission.CommissionUserDto;
 import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.QuoterHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.helpers.UserHelper;
+import com.referidos.app.segurosref.helpers.ValidateInputHelper;
 import com.referidos.app.segurosref.models.InsurerModel;
-import com.referidos.app.segurosref.models.LogModel;
 import com.referidos.app.segurosref.models.PaymentModel;
 import com.referidos.app.segurosref.models.DeviceModel;
 import com.referidos.app.segurosref.models.PlanModel;
@@ -67,8 +70,23 @@ import com.referidos.app.segurosref.requests.SearchVehicleRequest;
 import com.referidos.app.segurosref.requests.SearchPlanRequest;
 import com.referidos.app.segurosref.validators.QuoterValidator;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @Service
 public class QuoterServiceImpl implements QuoterService {
+
+    @Value(value = "${api.key.moneyfy}")
+    private String apiKeyMF;
+
+    @Value(value="${report.commission.cutoff-date}")
+    private int commissionCutoffDate;
+
+    @Value(value="${report.commission.payment-date}")
+    private int commissionPaymentDate;
+
+    private final int commissionUserC = 35000;
+    private final int commissionUserB = 10000;
+    private final int commissionUserA = 5000;
 
     @Autowired
     private UserRepository userRepository;
@@ -108,15 +126,6 @@ public class QuoterServiceImpl implements QuoterService {
 
     @Autowired
     private QuoterHelper quoterHelper;
-
-    @Value(value = "${api.key.moneyfy}")
-    private String apiKeyMoneyFy;
-
-    private final int commissionUserC = 35000;
-    
-    private final int commissionUserB = 10000;
-    
-    private final int commissionUserA = 5000;
 
     @Transactional(readOnly = true)
     @Override
@@ -415,7 +424,7 @@ public class QuoterServiceImpl implements QuoterService {
                 return ResponseHelper.ok("se ha seleccionado el plan de la cotización", DataHelper.buildUser(userDB, "quoterId", quoterId));
             }
         }
-        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
     }
 
     @Transactional
@@ -505,7 +514,7 @@ public class QuoterServiceImpl implements QuoterService {
                 }
             }
         }
-        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
     }
 
     @Transactional
@@ -513,154 +522,199 @@ public class QuoterServiceImpl implements QuoterService {
     public ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote, String emailAuth, String requestEndpoint) {
         // Obtenemos la data del cuerpo de la solicitud y corroboramos que sea correcta
         String quoterId = finalizeQuote.quoterId();
-        String transactionStatus = finalizeQuote.transactionStatus();
-        if(DataHelper.isNull(quoterId) || !ObjectId.isValid(quoterId) || DataHelper.isNull(transactionStatus) ||
-                (!transactionStatus.equals("Aprobado") && !transactionStatus.equals("Rechazado") &&
-                !transactionStatus.equals("Caducado")) ) {
-            return ResponseHelper.failedDependency("la data proporcionada no es correcta", null);
+        String pointOfTransactionStatus = finalizeQuote.transactionStatus();
+        if(DataHelper.isNull(quoterId) || !ObjectId.isValid(quoterId) || DataHelper.isNull(pointOfTransactionStatus) ||
+                (!pointOfTransactionStatus.equals("Aprobado") && !pointOfTransactionStatus.equals("Rechazado") &&
+                !pointOfTransactionStatus.equals("Caducado")) ) {
+            return ResponseHelper.failedDependency("la data proporcionada no es correcta", "failed dependency");
         }
         // Buscamos un cotizador del usuario con el mismo id y que tenga el estado del último flujo "Pendiente"
         UserModel userC = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
+        Map<String, Object> returnData = new HashMap<>();
+        String transactionId = "";
+        String message = "";
         for(QuoterModel quoterDB : userC.getQuoters()) {
-            String quoterDBId = quoterDB.getQuoterId();
-            String quoterStatus = quoterDB.getQuoterStatus();
-            if(quoterId.equals(quoterDBId) && quoterStatus.equals("Pendiente")) {
+            String quoterIdDB = quoterDB.getQuoterId();
+            String quoterStatusDB = quoterDB.getQuoterStatus();
+            if(quoterId.equals(quoterIdDB) && quoterStatusDB.equals("Pendiente")) {
                 // Se intenta cerrar la venta, dependiendo del estado entregado
-                TransactionModel userTransaction = transactionRepository.findByUserIdAndQuoterId(userC.getUserId(), quoterId).orElseThrow();
-                String transactionStatusDB = userTransaction.getStatus();
-                if(transactionStatusDB.equals("Inspeccionando")) {
-                    return ResponseHelper.gone("la transacción está siendo inspeccionada", null);
-                } else if(!transactionStatusDB.equals("Pendiente")) {
-                    return ResponseHelper.failedDependency("la transacción no se encuentra pendiente", null);
+                TransactionModel transactionDB = transactionRepository.findByUserIdAndQuoterId(userC.getUserId(), quoterId).orElseThrow();
+                String transactionStatusDB = transactionDB.getStatus();
+                if(!transactionStatusDB.equals("Pendiente")) {
+                    return ResponseHelper.failedDependency("el estado de la transacción es: " + transactionStatusDB, "failed dependency");
                 }
-                String transactionId = userTransaction.getTransactionId();
-                int commissionScope = userTransaction.getCommissionScope();
-                boolean isTrasactionApproved = transactionStatus.equals("Aprobado");
+                transactionId = transactionDB.getTransactionId();
+                int commissionScope = transactionDB.getCommissionScope();
+                boolean isTrasactionApproved = pointOfTransactionStatus.equals("Aprobado");
                 LocalDateTime currentDateTime = LocalDateTime.now();
                 List<UserModel> updateUsers = new ArrayList<>();
                 // Obtenemos la wallet del usuario C, para comenzar con la actualización.
                 WalletModel walletC = userC.getWallet();
                 int outstandingBalanceC = walletC.getOutstandingBalance() - commissionUserC;
-                outstandingBalanceC = (outstandingBalanceC >= 0) ? outstandingBalanceC : 0;
                 walletC.setOutstandingBalance(outstandingBalanceC);
-                // Actualizamos el dinero disponible en caso de que sea aprobada la transacción
-                if(isTrasactionApproved) {
-                    walletC.setAvailableBalance(walletC.getAvailableBalance() + commissionUserC);
-                }
-                walletC.setTotalBalance(outstandingBalanceC+walletC.getAvailableBalance());
+                // Actualizamos el dinero disponible dependiendo del estado de la transacción
+                int availableBalanceC = walletC.getAvailableBalance();
+                walletC.setAvailableBalance((isTrasactionApproved) ? (availableBalanceC + commissionUserC) : availableBalanceC);
+                availableBalanceC = walletC.getAvailableBalance();
+                // Actualizamos el saldo total
+                walletC.setTotalBalance(outstandingBalanceC + availableBalanceC);
                 updateUsers.add(userC);
                 try {
                     // IMPORTANTE: Se busca un userB que haya referido al userC, para actualizar la comisión correspondiente,
                     // siempre y cuando confirmemos con el campo 'commissionScope'
                     if(commissionScope > 1) {
-                        // La comisión alcanza a un referido
+                        // La comisión alcanza a un referido y por lo tanto se encuentra 'Activado'
                         ReferredModel referredByUserB = referredRepository.findByReferred(emailAuth).orElseThrow();
                         String emailUserB = referredByUserB.getUserReferring();
                         UserModel userB = userRepository.findByPersonalData_Email(emailUserB).orElseThrow();
                         // Actualizamos los valores de la wallet del usuario B
                         WalletModel walletB = userB.getWallet();
                         int outstandingBalanceB = walletB.getOutstandingBalance() - commissionUserB;
-                        outstandingBalanceB = (outstandingBalanceB >= 0) ? outstandingBalanceB : 0;
                         walletB.setOutstandingBalance(outstandingBalanceB);
-                        // Actualizamos el dinero disponible en caso de que sea aprobada la transacción
-                        if(isTrasactionApproved) {
-                            walletB.setAvailableBalance(walletB.getAvailableBalance() + commissionUserB);
-                        }
-                        walletB.setTotalBalance(outstandingBalanceB+walletB.getAvailableBalance());
+                        // Actualizamos el dinero disponible dependiendo del estado de la transacción
+                        int availableBalanceB = walletB.getAvailableBalance();
+                        walletB.setAvailableBalance((isTrasactionApproved) ? (availableBalanceB + commissionUserB) : availableBalanceB);
+                        availableBalanceB = walletB.getAvailableBalance();
+                        // Actualizamos el saldo total
+                        walletB.setTotalBalance(outstandingBalanceB + availableBalanceB);
                         updateUsers.add(userB);
                         // IMPORTANTE: Se busca un userA en caso de que el alcance de comisión sea mayor a 2
                         if(commissionScope > 2) {
-                            // La comisión alcanzo a otro referido
+                            // La comisión alcanzo a otro referido y por lo tanto se encuentra 'Activado'
                             ReferredModel referredByUserA = referredRepository.findByReferred(emailUserB).orElseThrow();
                             String emailUserA = referredByUserA.getUserReferring();
                             UserModel userA = userRepository.findByPersonalData_Email(emailUserA).orElseThrow();
-                            WalletModel walletA = userA.getWallet();
                             // Actualizamos los valores de la wallet del usuario A
+                            WalletModel walletA = userA.getWallet();
                             int outstandingBalanceA = walletA.getOutstandingBalance() - commissionUserA;
-                            outstandingBalanceA = (outstandingBalanceA >= 0) ? outstandingBalanceA : 0;
                             walletA.setOutstandingBalance(outstandingBalanceA);
-                            // Actualizamos el saldo disponible en caso de que sea aprobada la transacción
-                            if(isTrasactionApproved) {
-                                walletA.setAvailableBalance(walletA.getAvailableBalance() + commissionUserA);
-                            }
-                            walletA.setTotalBalance(outstandingBalanceA+walletA.getAvailableBalance());
+                            // Actualizamos el dinero disponible dependiendo del estado de la transacción
+                            int availableBalanceA = walletA.getAvailableBalance();
+                            walletA.setAvailableBalance((isTrasactionApproved) ? (availableBalanceA + commissionUserA) : availableBalanceA);
+                            availableBalanceA = walletA.getAvailableBalance();
+                            // Actualizamos el saldo total
+                            walletA.setTotalBalance(outstandingBalanceA + availableBalanceA);
                             updateUsers.add(userA);
                         } // En caso que haya usuario A
                     } // En caso que haya usuario B
-                } catch(Exception e) {
-                    // Generamos log de error
-                    String endpoint = !DataHelper.isNull(requestEndpoint) ? requestEndpoint : "No informado";
-                    LogModel logReferredNotFound = new LogModel(null, "ERROR", "Referidor no encontrado al finalizar transaccion",
-                            endpoint, "Grave", "", transactionId, "", new HashMap<>(), currentDateTime, currentDateTime);
-                    logReferredNotFound.addData("commissionScope", commissionScope).put("transactionStatus", transactionStatus);
-                    logRepository.save(logReferredNotFound);
-                    // Actualizamos el estado de la transacción y devolvemos el error
-                    userTransaction.setStatus("Inspeccionando");
-                    userTransaction.setUpdatedDate(currentDateTime);
-                    transactionRepository.save(userTransaction);
-                    String conflictMessage = "no se ha podido recuperar la data del referidor para actualizar las comisiones y la transacción N° " + transactionId + " se encuentra en inspección para ser resuelta.";
-                    return ResponseHelper.locked(conflictMessage, null);
+                } catch(NoSuchElementException e) {
+                    // En caso de haber excepción, identificamos donde se dió la excepción durante la búsqueda del usuario referidor A o B, teniendo en consideración el obj para actualizar los usuarios y entregamos el mensaje informativo
+                    int updateUsersSize = updateUsers.size();
+                    message = "Ha ocurrido un excepción en la transacción N°" + transactionId + ", el alcance de la comisión es " + String.valueOf(commissionScope) + ", y ";
+                    if(updateUsersSize == 1) { // No se pudo encontrar userB
+                        message += "no se ha podido encontrar el usuario referidor B";
+                        message += (commissionScope == 2) ? message : " y por lo tanto, tampoco el usuario referidor A";
+                    } else {  // No se pudo encontrar userA
+                        message += "no se ha podido encontrar el usuario referidor A";
+                    }
                 }
-                // Actualizar datos generales de la transacción y del cotizador
-                for(TransactionComissionModel transactionComission : userTransaction.getCommissions()) {
-                    transactionComission.setCommissionStatus(transactionStatus);
-                }
-                userTransaction.setObservation("La comisión ha sido " + transactionStatus);
-                userTransaction.setStatus(transactionStatus);
-                userTransaction.setUpdatedDate(currentDateTime);
-                quoterDB.setQuoterStatus(transactionStatus);
+                // Se ajustan data general
+                quoterDB.setQuoterStatus(pointOfTransactionStatus);
                 quoterDB.setUpdatedDate(currentDateTime);
-                // Se actualiza la fecha de aprobación de la cotización, solo si la transacción es aprobada.
-                if(isTrasactionApproved) {
-                    userTransaction.setApprovalDate(currentDateTime);
+                transactionDB.setStatus(pointOfTransactionStatus);
+                transactionDB.setUpdatedDate(currentDateTime);
+                transactionDB.setApprovalDate((isTrasactionApproved) ? currentDateTime : transactionDB.getApprovalDate()); // Se actualiza la fecha de aprobación de la cotización, solo si la transacción es aprobada.
+                returnData.put("quoterId", quoterId);
+                returnData.put("transactionId", transactionId);
+                returnData.put("message", message);
+                // Se comprueba que los usuarios referidores fueron encontrados en caso de que la transacción tenga un alcance de comisión mayor a 1
+                int updateUsersSize = updateUsers.size();
+                if(commissionScope > 1 && updateUsersSize != commissionScope) { // Actualizar solo comisiones de los usuarios que se les actualizo la wallet
+                    // Se actualiza el registro que si sabemos que actualizó su wallet (usuario de la transacción)
+                    transactionDB.setUserReferringFound(false);
+                    transactionDB.setObservation("La comisión ha sido " + pointOfTransactionStatus + ", pero hay usuarios pendientes");
+                    String transactionUserId = transactionDB.getUserId();
+                    for(TransactionComissionModel transactionCommission : transactionDB.getCommissions()) {
+                        String transactionCommissionUserId = transactionCommission.getUserId();
+                        if(transactionUserId.equals(transactionCommissionUserId)) {
+                            transactionCommission.setCommissionStatus(pointOfTransactionStatus);
+                            break;
+                        }
+                    }
+                    // En caso de que no se encontró usuario referidor A, quiere decir que se encontró el usuario referidor B,
+                    // por lo tanto, también se le actualiza su registro en las comisiones, ya que, se logró actualizar su wallet
+                    if(commissionScope == 3 && updateUsersSize == 2) { // No se encontró usuario referidor A
+                        for(UserModel updateUser : updateUsers) {
+                            String userIdFromUpdateUser = updateUser.getUserId();
+                            if(!transactionUserId.equals(userIdFromUpdateUser)) {
+                                for(TransactionComissionModel transactionCommission : transactionDB.getCommissions()) {
+                                    String transactionCommissionUserId = transactionCommission.getUserId();
+                                    if(userIdFromUpdateUser.equals(transactionCommissionUserId)) {
+                                        transactionCommission.setCommissionStatus(pointOfTransactionStatus);
+                                        break; // Estado de comisión de usuario referidor B actualizado
+                                    }
+                                }
+                                break; // Se encontró usuario referidor B
+                            }
+                        }
+                    }
+                    // Se actualizo lo necesario, por lo tanto, se realiza la petición entregando el mensaje informativo
+                    userRepository.saveAll(updateUsers);
+                    transactionRepository.save(transactionDB);
+                    return ResponseHelper.accepted("la transacción se ha actualizado y necesita revisión", DataHelper.buildUser(userC, returnData));
                 }
-                // Actualizamos en la base de datos
+                // Transacción sin usuario referidor, se actualiza y se termina solicitud
+                for(TransactionComissionModel transactionCommission : transactionDB.getCommissions()) {
+                    transactionCommission.setCommissionStatus(pointOfTransactionStatus);
+                }
+                transactionDB.setObservation("La comisión ha sido " + pointOfTransactionStatus);
                 userRepository.saveAll(updateUsers);
-                transactionRepository.save(userTransaction);
-                return ResponseHelper.ok("la transacción se ha finalizado correctamente", DataHelper.buildUser(userC, "quoterId", quoterId, "transactionId", transactionId));
-            } else if(quoterId.equals(quoterDBId) && (quoterStatus.equals("Aprobado") || quoterStatus.equals("Rechazado") || quoterStatus.equals("Caducado"))) {
-                return ResponseHelper.accepted("la cotización ya ha sido finalizada y se encuentra: " + quoterStatus, DataHelper.buildUser(userC));
+                transactionRepository.save(transactionDB);
+                return ResponseHelper.ok("la transacción se ha finalizado correctamente", DataHelper.buildUser(userC, returnData));
+            } else if(quoterId.equals(quoterIdDB) && (quoterStatusDB.equals("Aprobado") || quoterStatusDB.equals("Rechazado") || quoterStatusDB.equals("Caducado"))) {
+                try {
+                    transactionId = transactionRepository.findByUserIdAndQuoterId(userC.getUserId(), quoterId).orElseThrow().getTransactionId();
+                } catch(NoSuchElementException e) {
+                    LOGGER_MESSAGES.info("No es posible identificar id de transacción: " + e.getMessage());
+                }
+                returnData.put("quoterId", quoterId);
+                returnData.put("transactionId", transactionId);
+                returnData.put("message", message);
+                return ResponseHelper.imUsed("la cotización ya ha sido finalizada y se encuentra: " + quoterStatusDB, DataHelper.buildUser(userC, returnData));
             }
         }
-        String errorMessage = "no es posible finalizar la cotización del usuario " + emailAuth + ", de su cotizador N°" + quoterId;
-        return ResponseHelper.failedDependency(errorMessage, null);
+        String errorMessage = "no es posible encontrar la cotización N°" + quoterId + ", del usuario: " + emailAuth;
+        return ResponseHelper.failedDependency(errorMessage, "failed dependency");
     }
 
-    // SERVICIOS QUE FORMAN PARTE DEL FLUJO DEL RETIRO DE DINERO DISPONIBLE DEL USUARIO
+    // Servicio que genera reporte de pago pendiente de comisiones, con fecha de recolección de comisiones hasta los días 5 del mes y que se pagan los días 10 del mes
     @Override
     @Transactional
-    public ResponseEntity<?> commissionReport(CommissionReportRequest commissionReportRequest, String requestEndpoint) {
-        // Revisamos si la llave de la solicitud hace match con la del backend, de otra manera, no puede seguir con la solicitud
-        String key = commissionReportRequest.key();
-        if(DataHelper.isNull(key) || !key.equals(apiKeyMoneyFy)) {
-            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+    public ResponseEntity<?> commissionReport(CommissionReportRequest commissionReportRequest, HttpServletRequest request) {
+        if(!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
+            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
         // Obtenemos la fecha de corte y la fecha de pago
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        Object[] datesForReport = quoterHelper.getCutOffDateAndPaymentDate(currentDateTime, commissionReportRequest);
-        String errorCutOffDateMessage = (String) datesForReport[0];
-        if(errorCutOffDateMessage != null) {
-            // Hay error al tratar de obtener las fechas para el informe
-            return ResponseHelper.failedDependency(errorCutOffDateMessage, null);
+        DateTimeFormatter formatterDate = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate pointOfCurrentDate = LocalDate.now();
+        LocalDate currentDateProccess = pointOfCurrentDate;
+        int minusMonth = (commissionReportRequest.minusMonth() != null) ? commissionReportRequest.minusMonth() : 0;
+        if(minusMonth > 0 && minusMonth < 7) { // Se puede crear un reporte hasta con 6 meses de antiguedad de comisiones
+            currentDateProccess = pointOfCurrentDate.minusMonths(minusMonth).with(TemporalAdjusters.lastDayOfMonth());
         }
-        // No existe error y se obtienen los datos
-        LocalDateTime cutoffDate = (LocalDateTime) datesForReport[1];
-        LocalDateTime paymentDate = (LocalDateTime) datesForReport[2];
-        DateTimeFormatter formatterString = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String endpoint = !DataHelper.isNull(requestEndpoint) ? requestEndpoint : "No informado";
-        // Creamos la estructura de reporte con datos por defectos y vamos rellenando
-        CommissionReportDto commissionReport = new CommissionReportDto(0, 0, 0,
-                cutoffDate.format(formatterString), paymentDate.format(formatterString));
-        // Fecha utilizada para buscar todas las transacciones que se crearon antes de la fecha de corte
-        LocalDateTime afterDate = LocalDateTime.of(cutoffDate.getYear(), cutoffDate.getMonth(), cutoffDate.getDayOfMonth()+1, 00, 00, 00);
-        // Agregamos la data al reporte de comisión
-        quoterHelper.generateCommissionReport(commissionReport, afterDate, endpoint, currentDateTime, transactionRepository,
-                userRepository, logRepository);
-        // Finalmente devolvemos una respuesta correcta, pero 202, si es que existen conflictos
-        if(commissionReport.getConflicts().size() > 0) {
-           return ResponseHelper.accepted("se ha generado el reporte, aunque es necesario verificar los conflictos", Map.of("commissionReport", commissionReport));
+        // Revisar que el día de corte del mes (5), haya pasado para seguir con la consulta
+        if(currentDateProccess.getDayOfMonth() <= commissionCutoffDate) {
+            return ResponseHelper.failedDependency("no es posible continuar con la solicitud, ya que, aún se pueden recolectar comisiones hasta la fecha de corte (día 5 del mes)", Map.of("currentDate", pointOfCurrentDate));
         }
-        return ResponseHelper.ok("se ha generado el reporte", Map.of("commissionReport", commissionReport));
+        // Ya paso el día de corte del mes para la recolección de las comisiones, se puede seguir con la validación
+        LocalDate pointOfCommissionCollectionDate = currentDateProccess.withDayOfMonth(commissionCutoffDate);
+        LocalDate pointOfPaymentDate = currentDateProccess.withDayOfMonth(commissionPaymentDate);
+        LocalDateTime limitDateTime = pointOfCommissionCollectionDate.atTime(LocalTime.MAX); // // Esto crea un LocalDateTime: 2026-04-05T23:59:59.999999999
+        List<TransactionModel> transactionsFromCutoffDate = transactionRepository.findAllByApprovalDateBeforeAndStatusApproved(limitDateTime);
+        // Empezamos a revisar todas las transacciones aprobadas hasta el día de corte y guardar los ids de los usuarios sin repetirlos para luego construir respuesta
+        
+
+
+        // Construcción para data de respuesta
+        List<CommissionUserDto> usersApproved = new ArrayList<>();
+        List<CommissionUserDto> usersProblem = new ArrayList<>();
+        Map<String, Object> data = new HashMap<>();
+        data.put("pointOfCurrentDate", pointOfCurrentDate);
+        data.put("pointOfCommissionCollectionDate", pointOfCommissionCollectionDate);
+        data.put("pointOfPaymentDate", pointOfPaymentDate);
+        data.put("usersApproved", usersApproved);
+        data.put("usersProblem", usersProblem);
+        return ResponseHelper.ok("se ha generado el reporte", data);
     }
 
     @SuppressWarnings("unchecked")
@@ -670,8 +724,8 @@ public class QuoterServiceImpl implements QuoterService {
         // Revisamos si la llave de la solicitud hace match con la del backend, de otra manera, no puede seguir con la solicitud
         String key = commissionPaymentRequest.key();
         List<CommissionPaymentDto> payments = commissionPaymentRequest.payments();
-        if(DataHelper.isNull(key) || !key.equals(apiKeyMoneyFy) || payments == null) {
-            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        if(DataHelper.isNull(key) || !key.equals(apiKeyMF) || payments == null) {
+            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
         // Se buscan los usuarios para actualizar las comisiones que fueron pagadas (TRATAR LUEGO DE LLEVAR LA LÓGICA AL HELPER)
         List<UserModel> updateUsers = new ArrayList<>();
@@ -685,7 +739,7 @@ public class QuoterServiceImpl implements QuoterService {
         String errorCommissionPayments = quoterHelper.updateCommissionPayments(payments, updateUsers, updateTransactions,
                 listUserPayments, lastStatus, confirmationStatus, currenDateTime, transactionRepository, userRepository);
         if(errorCommissionPayments != null) {
-            return ResponseHelper.failedDependency(errorCommissionPayments, null);
+            return ResponseHelper.failedDependency(errorCommissionPayments, "failed dependency");
         }
         // Perfecto, no hubo error, y ahora falta solamente iterar por las transacciones que se deben de actualizar, para
         // saber si todas las comisiones de esa transacción fueron pagadas, si no actualizar los estados de comisiones y
