@@ -20,8 +20,10 @@ public class RunInsurerSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        Object[] objInsurers = seedHelper.updateInsurers(insurerRepository, false);
+        String message = (String) objInsurers[0];
         LOGGER_MESSAGES.info("----- SEEDING INSURERS -----");
-        LOGGER_MESSAGES.info("Insurer Message: " + seedHelper.updateInsurers(insurerRepository, false));
+        LOGGER_MESSAGES.info("Insurer Message: " + message);
     }
 
 }

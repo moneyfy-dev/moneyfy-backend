@@ -13,6 +13,7 @@ import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.helpers.SeedHelper;
 import com.referidos.app.segurosref.helpers.ValidateInputHelper;
 import com.referidos.app.segurosref.models.BrandModel;
+import com.referidos.app.segurosref.models.InsurerModel;
 import com.referidos.app.segurosref.repositories.BrandRepository;
 import com.referidos.app.segurosref.repositories.CityRepository;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
@@ -88,8 +89,11 @@ public class SeedServiceImpl implements SeedService {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
         boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
-        String insurersMF = seedHelper.updateInsurers(insurerRepository, refreshData);
-        return ResponseHelper.ok("se ha logrado hacer la petición", Map.of("insurersMF", insurersMF));
+        Object[] objInsurers = seedHelper.updateInsurers(insurerRepository, refreshData);
+        String message = (String) objInsurers[0];
+        @SuppressWarnings("unchecked")
+        List<InsurerModel> insurers = (List<InsurerModel>) objInsurers[1];
+        return ResponseHelper.ok("se ha logrado hacer la petición", Map.of("info", message, "insurers", insurers));
     }
 
     @Override

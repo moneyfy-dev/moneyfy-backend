@@ -589,21 +589,33 @@ public class SeedHelper {
 
     // Función para actualizar las aseguradoras de la app
     @Transactional
-    public String updateInsurers(InsurerRepository insurerRepository, boolean refreshData) {
+    public Object[] updateInsurers(InsurerRepository insurerRepository, boolean refreshData) {
         List<InsurerModel> insurers = this.buildInsurers();
         if(refreshData) {
             insurerRepository.deleteAll();
             if(insurers.size() > 0) {
                 insurerRepository.saveAll(insurers);
             }
-            return "Las aseguradoras se han vuelto a crear";
+            return new Object[] {"Las aseguradoras se han vuelto a crear", insurers};
         }
+        // Actualizamos con las que existen en la DB
+        List<InsurerModel> insurersDB = insurerRepository.findAll();
         for(InsurerModel insurer : insurers) {
-            if(!insurerRepository.existsByNameOrAlias(insurer.getName(), insurer.getAlias())) {
-                insurerRepository.save(insurer);
+            String insurerName = insurer.getName();
+            String insurerAlias = insurer.getAlias();
+            boolean isInsurer = false;
+            for(InsurerModel insurerDB : insurersDB) {
+                if(insurerName.equals(insurerDB.getName()) || insurerAlias.equals(insurerDB.getAlias())) {
+                    isInsurer = true;
+                    break;
+                }
+            }
+            if(!isInsurer) {
+                insurersDB.add(insurer);
             }
         }
-        return "Las aseguradoras se han actualizado";
+        insurerRepository.saveAll(insurersDB);
+        return new Object[] {"Las aseguradoras se han actualizado", insurersDB};
     }
 
     // Construimos las aseguradoras de la app

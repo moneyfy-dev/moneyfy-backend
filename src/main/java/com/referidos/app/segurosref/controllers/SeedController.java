@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -75,7 +76,7 @@ public class SeedController {
             )
         }
     )
-    public ResponseEntity<?> checkCities(HttpServletRequest request, SeedRequest seedRequest) {
+    public ResponseEntity<?> checkCities(HttpServletRequest request, @RequestBody SeedRequest seedRequest) {
         return seedService.checkCities(request, seedRequest);
     }
 
@@ -120,7 +121,7 @@ public class SeedController {
             )
         }
     )
-    public ResponseEntity<?> checkUsers(HttpServletRequest request, SeedRequest seedRequest) {
+    public ResponseEntity<?> checkUsers(HttpServletRequest request, @RequestBody SeedRequest seedRequest) {
         return seedService.checkUsers(request, seedRequest);
     }
 
@@ -165,7 +166,7 @@ public class SeedController {
             )
         }
     )
-    public ResponseEntity<?> checkInsurers(HttpServletRequest request, SeedRequest seedRequest) {
+    public ResponseEntity<?> checkInsurers(HttpServletRequest request, @RequestBody SeedRequest seedRequest) {
         return seedService.checkInsurers(request, seedRequest);
     }
 
@@ -210,7 +211,7 @@ public class SeedController {
             )
         }
     )
-    public ResponseEntity<?> checkBrands(HttpServletRequest request, SeedRequest seedRequest) {
+    public ResponseEntity<?> checkBrands(HttpServletRequest request, @RequestBody SeedRequest seedRequest) {
         return seedService.checkBrands(request, seedRequest);
     }
 
