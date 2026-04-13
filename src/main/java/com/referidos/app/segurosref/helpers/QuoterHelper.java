@@ -18,6 +18,9 @@ import com.referidos.app.segurosref.dtos.TestPlanDto;
 import com.referidos.app.segurosref.dtos.commission.CommissionAccountDto;
 import com.referidos.app.segurosref.dtos.commission.CommissionPaymentDto;
 import com.referidos.app.segurosref.dtos.earnings.MonthlyCommissionDto;
+import com.referidos.app.segurosref.dtos.report.ReportTransactionDataDto;
+import com.referidos.app.segurosref.dtos.report.ReportUserDto;
+import com.referidos.app.segurosref.models.AccountModel;
 import com.referidos.app.segurosref.models.PaymentModel;
 import com.referidos.app.segurosref.models.QuoterAddressModel;
 import com.referidos.app.segurosref.models.QuoterCarModel;
@@ -190,6 +193,66 @@ public class QuoterHelper {
                 commissionScope, true, observation, currentDateTime, currentDateTime, DataHelper.deprecatedDateTime());
         novaTransaction.addCommission(new TransactionComissionModel(userCId, commissionTotal, status));
         return novaTransaction;
+    }
+
+    // Checkeamos si existe el usuario con problemas en el arreglo para crearlo o actualizarlo si es el caso
+    public void checkReportUsersProblem(List<ReportUserDto> usersProblem, String userId, String userName, String userEmail, String transactionId, String transactionMessage) {
+        for(ReportUserDto userProblem : usersProblem) {
+            if(userId.equals(userProblem.getUserId())) {
+                userProblem.setName((!userName.equals("")) ? userName : userProblem.getName());
+                userProblem.setEmail((!userEmail.equals("")) ? userEmail : userProblem.getEmail());
+                userProblem.addTransactionData(new ReportTransactionDataDto(transactionId, transactionMessage));
+                return;
+            }
+        }
+        // No está el usuario se agrega en el arreglo
+        usersProblem.add(new ReportUserDto(userId, userName, userEmail, 0, "Usuario con detalles", null).addTransactionData(new ReportTransactionDataDto(transactionId, transactionMessage)));
+    }
+
+    // Checkeamos si existe el usuario con aprobado+ en el arreglo para crearlo o actualizarlo si es el caso
+    public void checkReportUsersApproved(List<ReportUserDto> usersApproved, String userId, String userName, String userEmail, CommissionAccountDto accountDto, String transactionId, String transactionMessage, int commission) {
+        for(ReportUserDto userApproved : usersApproved) {
+            if(userId.equals(userApproved.getUserId())) {
+                userApproved.setName((!userName.equals("")) ? userName : userApproved.getName());
+                userApproved.setEmail((!userEmail.equals("")) ? userEmail : userApproved.getEmail());
+                userApproved.setCommission(userApproved.getCommission() + commission);
+                userApproved.setAccount((accountDto != null) ? accountDto : userApproved.getAccount());
+                userApproved.addTransactionData(new ReportTransactionDataDto(transactionId, transactionMessage));
+                return;
+            }
+        }
+        // No está el usuario se agrega en el arreglo
+        usersApproved.add(new ReportUserDto(userId, userName, userEmail, commission, "Usuario aprobado", accountDto).addTransactionData(new ReportTransactionDataDto(transactionId, transactionMessage)));
+    }
+
+    // Agregamos un usuario al arreglo de los usuarios con problemas por una excepción y con mensaje explicativo
+    public void addUserProblem(List<ReportUserDto> usersProblem, ReportUserDto userApproved, String generalMessage) {
+        String userId = userApproved.getUserId();
+        for(ReportUserDto userProblem : usersProblem) {
+            if(userId.equals(userProblem.getUserId())) {
+                userProblem.setGeneralMessage(userProblem.getGeneralMessage() + " - " + generalMessage);
+                userProblem.setName(userApproved.getName());
+                userProblem.setEmail(userApproved.getEmail());
+                userProblem.setCommission(userProblem.getCommission() + userApproved.getCommission());
+                // Agregamos las transacciones que tenía el usuario aprobado
+                for(ReportTransactionDataDto transactionData : userApproved.getTransactionData()) {
+                    userProblem.addTransactionData(transactionData);
+                }
+                return;
+            }
+        }
+        // No se encontró el usuario con detalles, y ahora se agrega
+        usersProblem.add(new ReportUserDto(userId, userApproved.getName(), userApproved.getEmail(), userApproved.getCommission(), generalMessage, null).setTransactionData(userApproved.getTransactionData()));
+    }
+
+    // Revisar si el usuario tiene una cuenta bancaria activa para poder pagale las comisiones
+    public AccountModel checkUserAccount(UserModel userDB) {
+        for(AccountModel userAccountDB : userDB.getAccounts()) {
+            if(userAccountDB.isSelected()) {
+                return userAccountDB;
+            }
+        }
+        return null;
     }
 
     // Flujos para actualizar las comisiones pagadas
