@@ -122,15 +122,15 @@ public class DataHelper {
                 if((i+1)%patternMultiple == 0) {
                     sb.append(pattern);
                 } else {
-                    sb.append(letters[ ((int) (Math.random()*62)) ]);
+                    sb.append(letters[ ((int) (Math.random()*letters.length)) ]);
                 }
             }
         } else {
             for(int i=0; i<length; i++) {
-                sb.append(letters[ ((int) (Math.random()*62)) ]);
+                sb.append(letters[ ((int) (Math.random()*letters.length)) ]);
             }
         }
-        // LOGGER_MESSAGES.info("\n-----\nCódigo final generado: " + sb.toString() + "\n-----");
+        // LOGGER_MESSAGES.info("----- " + sb.toString() + "-----\n\n");
         return sb.toString();
     }
 

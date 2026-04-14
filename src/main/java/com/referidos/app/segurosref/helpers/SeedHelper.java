@@ -63,26 +63,30 @@ public class SeedHelper {
             + "</svg>";
 
     // Actualizar las ciudades de la base de datos
-    @SuppressWarnings("null")
-    public String updateCities(CityRepository cityRepository, boolean refreshData) {
-        List<CityModel> citiesDB = cityRepository.findAll();
+    public Object[] updateCities(CityRepository cityRepository, boolean refreshData) {
         List<CityModel> cities = this.buildCities();
-        if(citiesDB.isEmpty()) {
-            cityRepository.saveAll(cities);
-            return "Las ciudades se han registrado";
-        }
         if(refreshData) {
             cityRepository.deleteAll();
-            cityRepository.saveAll(cities);
-            return "Las ciudades se han vuelto a registrar";
+            if(cities.size() > 0) {
+                cities = cityRepository.saveAll(cities);
+            }
+            return new Object[] {"Se han registrado las ciudades nuevamente", cities};
         }
-        // Hay ciudades en la BD actual, y se actualiza en relación a las ciudades del método 'buildCities()'
+        // Se compara la data actual vs la data de la DB para actualizarla
+        List<CityModel> citiesDB = cityRepository.findAll();
+        if(citiesDB.isEmpty()) {
+            if(cities.size() > 0) {
+                cities = cityRepository.saveAll(cities);
+            }
+            return new Object[] {"Se han registrado las ciudades", cities};
+        }
+        // Existe data en la DB, así que hay que comparar
         for(CityModel city : cities) {
             String cityName = city.getCity();
             boolean isCity = false;
             for(CityModel cityDB : citiesDB) {
-                String cityDBName = cityDB.getCity();
-                if(cityName.equals(cityDBName)) {
+                String cityNameDB = cityDB.getCity();
+                if(cityName.equals(cityNameDB)) {
                     isCity = true;
                     // Existe la ciudad, ahora hay que verificar si existen todas las comunas de la ciudad
                     for(String location : city.getLocations()) {
@@ -105,8 +109,8 @@ public class SeedHelper {
                 citiesDB.add(city);
             }
         }
-        cityRepository.saveAll(citiesDB);
-        return "Las ciudades se han actualizado";
+        citiesDB = cityRepository.saveAll(citiesDB);
+       return new Object[] {"Se han actualizado las ciudades", citiesDB};
     }
 
     // Lista de ciudades para inyectar en la DB, en caso de no estar
@@ -173,12 +177,12 @@ public class SeedHelper {
 
     // Registrar usuarios de prueba
     @Transactional
-    public String updateTestUsers(UserRepository userRepository, ReferredRepository referredRepository, DeviceRepository deviceRepository,
+    public Object[] updateTestUsers(UserRepository userRepository, ReferredRepository referredRepository, DeviceRepository deviceRepository,
             TransactionRepository transactionRepository, LogRepository logRepository, PasswordEncoder pwdEncoder, boolean refreshData) {
         // Data general para realizar proceso de registro
         List<String> testUsers = UserHelper.testUsers();
         if(testUsers == null || testUsers.isEmpty()) {
-            return "usuarios de prueba incorrectos";
+            return new Object[] {"No existe una lista de usuarios de prueba", null};
         }
         List<UserModel> createUsers = new ArrayList<>();
         List<ReferredModel> createReferreds = new ArrayList<>();
@@ -198,12 +202,12 @@ public class SeedHelper {
                     createUsers.add((UserModel) obj[0]);
                     createReferreds.add((ReferredModel) obj[1]);
                 } else {
-                    return "no es posible registrar al usuario de prueba";
+                    return new Object[] {"No es posible registrar al usuario de prueba", null};
                 }
             }
-            userRepository.saveAll(createUsers);
+            createUsers = userRepository.saveAll(createUsers);
             referredRepository.saveAll(createReferreds);
-            return "Los usuarios de pruebas se han registrado";
+            return new Object[] {"Se han registrado los usuarios de prueba nuevamente", createUsers};
         }
         // Banderas para mensajes
         boolean existUsers = false;
@@ -238,23 +242,23 @@ public class SeedHelper {
                     createUsers.add((UserModel) obj[0]);
                     createReferreds.add((ReferredModel) obj[1]);
                 } else {
-                    return "no es posible registrar al usuario de prueba";
+                    return new Object[] {"No es posible registrar al usuario de prueba", null};
                 }
             }
         }
         // Se registran los usuarios, si no hubo error
         if(createUsers.size() > 0 && createReferreds.size() > 0) {
-            userRepository.saveAll(createUsers);
+            createUsers = userRepository.saveAll(createUsers);
             referredRepository.saveAll(createReferreds);
         }
         if(novaUsers && !existUsers) {
-            return "se han registrados los usuarios de prueba";
+            return new Object[] {"Se han registrado los usuarios de prueba", createUsers};
         } else if(!novaUsers && existUsers) {
-            return "los usuarios de prueba se encuentran registrados";
+            return new Object[] {"Se han checkeado (existen) los usuarios de prueba", createUsers};
         } else if(novaUsers && existUsers) {
-            return "hay usuarios de prueba existentes y se han registrado nuevos usuarios de prueba";
+            return new Object[] {"Se han actualizado los usuarios de prueba", createUsers};
         } else {
-            return "no se han encontrado usuarios de prueba";
+            return new Object[] {"No ha sido posible registrar los usuarios de prueba", null};
         }
     }
 
@@ -304,8 +308,12 @@ public class SeedHelper {
                 }
             }
         }
-        transactionRepository.deleteAll(deleteTransactions);
-        transactionRepository.saveAll(updateTransactions);
+        if(deleteTransactions.size() > 0) {
+            transactionRepository.deleteAll(deleteTransactions);
+        }
+        if(updateTransactions.size() > 0) {
+            transactionRepository.saveAll(updateTransactions);
+        }
         userRepository.delete(userDB);
     }
 
@@ -336,19 +344,19 @@ public class SeedHelper {
 
     // Registrar usuarios por defecto
     @Transactional
-    public String updateDefaultUsers(UserRepository userRepository, ReferredRepository referredRepository,
+    public Object[] updateDefaultUsers(UserRepository userRepository, ReferredRepository referredRepository,
             DeviceRepository deviceRepository, TransactionRepository transactionRepository, LogRepository logRepository,
-            PasswordEncoder pwdEncoder) {
+            PasswordEncoder pwdEncoder, boolean refreshData) {
         // Obtenemos los usuarios por defectos y revisamos que haya valores correctos
         List<String> defaultUsers = UserHelper.defaultUsers();
         if(defaultUsers == null || defaultUsers.size() != 3) {
-            return "usuarios por defectos incorrectos";
+            return new Object[] {"No existe la lista de los usuarios por defecto o el tamaño no es el correcto", null};
         }
         String defaultUser1 = defaultUsers.get(0);
         String defaultUser2 = defaultUsers.get(1);
         String defaultUser3 = defaultUsers.get(2);
         if(defaultUser1 == null || defaultUser2 == null || defaultUser3 == null) {
-            return "usuarios por defecto 'null'";
+            return new Object[] {"Se ha encontrado valor \"null\" en la lista de los usuarios por defecto", null};
         }
         // Obtenemos data necesaria
         List<UserModel> createUsers = new ArrayList<>();
@@ -357,6 +365,10 @@ public class SeedHelper {
         LocalDateTime currentDate = LocalDateTime.now();
         LocalDate deprecatedDate = DataHelper.deprecatedDate();
         LocalDateTime deprecatedDateTime = DataHelper.deprecatedDateTime();
+        if(refreshData) {
+            // Se buscan si existen los usuarios y si es así se eliminan
+            this.deleteDefaultUsersIfExist(defaultUsers, userRepository, referredRepository, deviceRepository, transactionRepository, logRepository);
+        }
         boolean repeatedCodes = true;
         // Se crea los objetos sin instanciar
         UserModel user1;
@@ -370,7 +382,7 @@ public class SeedHelper {
                     pwdEncoder, currentDate, deprecatedDate, deprecatedDateTime);
             String message1 = (String) obj1[2];
             if(!message1.equals("Estructura Creada")) {
-                return message1;
+                return new Object[] {message1, null};
             }
             user1 = (UserModel) obj1[0];
             String codeToRefferUser1 = user1.getCodeToRefer();
@@ -382,7 +394,7 @@ public class SeedHelper {
                     deprecatedDate, deprecatedDateTime);
             String message2 = (String) obj2[2];
             if(!message2.equals("Estructura Creada")) {
-                return message2;
+                return new Object[] {message2, null};
             }
             user2 = (UserModel) obj2[0];
             String codeToRefferUser2 = user2.getCodeToRefer();
@@ -394,7 +406,7 @@ public class SeedHelper {
                     deprecatedDate, deprecatedDateTime);
             String message3 = (String) obj3[2];
             if(!message3.equals("Estructura Creada")) {
-                return message3;
+                return new Object[] {message3, null};
             }
             user3 = (UserModel) obj3[0];
             String codeToRefferUser3 = user3.getCodeToRefer();
@@ -436,10 +448,21 @@ public class SeedHelper {
         createTransactions.add(this.generateTransaction(user1, user2, user3, "Caducado", currentDate));
         createTransactions.add(this.generateTransaction(user1, user2, user3, "Caducado", currentDate));
         // Cuando se haya incluido toda la data se guardan todos los datos
-        userRepository.saveAll(createUsers);
+        createUsers = userRepository.saveAll(createUsers);
         referredRepository.saveAll(createReferreds);
         transactionRepository.saveAll(createTransactions);
-        return "se han generado los usuarios por defecto";
+        return (refreshData) ? new Object[] {"Se han creado los usuarios por defecto nuevamente", createUsers} : new Object[] {"Se han actualizado los usuarios por defecto", createUsers};
+    }
+
+    // Eliminar usuarios por defecto si es que existen, porque se eligió refrescar la información
+    // @SuppressWarnings("null")
+    private void deleteDefaultUsersIfExist(List<String> defaultUsers, UserRepository userRepository, ReferredRepository referredRepository, DeviceRepository deviceRepository, TransactionRepository transactionRepository, LogRepository logRepository) {
+        for(String email : defaultUsers) {
+            Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(email);
+            if(userOptional.isPresent()) {
+                this.deleteUserAndDependencies(userOptional.get(), userRepository, referredRepository, deviceRepository, transactionRepository, logRepository);
+            }
+        }
     }
 
     // Verificar si el usuario por defecto es posible crearlo
@@ -452,7 +475,7 @@ public class SeedHelper {
             UserModel userDB = optionalUser.get();
             UserDataModel userDataDB = userDB.getPersonalData();
             if(userDataDB.getStatus().equals("Activado")) {
-                return new Object[] {"", "", "usuario por defecto se encuentra creado: ".concat(defaultUser)};
+                return new Object[] {"", "", "Usuario por defecto se encuentra creado: ".concat(defaultUser)};
             } else {
                 this.deleteUserAndDependencies(userDB, userRepository, referredRepository, deviceRepository, transactionRepository, logRepository);
                 obj = this.createDefaultUserStructure(defaultUser, userReferring, referredCode, userRepository, pwdEncoder,
@@ -463,7 +486,7 @@ public class SeedHelper {
                     currentDate, deprecatedDate, deprecatedDateTime);
         }
         if(obj == null) {
-            return new Object[] {"", "", "no es posible registrar el usuario por defecto: ".concat(defaultUser)};
+            return new Object[] {"", "", "No es posible registrar el usuario por defecto: ".concat(defaultUser)};
         }
         return new Object[] {obj[0], obj[1], "Estructura Creada"};
     }
@@ -594,12 +617,19 @@ public class SeedHelper {
         if(refreshData) {
             insurerRepository.deleteAll();
             if(insurers.size() > 0) {
-                insurerRepository.saveAll(insurers);
+                insurers = insurerRepository.saveAll(insurers);
             }
-            return new Object[] {"Las aseguradoras se han vuelto a crear", insurers};
+            return new Object[] {"Se han creado las aseguradoras nuevamente", insurers};
         }
-        // Actualizamos con las que existen en la DB
+        // Se compara la data actual vs la data de la DB para actualizarla
         List<InsurerModel> insurersDB = insurerRepository.findAll();
+        if(insurersDB.isEmpty()) {
+            if(insurers.size() > 0) {
+                insurers = insurerRepository.saveAll(insurers);
+            }
+            return new Object[] {"Se han creado las aseguradoras", insurers};
+        }
+        // Existe data en la DB, así que hay que comparar
         for(InsurerModel insurer : insurers) {
             String insurerName = insurer.getName();
             String insurerAlias = insurer.getAlias();
@@ -614,8 +644,8 @@ public class SeedHelper {
                 insurersDB.add(insurer);
             }
         }
-        insurerRepository.saveAll(insurersDB);
-        return new Object[] {"Las aseguradoras se han actualizado", insurersDB};
+        insurersDB = insurerRepository.saveAll(insurersDB);
+        return new Object[] {"Se han actualizado las aseguradoras", insurersDB};
     }
 
     // Construimos las aseguradoras de la app
@@ -711,7 +741,7 @@ public class SeedHelper {
                 brandsDB.add(brand);
             }
         }
-        brandRepository.saveAll(brandsDB);
+        brandsDB = brandRepository.saveAll(brandsDB);
         return new Object[] {"Se han actualizado las marcas", brandsDB};
     }
 

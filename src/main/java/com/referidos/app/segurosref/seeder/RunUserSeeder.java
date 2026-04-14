@@ -42,9 +42,13 @@ public class RunUserSeeder implements CommandLineRunner {
     // PROCESO QUE SE EJECUTA AL LEVANTARSE LA APLICACIÓN
     @Override
     public void run(String... args) throws Exception {
+        Object[] objTestUsers = seedHelper.updateTestUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, pwdEncoder, true);
+        String messageTestUsers = (String) objTestUsers[0];
+        Object[] objDefaultUsers = seedHelper.updateDefaultUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, pwdEncoder, false);
+        String messageDefaultUsers = (String) objDefaultUsers[0];
         LOGGER_MESSAGES.info("----- SEEDING USERS -----");
-        LOGGER_MESSAGES.info("Test User Message: " + seedHelper.updateTestUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, pwdEncoder, true));
-        LOGGER_MESSAGES.info("Default User Message: " + seedHelper.updateDefaultUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, pwdEncoder));
+        LOGGER_MESSAGES.info("Test User Message: " + messageTestUsers);
+        LOGGER_MESSAGES.info("Default User Message: " + messageDefaultUsers);
     }
 
 }

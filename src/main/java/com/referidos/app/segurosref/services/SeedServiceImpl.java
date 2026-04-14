@@ -1,5 +1,6 @@
 package com.referidos.app.segurosref.services;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,7 +14,9 @@ import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.helpers.SeedHelper;
 import com.referidos.app.segurosref.helpers.ValidateInputHelper;
 import com.referidos.app.segurosref.models.BrandModel;
+import com.referidos.app.segurosref.models.CityModel;
 import com.referidos.app.segurosref.models.InsurerModel;
+import com.referidos.app.segurosref.models.UserModel;
 import com.referidos.app.segurosref.repositories.BrandRepository;
 import com.referidos.app.segurosref.repositories.CityRepository;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
@@ -68,8 +71,15 @@ public class SeedServiceImpl implements SeedService {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
         boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
-        String ciudades = seedHelper.updateCities(cityRepository, refreshData);
-        return ResponseHelper.ok("se ha logrado hacer la petición", Map.of("ciudades", ciudades));
+        Object[] objCities = seedHelper.updateCities(cityRepository, refreshData);
+        String message = (String) objCities[0];
+        @SuppressWarnings("unchecked")
+        List<CityModel> cities = (List<CityModel>) objCities[1];
+        // Construimos data para que el cuerpo de la solitud sea ordenada
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("message", message);
+        data.put("cities", cities);
+        return ResponseHelper.ok("se ha logrado hacer la petición", data);
     }
 
     @Override
@@ -78,9 +88,23 @@ public class SeedServiceImpl implements SeedService {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
         boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
-        String testUsers = seedHelper.updateTestUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, passwordEncoder, refreshData);
-        String defaultUsers = seedHelper.updateDefaultUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, passwordEncoder);
-        return ResponseHelper.ok("se ha logrado hacer la petición", Map.of("testUsers", testUsers, "defaultUsers", defaultUsers));
+        // Revisar usuarios de prueba
+        Object[] objTestUsers = seedHelper.updateTestUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, passwordEncoder, refreshData);
+        String messageTestUsers = (String) objTestUsers[0];
+        @SuppressWarnings("unchecked")
+        List<UserModel> testUsers = (objTestUsers[1] != null) ? (List<UserModel>) objTestUsers[1] : null;
+        // Revisar usuarios por defecto
+        Object[] objDefaultUsers = seedHelper.updateDefaultUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, passwordEncoder, refreshData);
+        String messageDefaultUsers = (String) objDefaultUsers[0];
+        @SuppressWarnings("unchecked")
+        List<UserModel> defaultUsers = (objDefaultUsers[1] != null) ? (List<UserModel>) objDefaultUsers[1] : null;
+        // Construimos data para que el cuerpo de la solitud sea ordenada
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("messageTestUsers", messageTestUsers);
+        data.put("messageDefaultUsers", messageDefaultUsers);
+        data.put("testUsers", testUsers);
+        data.put("defaultUsers", defaultUsers);
+        return ResponseHelper.ok("se ha logrado hacer la petición", data);
     }
 
     @Override
@@ -93,7 +117,11 @@ public class SeedServiceImpl implements SeedService {
         String message = (String) objInsurers[0];
         @SuppressWarnings("unchecked")
         List<InsurerModel> insurers = (List<InsurerModel>) objInsurers[1];
-        return ResponseHelper.ok("se ha logrado hacer la petición", Map.of("info", message, "insurers", insurers));
+        // Construimos data para que el cuerpo de la solitud sea ordenada
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("message", message);
+        data.put("insurers", insurers);
+        return ResponseHelper.ok("se ha logrado hacer la petición", data);
     }
 
     @Override
@@ -106,7 +134,11 @@ public class SeedServiceImpl implements SeedService {
         String message = (String) objBrands[0];
         @SuppressWarnings("unchecked")
         List<BrandModel> brands = (List<BrandModel>) objBrands[1];
-        return ResponseHelper.ok("se ha logrado hacer la petición", Map.of("info", message, "brands", brands));
+        // Construimos data para que el cuerpo de la solitud sea ordenada
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("message", message);
+        data.put("brands", brands);
+        return ResponseHelper.ok("se ha logrado hacer la petición", data);
     }
 
 }

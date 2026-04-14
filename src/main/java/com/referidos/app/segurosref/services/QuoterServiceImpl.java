@@ -499,8 +499,9 @@ public class QuoterServiceImpl implements QuoterService {
                         }
                     } catch(NoSuchElementException e) {
                         // En caso de haber excepción, seguimos ya que no se alcanza a actualizar ningún dato esencial y entregamos mensaje de excepción
-                        String referredNotFound = (novaTransaction.getCommissionScope() == 1) ? emailUserB : emailUserA; 
-                        message = "Ha ocurrido un excepción en la transacción N°" + transactionId + ", el referido no fue encontrado: " + referredNotFound + "\n" + e.getMessage();
+                        String referredNotFound = (novaTransaction.getCommissionScope() == 1) ? emailUserB : emailUserA;
+                        message = "Ha ocurrido una excepción en la transacción N°" + transactionId + ", el referido no fue encontrado: " + referredNotFound + "\n" + e.getMessage();
+                        novaTransaction.setUserReferringFound(false);
                     }
                     // Se actualiza el nivel de comisiones que se alcanzo a entregar la transacción (referidos).
                     novaTransaction.setCommissionScope(commissionScope);
@@ -543,7 +544,7 @@ public class QuoterServiceImpl implements QuoterService {
                 // Se intenta cerrar la venta, dependiendo del estado entregado
                 TransactionModel transactionDB = transactionRepository.findByUserIdAndQuoterId(userC.getUserId(), quoterId).orElseThrow();
                 String transactionStatusDB = transactionDB.getStatus();
-                if(!transactionStatusDB.equals("Pendiente")) {
+                if(!transactionStatusDB.equals("Pendiente") || !transactionDB.getUserReferringFound()) {
                     return ResponseHelper.failedDependency("el estado de la transacción es: " + transactionStatusDB, "failed dependency");
                 }
                 transactionId = transactionDB.getTransactionId();
@@ -569,7 +570,8 @@ public class QuoterServiceImpl implements QuoterService {
                         // La comisión alcanza a un referido y por lo tanto se encuentra 'Activado'
                         ReferredModel referredByUserB = referredRepository.findByReferred(emailAuth).orElseThrow();
                         String emailUserB = referredByUserB.getUserReferring();
-                        UserModel userB = userRepository.findByPersonalData_Email(emailUserB).orElseThrow();
+                        String codeToReferB = referredByUserB.getCodeToRefer();
+                        UserModel userB = userRepository.findByPersonalData_EmailAndCodeToRefer(emailUserB, codeToReferB).orElseThrow();
                         // Actualizamos los valores de la wallet del usuario B
                         WalletModel walletB = userB.getWallet();
                         int outstandingBalanceB = walletB.getOutstandingBalance() - commissionUserB;
@@ -586,7 +588,8 @@ public class QuoterServiceImpl implements QuoterService {
                             // La comisión alcanzo a otro referido y por lo tanto se encuentra 'Activado'
                             ReferredModel referredByUserA = referredRepository.findByReferred(emailUserB).orElseThrow();
                             String emailUserA = referredByUserA.getUserReferring();
-                            UserModel userA = userRepository.findByPersonalData_Email(emailUserA).orElseThrow();
+                            String codeToReferA = referredByUserA.getCodeToRefer();
+                            UserModel userA = userRepository.findByPersonalData_EmailAndCodeToRefer(emailUserA, codeToReferA).orElseThrow();
                             // Actualizamos los valores de la wallet del usuario A
                             WalletModel walletA = userA.getWallet();
                             int outstandingBalanceA = walletA.getOutstandingBalance() - commissionUserA;
@@ -728,8 +731,15 @@ public class QuoterServiceImpl implements QuoterService {
             try {
                 UserModel userDB = userRepository.findById(new ObjectId(userApproved.getUserId())).orElseThrow();
                 UserDataModel userData = userDB.getPersonalData();
+                String email = userData.getEmail();
+                if(UserHelper.isTestUser(email) || UserHelper.isDefaulUser(email)) {
+                    // No se contabiliza usuario porque es el usuario de la aplicación
+                    quoterHelper.addUserProblem(usersProblem, userApproved, "Usuario de prueba de la aplicación");
+                    usersApproved.remove(userApproved);
+                    continue;
+                }
                 userApproved.setName(userData.getName() + " " + userData.getSurname());
-                userApproved.setEmail(userData.getEmail());
+                userApproved.setEmail(email);
                 AccountModel userAccount = quoterHelper.checkUserAccount(userDB);
                 if(userAccount != null) {
                     userApproved.setAccount(new CommissionAccountDto(userAccount.getAccountId(), userAccount.getHolderName(), userAccount.getEmail(), userAccount.getBank(), userAccount.getAccountType(), userAccount.getAccountNumber()));
