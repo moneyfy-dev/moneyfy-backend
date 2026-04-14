@@ -5,7 +5,7 @@ import static com.referidos.app.segurosref.configs.JwtConfig.CONTENT_TYPE;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,7 +22,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping(value = "/logs")
+@RequestMapping(value = "/log")
 @PreAuthorize(value = "denyAll()")
 @Tag(
     name = "Log Controller",
@@ -34,7 +34,7 @@ public class LogController {
     private LogService logService;
 
     // Endpoint para la búsqueda de todos los logs de la aplicación
-    @PostMapping(value = "/find/all")
+    @GetMapping(value = "/find/all")
     @PreAuthorize(value = "permitAll()")
     @Operation(
         summary = "Search all the logs to verify the application status",

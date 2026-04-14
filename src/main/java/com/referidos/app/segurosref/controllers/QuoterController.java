@@ -408,6 +408,7 @@ public class QuoterController {
         return quoterService.commissionReport(commissionReportRequest, request);
     }
 
+    // Endpoint para actualizar las comisiones que fueron pagadas
     @PostMapping(value = "/commission/payments")
     @PreAuthorize(value = "permitAll()")
     @Operation(
@@ -441,51 +442,8 @@ public class QuoterController {
             )
         }
     )
-    public ResponseEntity<?> commissionPayments(@RequestBody CommissionPaymentRequest commissionPaymentRequest) {
-        return quoterService.commissionPayments(commissionPaymentRequest);
-    }
-
-    // ENDPOINTS UTILIZADOS PARA REALIZAR PRUEBAS Y LÓGICAS DE LA APLICACIÓN
-    @GetMapping(value = "/view/test/data")
-    @PreAuthorize(value = "permitAll()")
-    @Operation(
-        summary = "View the test data",
-        description = "View the test data to make the differents tests",
-        tags = {"Quoter Controller"},
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "There was test data encountered",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
-                )
-            )
-        }
-    )
-    public ResponseEntity<?> viewTestData() {
-        return quoterService.viewTestData();
-    }
-
-    @PostMapping(value = "/test/nova/functions")
-    @PreAuthorize(value = "permitAll()")
-    @Operation(
-        summary = "Test nova functions",
-        description = "Test nova functions",
-        tags = {"Quoter Controller"},
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The function has finished successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
-                )
-            )
-        }
-    )
-    public String testNovaFunctions() {
-        return quoterService.testNovaFunctions();
+    public ResponseEntity<?> commissionPayments(@RequestBody CommissionPaymentRequest commissionPaymentRequest, HttpServletRequest request) {
+        return quoterService.commissionPayments(commissionPaymentRequest, request);
     }
 
 }

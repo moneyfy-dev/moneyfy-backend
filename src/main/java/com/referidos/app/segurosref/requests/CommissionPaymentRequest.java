@@ -2,11 +2,10 @@ package com.referidos.app.segurosref.requests;
 
 import java.util.List;
 
-import com.referidos.app.segurosref.dtos.commission.CommissionPaymentDto;
+import com.referidos.app.segurosref.dtos.report.ReportUserDto;
 
 public record CommissionPaymentRequest(
-    String key,
-    List<CommissionPaymentDto> payments
+    List<ReportUserDto> updateUsers
 ) {
 
 }

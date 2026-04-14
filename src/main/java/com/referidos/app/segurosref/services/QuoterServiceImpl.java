@@ -26,8 +26,7 @@ import com.referidos.app.segurosref.dtos.ResultQuoteDto;
 import com.referidos.app.segurosref.dtos.TestPlanDto;
 import com.referidos.app.segurosref.dtos.VehicleBrandDto;
 import com.referidos.app.segurosref.dtos.VehicleModelDto;
-import com.referidos.app.segurosref.dtos.commission.CommissionAccountDto;
-import com.referidos.app.segurosref.dtos.commission.CommissionPaymentDto;
+import com.referidos.app.segurosref.dtos.report.ReportAccountDto;
 import com.referidos.app.segurosref.dtos.report.ReportUserDto;
 import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.QuoterHelper;
@@ -56,7 +55,6 @@ import com.referidos.app.segurosref.models.WalletModel;
 import com.referidos.app.segurosref.provider.ApiBciProvider;
 import com.referidos.app.segurosref.provider.EmailServiceProvider;
 import com.referidos.app.segurosref.repositories.InsurerRepository;
-import com.referidos.app.segurosref.repositories.LogRepository;
 import com.referidos.app.segurosref.repositories.PaymentRepository;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
 import com.referidos.app.segurosref.repositories.PlanRepository;
@@ -111,9 +109,6 @@ public class QuoterServiceImpl implements QuoterService {
 
     @Autowired
     private ReferredRepository referredRepository;
-
-    @Autowired
-    private LogRepository logRepository;
 
     @Autowired
     private PaymentRepository paymentRepository;
@@ -716,13 +711,13 @@ public class QuoterServiceImpl implements QuoterService {
             String transactionUserId = transactionFromCutoffDate.getUserId();
             Boolean isUserReferringFound = transactionFromCutoffDate.getUserReferringFound();
             if(isUserReferringFound == null || !isUserReferringFound) {
-                quoterHelper.checkReportUsersProblem(usersProblem, transactionUserId, "", "", transactionId, "Existe problema de referidos");
+                quoterHelper.checkReportUsersProblem(usersProblem, transactionUserId, "", "", transactionId, 0, "Existe problema de referidos");
                 continue;
             }
             for(TransactionComissionModel transactionCommission : transactionFromCutoffDate.getCommissions()) {
                 String commissionUserId = transactionCommission.getUserId();
                 int commissionOfUser = transactionCommission.getUserCommission();
-                quoterHelper.checkReportUsersApproved(usersApproved, commissionUserId, "", "", null, transactionId, String.format("Nueva comisión $%s", commissionOfUser), commissionOfUser);
+                quoterHelper.checkReportUsersApproved(usersApproved, commissionUserId, "", "", null, transactionId, commissionOfUser, String.format("Nueva comisión $%s", commissionOfUser));
             }
         }
         // Ya agregamos a todas las transacciones aprobadas y el id del usuario respectivo más su comisión, ahora buscamos al
@@ -742,7 +737,7 @@ public class QuoterServiceImpl implements QuoterService {
                 userApproved.setEmail(email);
                 AccountModel userAccount = quoterHelper.checkUserAccount(userDB);
                 if(userAccount != null) {
-                    userApproved.setAccount(new CommissionAccountDto(userAccount.getAccountId(), userAccount.getHolderName(), userAccount.getEmail(), userAccount.getBank(), userAccount.getAccountType(), userAccount.getAccountNumber()));
+                    userApproved.setAccount(new ReportAccountDto(userAccount.getAccountId(), userAccount.getHolderName(), userAccount.getEmail(), userAccount.getBank(), userAccount.getAccountType(), userAccount.getAccountNumber()));
                 } else {
                     quoterHelper.addUserProblem(usersProblem, userApproved, "No es posible encontrar una cuenta bancaria activa del usuario");
                     usersApproved.remove(userApproved);
@@ -784,68 +779,37 @@ public class QuoterServiceImpl implements QuoterService {
         return ResponseHelper.ok("se ha generado el reporte", data);
     }
 
-    @SuppressWarnings("unchecked")
+    // Servicio para actualizar las comisiones que fueron pagadas
     @Override
     @Transactional
-    public ResponseEntity<?> commissionPayments(CommissionPaymentRequest commissionPaymentRequest) {
-        // Revisamos si la llave de la solicitud hace match con la del backend, de otra manera, no puede seguir con la solicitud
-        String key = commissionPaymentRequest.key();
-        List<CommissionPaymentDto> payments = commissionPaymentRequest.payments();
-        if(DataHelper.isNull(key) || !key.equals(apiKeyMF) || payments == null) {
+    public ResponseEntity<?> commissionPayments(CommissionPaymentRequest commissionPaymentRequest, HttpServletRequest request) {
+        if(!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
-        // Se buscan los usuarios para actualizar las comisiones que fueron pagadas (TRATAR LUEGO DE LLEVAR LA LÓGICA AL HELPER)
+        if(true) {
+            return ResponseHelper.ok("se necesita actualizar el flujo", Map.of("info", "info"));
+        }
+        // Se buscan los usuarios para actualizar las comisiones que fueron pagadas
         List<UserModel> updateUsers = new ArrayList<>();
         List<TransactionModel> updateTransactions = new ArrayList<>();
-        List<PaymentModel> listUserPayments = new ArrayList<>();
-        String lastStatus = "Liberado";
-        String confirmationStatus = "Confirmando";
+        List<PaymentModel> userPayments = new ArrayList<>();
+        String pointOfLastStatus = "Liberado";
         LocalDateTime currenDateTime = LocalDateTime.now();
-        // Buscamos las transacciones, para actualizar sus comisiones, actualizamos la wallet del usuario y creamos la
-        // estructura para los pagos de comisiones realizadas
-        String errorCommissionPayments = quoterHelper.updateCommissionPayments(payments, updateUsers, updateTransactions,
-                listUserPayments, lastStatus, confirmationStatus, currenDateTime, transactionRepository, userRepository);
-        if(errorCommissionPayments != null) {
-            return ResponseHelper.failedDependency(errorCommissionPayments, "failed dependency");
-        }
-        // Perfecto, no hubo error, y ahora falta solamente iterar por las transacciones que se deben de actualizar, para
-        // saber si todas las comisiones de esa transacción fueron pagadas, si no actualizar los estados de comisiones y
-        // el de la transacción
-        Map<String, Object> dataUpdated = quoterHelper.confirmingTransactionStatus(updateTransactions, updateUsers, listUserPayments, lastStatus, confirmationStatus, currenDateTime);
-        // Se asignan los registros actualizados
-        List<String> transactionIds = (List<String>) dataUpdated.get("transactionIds");
-        List<String> userIds = (List<String>) dataUpdated.get("userIds");
-        List<String> paymentIds = (List<String>) dataUpdated.get("paymentIds");
-        // Se actualizan los registros en la base de datos
-        transactionRepository.saveAll(updateTransactions);
-        userRepository.saveAll(updateUsers);
-        paymentRepository.saveAll(listUserPayments);
-        return ResponseHelper.ok("las comisiones se han actualizado, juntamente con la información relacionada", Map.of("transactionIds", transactionIds, "userIds", userIds, "paymentIds", paymentIds));
-    }
+        // Buscamos las transacciones, para actualizar sus comisiones
 
-    // SERVICIOS UTILIZADOS PARA REALIZAR PRUEBAS Y LÓGICAS DE LA APLICACIÓN
-    @Override
-    public ResponseEntity<?> viewTestData() {
-        List<QuoterOwnerModel> ownerList = quoterHelper.ownerList();
-        List<QuoterCarModel> vehicleList = quoterHelper.vehicleList();
-        List<TestPlanDto> planList1 = quoterHelper.planList1();
-        List<TestPlanDto> planList2 = quoterHelper.planList2();
-        List<TestPlanDto> planList3 = quoterHelper.planList3();
-        return ResponseHelper.ok("se han podido recuperar los datos de prueba", Map.of("owners", ownerList, "vehicles", vehicleList, "planList1", planList1, "planList2", planList2, "planList3", planList3));
-    }
+        // Actualizamos la wallet de los usuarios
 
-    @Override
-    public String testNovaFunctions() {
-        // COMPARACIÓN DE FECHAS
-        // LocalDate startDate = LocalDate.of(2024, 5, 20);
-        // LocalDate endDate = LocalDate.of(2024, 12, 20);
-        // long daysBetween = endDate.toEpochDay() - startDate.toEpochDay();
-        // return String.valueOf(daysBetween) + " - " + startDate.getYear();
-        // OBTENCIÓN DE RUT SIN GUÍON Y PUNTOS, Y OBTENCIÓN DEL DV
-        // return "12.345.678-9".replace(".", "").substring(0, "12.345.678-9".replace(".", "").length()-2);
-        // return "12.345.678-9".split("-")[0].replace(".", "");
-        String resultado = "12.345.678-9".substring("12.345.678-9".length()-1);
-        return resultado;
+        // Creamos los pagos relacionados a los usuarios
+
+        // No hay error y se actualizan todos los registros
+        updateTransactions = transactionRepository.saveAll(updateTransactions);
+        updateUsers = userRepository.saveAll(updateUsers);
+        userPayments = paymentRepository.saveAll(userPayments);
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("transactions", updateTransactions);
+        data.put("users", updateUsers);
+        data.put("payments", userPayments);
+        return ResponseHelper.ok("Se han generado los pagos de los usuarios y se ha actualizado la data relacionada", data);
     }
 
     // SERVICIOS DE VALIDACIONES DE DATOS

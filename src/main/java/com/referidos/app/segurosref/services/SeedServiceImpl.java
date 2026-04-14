@@ -1,5 +1,6 @@
 package com.referidos.app.segurosref.services;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.helpers.SeedHelper;
@@ -65,6 +67,7 @@ public class SeedServiceImpl implements SeedService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Transactional
     @Override
     public ResponseEntity<?> checkCities(HttpServletRequest request, SeedRequest seedRequest) {
         if(!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
@@ -82,22 +85,24 @@ public class SeedServiceImpl implements SeedService {
         return ResponseHelper.ok("se ha logrado hacer la petición", data);
     }
 
+    @Transactional
     @Override
     public ResponseEntity<?> checkUsers(HttpServletRequest request, SeedRequest seedRequest) {
         if(!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
         boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
+        List<UserModel> emptyUsers = new ArrayList<>();
         // Revisar usuarios de prueba
         Object[] objTestUsers = seedHelper.updateTestUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, passwordEncoder, refreshData);
         String messageTestUsers = (String) objTestUsers[0];
         @SuppressWarnings("unchecked")
-        List<UserModel> testUsers = (objTestUsers[1] != null) ? (List<UserModel>) objTestUsers[1] : null;
+        List<UserModel> testUsers = (objTestUsers[1] != null) ? (List<UserModel>) objTestUsers[1] : emptyUsers;
         // Revisar usuarios por defecto
         Object[] objDefaultUsers = seedHelper.updateDefaultUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, passwordEncoder, refreshData);
         String messageDefaultUsers = (String) objDefaultUsers[0];
         @SuppressWarnings("unchecked")
-        List<UserModel> defaultUsers = (objDefaultUsers[1] != null) ? (List<UserModel>) objDefaultUsers[1] : null;
+        List<UserModel> defaultUsers = (objDefaultUsers[1] != null) ? (List<UserModel>) objDefaultUsers[1] : emptyUsers;
         // Construimos data para que el cuerpo de la solitud sea ordenada
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("messageTestUsers", messageTestUsers);
@@ -107,6 +112,7 @@ public class SeedServiceImpl implements SeedService {
         return ResponseHelper.ok("se ha logrado hacer la petición", data);
     }
 
+    @Transactional
     @Override
     public ResponseEntity<?> checkInsurers(HttpServletRequest request, SeedRequest seedRequest) {
         if(!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
@@ -124,6 +130,7 @@ public class SeedServiceImpl implements SeedService {
         return ResponseHelper.ok("se ha logrado hacer la petición", data);
     }
 
+    @Transactional
     @Override
     public ResponseEntity<?> checkBrands(HttpServletRequest request, SeedRequest seedRequest) {
         if(!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {

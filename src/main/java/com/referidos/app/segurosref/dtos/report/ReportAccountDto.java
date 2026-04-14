@@ -1,9 +1,9 @@
-package com.referidos.app.segurosref.dtos.commission;
+package com.referidos.app.segurosref.dtos.report;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder(value = {"rut", "holderName", "email", "bank", "accountType", "accountNumber"})
-public record CommissionAccountDto(
+public record ReportAccountDto(
     String rut,
     String holderName,
     String email,

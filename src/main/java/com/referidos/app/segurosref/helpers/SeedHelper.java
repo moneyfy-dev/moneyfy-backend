@@ -660,6 +660,7 @@ public class SeedHelper {
     }
 
     // Función para actualizar las marcas de la app
+    @Transactional
     public Object[] updateBrands(BrandRepository brandRepository, boolean refreshData) {
         List<BrandModel> brands = this.buildBrandsPart1(new ArrayList<>());
         this.buildBrandsPart2(brands);

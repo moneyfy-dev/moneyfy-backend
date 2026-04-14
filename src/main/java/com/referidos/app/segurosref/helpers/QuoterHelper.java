@@ -1,27 +1,18 @@
 package com.referidos.app.segurosref.helpers;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.referidos.app.segurosref.dtos.TestPlanDto;
-import com.referidos.app.segurosref.dtos.commission.CommissionAccountDto;
-import com.referidos.app.segurosref.dtos.commission.CommissionPaymentDto;
-import com.referidos.app.segurosref.dtos.earnings.MonthlyCommissionDto;
+import com.referidos.app.segurosref.dtos.report.ReportAccountDto;
 import com.referidos.app.segurosref.dtos.report.ReportTransactionDataDto;
 import com.referidos.app.segurosref.dtos.report.ReportUserDto;
 import com.referidos.app.segurosref.models.AccountModel;
-import com.referidos.app.segurosref.models.PaymentModel;
 import com.referidos.app.segurosref.models.QuoterAddressModel;
 import com.referidos.app.segurosref.models.QuoterCarModel;
 import com.referidos.app.segurosref.models.QuoterModel;
@@ -32,9 +23,6 @@ import com.referidos.app.segurosref.models.QuoterPurchaserModel;
 import com.referidos.app.segurosref.models.TransactionComissionModel;
 import com.referidos.app.segurosref.models.TransactionModel;
 import com.referidos.app.segurosref.models.UserModel;
-import com.referidos.app.segurosref.models.WalletModel;
-import com.referidos.app.segurosref.repositories.TransactionRepository;
-import com.referidos.app.segurosref.repositories.UserRepository;
 
 // Se inyecta como repositorio en el servicio de "Quoter", pero, realizando funcionalidades de servicio
 @Component 
@@ -196,33 +184,33 @@ public class QuoterHelper {
     }
 
     // Checkeamos si existe el usuario con problemas en el arreglo para crearlo o actualizarlo si es el caso
-    public void checkReportUsersProblem(List<ReportUserDto> usersProblem, String userId, String userName, String userEmail, String transactionId, String transactionMessage) {
+    public void checkReportUsersProblem(List<ReportUserDto> usersProblem, String userId, String userName, String userEmail, String transactionId, int commission, String transactionMessage) {
         for(ReportUserDto userProblem : usersProblem) {
             if(userId.equals(userProblem.getUserId())) {
                 userProblem.setName((!userName.equals("")) ? userName : userProblem.getName());
                 userProblem.setEmail((!userEmail.equals("")) ? userEmail : userProblem.getEmail());
-                userProblem.addTransactionData(new ReportTransactionDataDto(transactionId, transactionMessage));
+                userProblem.addTransactionData(new ReportTransactionDataDto(transactionId, commission, transactionMessage));
                 return;
             }
         }
         // No está el usuario se agrega en el arreglo
-        usersProblem.add(new ReportUserDto(userId, userName, userEmail, 0, "Usuario con detalles", null).addTransactionData(new ReportTransactionDataDto(transactionId, transactionMessage)));
+        usersProblem.add(new ReportUserDto(userId, userName, userEmail, commission, "", "Usuario con detalles", null).addTransactionData(new ReportTransactionDataDto(transactionId, commission, transactionMessage)));
     }
 
     // Checkeamos si existe el usuario con aprobado+ en el arreglo para crearlo o actualizarlo si es el caso
-    public void checkReportUsersApproved(List<ReportUserDto> usersApproved, String userId, String userName, String userEmail, CommissionAccountDto accountDto, String transactionId, String transactionMessage, int commission) {
+    public void checkReportUsersApproved(List<ReportUserDto> usersApproved, String userId, String userName, String userEmail, ReportAccountDto accountDto, String transactionId, int commission, String transactionMessage) {
         for(ReportUserDto userApproved : usersApproved) {
             if(userId.equals(userApproved.getUserId())) {
                 userApproved.setName((!userName.equals("")) ? userName : userApproved.getName());
                 userApproved.setEmail((!userEmail.equals("")) ? userEmail : userApproved.getEmail());
-                userApproved.setCommission(userApproved.getCommission() + commission);
+                userApproved.setTotalCommission(userApproved.getTotalCommission() + commission);
                 userApproved.setAccount((accountDto != null) ? accountDto : userApproved.getAccount());
-                userApproved.addTransactionData(new ReportTransactionDataDto(transactionId, transactionMessage));
+                userApproved.addTransactionData(new ReportTransactionDataDto(transactionId, commission, transactionMessage));
                 return;
             }
         }
         // No está el usuario se agrega en el arreglo
-        usersApproved.add(new ReportUserDto(userId, userName, userEmail, commission, "Usuario aprobado", accountDto).addTransactionData(new ReportTransactionDataDto(transactionId, transactionMessage)));
+        usersApproved.add(new ReportUserDto(userId, userName, userEmail, commission, "", "Usuario aprobado", accountDto).addTransactionData(new ReportTransactionDataDto(transactionId, commission, transactionMessage)));
     }
 
     // Agregamos un usuario al arreglo de los usuarios con problemas por una excepción y con mensaje explicativo
@@ -233,7 +221,7 @@ public class QuoterHelper {
                 userProblem.setGeneralMessage(userProblem.getGeneralMessage() + " - " + generalMessage);
                 userProblem.setName(userApproved.getName());
                 userProblem.setEmail(userApproved.getEmail());
-                userProblem.setCommission(userProblem.getCommission() + userApproved.getCommission());
+                userProblem.setTotalCommission(userProblem.getTotalCommission() + userApproved.getTotalCommission());
                 // Agregamos las transacciones que tenía el usuario aprobado
                 for(ReportTransactionDataDto transactionData : userApproved.getTransactionData()) {
                     userProblem.addTransactionData(transactionData);
@@ -242,7 +230,7 @@ public class QuoterHelper {
             }
         }
         // No se encontró el usuario con detalles, y ahora se agrega
-        usersProblem.add(new ReportUserDto(userId, userApproved.getName(), userApproved.getEmail(), userApproved.getCommission(), generalMessage, null).setTransactionData(userApproved.getTransactionData()));
+        usersProblem.add(new ReportUserDto(userId, userApproved.getName(), userApproved.getEmail(), userApproved.getTotalCommission(), userApproved.getVoucher(), generalMessage, null).setTransactionData(userApproved.getTransactionData()));
     }
 
     // Revisar si el usuario tiene una cuenta bancaria activa para poder pagale las comisiones
@@ -255,161 +243,6 @@ public class QuoterHelper {
         return null;
     }
 
-    // Flujos para actualizar las comisiones pagadas
-    @Transactional(readOnly = true)
-    public String updateCommissionPayments(List<CommissionPaymentDto> payments, List<UserModel> updateUsers,
-            List<TransactionModel> updateTransactions, List<PaymentModel> listUserPayments, String lastStatus,
-            String confirmationStatus, LocalDateTime currenDateTime, TransactionRepository transactionRepository,
-            UserRepository userRepository) {
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        for(CommissionPaymentDto payment : payments) {
-            String userId = payment.getUserId();
-            if(!ObjectId.isValid(userId)) {
-                return "el id de usuario: " + userId + ", no es correcto";
-            }
-            Optional<UserModel> optionalUser = userRepository.findById(new ObjectId(userId));
-            if(optionalUser.isPresent()) {
-                // Se encontró el usuario y se puede seguir la lógica
-                UserModel userDB = optionalUser.get();
-                CommissionAccountDto userAccount = payment.getAccount();
-                int userPayment = payment.getPayment();
-                int userPaymentTotal = 0;
-                for(MonthlyCommissionDto commission : payment.getCommissions()) {
-                    String transactionId = commission.transactionId();
-                    int transactionCommision = commission.commission();
-                    userPaymentTotal += transactionCommision;
-                    boolean existsTransaction = false; // Buscamos si existe la transacción en la lista de transacciones
-                    for(TransactionModel updateTransaction : updateTransactions) {
-                        if(transactionId.equals(updateTransaction.getTransactionId())) {
-                            // Existe la transasacción, así que, se busca la comisión que se tiene que actualizar
-                            existsTransaction = true;
-                            boolean existsCommission = false;
-                            for(TransactionComissionModel commissionDB : updateTransaction.getCommissions()) {
-                                int transactionCommissionDB = commissionDB.getUserCommission();
-                                String transactionUserId = commissionDB.getUserId();
-                                String commissionStatus = commissionDB.getCommissionStatus();
-                                if(transactionCommision == transactionCommissionDB && userId.equals(transactionUserId)) {
-                                    // Está es la transacción que se tiene que actualizar, antes se verifica que no este pagada.
-                                    if(commissionStatus.equals(lastStatus)) {
-                                        return "la comisión del usuario, ya se encuentra pagada en la transacción: " + transactionId;
-                                    }
-                                    commissionDB.setCommissionStatus(lastStatus);
-                                    existsCommission = true;
-                                    break;
-                                }
-                            }
-                            if(!existsCommission) {
-                                return "no se encontro la comisión del usuario: " + userId + ", en la transacción: " + transactionId;
-                            }
-                            break;
-                        }
-                    }
-                    // Si no existe la transacción, se debe buscar por la base de datos, buscar la comisión que se debe actualizar y agregar a las transacciones que se deben actualizar
-                    if(!existsTransaction) {
-                        Optional<TransactionModel> optionalTransaction = transactionRepository.findById(transactionId);
-                        if(optionalTransaction.isPresent()) {
-                            // Se encontró la transacción, ahora se busca la comisión para ser actualizada
-                            TransactionModel transactionDB = optionalTransaction.get();
-                            String transactionStatus = transactionDB.getStatus();
-                            if(!transactionStatus.equals("Aprobado") && !transactionStatus.equals(confirmationStatus)) {
-                                return "el estado de la transacción: " + transactionId + ", no es correcto: " + transactionStatus;
-                            }
-                            boolean existsCommission = false;
-                            for(TransactionComissionModel commissionDB : transactionDB.getCommissions()) {
-                                int transactionCommissionDB = commissionDB.getUserCommission();
-                                String transactionUserId = commissionDB.getUserId();
-                                String commissionStatus = commissionDB.getCommissionStatus();
-                                if(transactionCommision == transactionCommissionDB && userId.equals(transactionUserId)) {
-                                    // Está es la transacción que se tiene que actualizar, antes se verifica que no este pagada.
-                                    if(commissionStatus.equals(lastStatus)) {
-                                        return "la comisión del usuario: " + userId + ", ya se encuentra pagada en la transacción: " + transactionId;
-                                    }
-                                    commissionDB.setCommissionStatus(lastStatus);
-                                    updateTransactions.add(transactionDB); // Agregamos transacción con una comisión actualizada
-                                    existsCommission = true;
-                                    break;
-                                }
-                            }
-                            if(!existsCommission) {
-                                return "no se encontro la comisión del usuario: " + userId + ", en la transacción: " + transactionId;
-                            }
-                        } else {
-                            return "transacción no encontrada: " + transactionId;
-                        }
-                    }
-                } // Fin de actualización de comisiones de las transacciones
-                // Ahora verificamos que el total de comisiones actualizadas, debe ser el mismo monto que se menciona que se pago
-                if(userPayment != userPaymentTotal) {
-                    return "el monto total de las comisiones, no es el mismo que el monto de pago al usuario: " + userId;
-                }
-                // Actualización de wallet del usuario
-                WalletModel userWallet = userDB.getWallet();
-                int availableBalance = userWallet.getAvailableBalance() - userPayment;
-                if(availableBalance < 0) {
-                    return "el monto pagado, es mayor al saldo disponible del usuario: " + userId;
-                }
-                if(userAccount == null || DataHelper.isNull(userAccount.bank()) || DataHelper.isNull(userAccount.accountNumber())) {
-                    return "la cuenta de bancaria para el recibo de comisiones del usuario: " + userId + ", no es correcta";
-                }
-                userWallet.setAvailableBalance(availableBalance);
-                userWallet.setPaymentBalance(userWallet.getPaymentBalance() + userPayment);
-                userWallet.setTotalBalance(availableBalance + userWallet.getOutstandingBalance());
-                // Creación de objeto para el egreso de comisiones (SE DEBE AGREGAR LOS IDS DE LOS EGRESOS EN EL USUARIO)
-                PaymentModel novaPayment = new PaymentModel(new ObjectId(), userId, userAccount,
-                        userPayment, availableBalance, payment.getVoucher(), currenDateTime.format(dateFormatter),
-                        new HashSet<>(), currenDateTime, currenDateTime);
-                // Finalmente, agregamos el usuario que se tiene que actualizar a la lista de usuarios y el nuevo egreso a la lista de egresos
-                userWallet.addPaymentId(novaPayment.getPaymentId());
-                updateUsers.add(userDB);
-                listUserPayments.add(novaPayment);
-            } else {
-                return "usuario no encontrado: " + userId;
-            }
-        }
-        return null;
-    }
-    public Map<String, Object> confirmingTransactionStatus(List<TransactionModel> updateTransactions,
-            List<UserModel> updateUsers, List<PaymentModel> listUserPayments, String lastStatus,
-            String confirmationStatus, LocalDateTime currenDateTime) {
-        Map<String, Object> dataUpdated = new HashMap<>();
-        List<String> transactionIds = new ArrayList<>();
-        List<String> userIds = new ArrayList<>();
-        List<String> paymentIds = new ArrayList<>();
-        // Confirmamos el estado de la transacción y agregamos los ids de las transacciones actualizadas
-        for(TransactionModel updateTransaction : updateTransactions) {
-            boolean isTransactionFinished = true;
-            for(TransactionComissionModel commissionDB : updateTransaction.getCommissions()) {
-                String commissionStatus = commissionDB.getCommissionStatus();
-                if(!commissionStatus.equals(lastStatus)) {
-                    // La transacción aún no se ha liberado
-                    commissionDB.setCommissionStatus(confirmationStatus);
-                    isTransactionFinished = false;
-                }
-            }
-            if(isTransactionFinished) {
-                updateTransaction.setStatus(lastStatus);
-            } else {
-                // La transacción tiene comisiones pendientes que pagar
-                updateTransaction.setStatus(confirmationStatus);
-            }
-            updateTransaction.setObservation("La comisión ha sido liberada exitosamente");
-            updateTransaction.setUpdatedDate(currenDateTime);
-            // Agregando los ids de las transacciones actualizadas
-            transactionIds.add(updateTransaction.getTransactionId());
-        }
-        // Agregamos los ids de los usuarios actualizados
-        for(UserModel userDB : updateUsers) {
-            userIds.add(userDB.getUserId());
-        }
-        // Agregamos los ids de los pagos creados para las comisiones
-        for(PaymentModel paymentDB : listUserPayments) {
-            paymentIds.add(paymentDB.getPaymentId());
-        }
-        // Agregamos al map, todos los registros actualizados y lo devolvemos
-        dataUpdated.put("transactionIds", transactionIds);
-        dataUpdated.put("userIds", userIds);
-        dataUpdated.put("paymentIds", paymentIds);
-        return dataUpdated;
-    }
+    // Realizar flujo para crear pagos y actualizar data relacionada a las comisiones
 
 }
