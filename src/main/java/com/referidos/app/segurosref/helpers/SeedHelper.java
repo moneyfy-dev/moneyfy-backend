@@ -362,7 +362,7 @@ public class SeedHelper {
         List<UserModel> createUsers = new ArrayList<>();
         List<ReferredModel> createReferreds = new ArrayList<>();
         List<TransactionModel> createTransactions = new ArrayList<>();
-        LocalDateTime currentDate = LocalDateTime.now();
+        LocalDateTime currentDate = LocalDateTime.now().minusMonths(2);
         LocalDate deprecatedDate = DataHelper.deprecatedDate();
         LocalDateTime deprecatedDateTime = DataHelper.deprecatedDateTime();
         if(refreshData) {

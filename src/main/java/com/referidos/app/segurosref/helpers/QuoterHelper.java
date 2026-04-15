@@ -1,18 +1,27 @@
 package com.referidos.app.segurosref.helpers;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.referidos.app.segurosref.dtos.TestPlanDto;
+import com.referidos.app.segurosref.dtos.TransactionCommissionDto;
+import com.referidos.app.segurosref.dtos.TransactionDto;
 import com.referidos.app.segurosref.dtos.report.ReportAccountDto;
 import com.referidos.app.segurosref.dtos.report.ReportTransactionDataDto;
 import com.referidos.app.segurosref.dtos.report.ReportUserDto;
 import com.referidos.app.segurosref.models.AccountModel;
+import com.referidos.app.segurosref.models.PaymentModel;
 import com.referidos.app.segurosref.models.QuoterAddressModel;
 import com.referidos.app.segurosref.models.QuoterCarModel;
 import com.referidos.app.segurosref.models.QuoterModel;
@@ -23,6 +32,9 @@ import com.referidos.app.segurosref.models.QuoterPurchaserModel;
 import com.referidos.app.segurosref.models.TransactionComissionModel;
 import com.referidos.app.segurosref.models.TransactionModel;
 import com.referidos.app.segurosref.models.UserModel;
+import com.referidos.app.segurosref.models.WalletModel;
+import com.referidos.app.segurosref.repositories.TransactionRepository;
+import com.referidos.app.segurosref.repositories.UserRepository;
 
 // Se inyecta como repositorio en el servicio de "Quoter", pero, realizando funcionalidades de servicio
 @Component 
@@ -243,6 +255,152 @@ public class QuoterHelper {
         return null;
     }
 
-    // Realizar flujo para crear pagos y actualizar data relacionada a las comisiones
+    // Buscamos las transacciones para actualizar sus comisiones
+    public String manageTransactionsForCommission(List<ReportUserDto> usersRequest, List<TransactionModel> updateTransactionsInDB, TransactionRepository transactionRepository, LocalDateTime currentTime) {
+        String message = "";
+        String pointOfLastStatus = "Liberado";
+        // Primero recuperamos todas las transacciones en objeto que nos permita procesarla como única y con uno o más usuarios que se beneficiaron de la transacción
+        List<TransactionDto> transactionsDto = new ArrayList<>();
+        for(ReportUserDto userRequest : usersRequest) {
+            String userIdRequest = userRequest.getUserId();
+            String userEmailRequest = userRequest.getEmail();
+            if(DataHelper.isNull(userIdRequest) || DataHelper.isNull(userEmailRequest)) {
+                message = "Se encontró valor sin declarar en el usuario con email: " + userEmailRequest;
+                return message;
+            }
+            for(ReportTransactionDataDto reportTransaction : userRequest.getTransactionData()) {
+                String reportTransactionId = reportTransaction.transactionId();
+                if(DataHelper.isNull(reportTransactionId)) {
+                    message = "No se encontró la transacción N°" + reportTransactionId + ", del usuario con email: " + userEmailRequest;
+                    return message;
+                }
+                this.buildTransactionDto(transactionsDto, reportTransactionId, userIdRequest, userEmailRequest);
+            }
+        }
+        // Ahora que tenemos las transacciones como si fuera única (con las comisiones de los usuarios), se puede procesar
+        // y si todo sale bien, se puede agregar a la lista de las transacciones que se tienen que actualizar en la db y
+        // no se va a pisar la data
+        for(TransactionDto transactionDto : transactionsDto) {
+            String transactionIdDto = transactionDto.getTransactionId();
+            @SuppressWarnings("null")
+            Optional<TransactionModel> optionalTransaction = transactionRepository.findById(transactionIdDto);
+            if(optionalTransaction.isEmpty()) {
+                message = "La transacción con N°" + transactionIdDto + ", no fue encontrada para actualizar las comisiones de los usuarios";
+                return message;
+            }
+            // Se encontró la transacción ahora se verifica que se encontró todas las comisiones de la transacción
+            TransactionModel transactionDB = optionalTransaction.get();
+            for(TransactionCommissionDto transactionCommissionDto : transactionDto.getCommissions()) {
+                String userIdCommissionDto = transactionCommissionDto.getUserId();
+                String userEmailCommissionDto = transactionCommissionDto.getUserEmail();
+                boolean isUserCommission = false;
+                for(TransactionComissionModel transactionCommissionDB : transactionDB.getCommissions()) {
+                    if(userIdCommissionDto.equals(transactionCommissionDB.getUserId())) {
+                        isUserCommission = true;
+                        transactionCommissionDB.setCommissionStatus(pointOfLastStatus);
+                        break;
+                    }
+                }
+                if(!isUserCommission) {
+                    message = "No se ha podido encontrar usuario en la transacción N°" + transactionIdDto + ", con el email: " + userEmailCommissionDto;
+                    return message;
+                }
+            }
+            transactionDB.setUpdatedDate(currentTime);
+            // Verificar si se debe actualizar el estado general de la transacción y agregar transacción a transacciones que se deben actualizar
+            this.checkTransactionLastStatus(transactionDB, pointOfLastStatus, currentTime);
+            updateTransactionsInDB.add(transactionDB);
+        }
+        return message;
+    }
+
+    // Ayuda a construir el objeto de transacciones que beneficia a un usuario o a varios usuarios
+    private void buildTransactionDto(List<TransactionDto> transactionsDto, String transactionId, String userId, String userEmail) {
+        boolean isTransactionDto = false;
+        for(TransactionDto transactionDto : transactionsDto) {
+            String transactionIdDto = transactionDto.getTransactionId();
+            if(transactionId.equals(transactionIdDto)) {
+                isTransactionDto = true;
+                transactionDto.addTransactionCommissionDto(new TransactionCommissionDto(userId, userEmail));
+                break;
+            }
+        }
+        if(!isTransactionDto) {
+            transactionsDto.add(new TransactionDto(transactionId).addTransactionCommissionDto(new TransactionCommissionDto(userId, userEmail)));
+        }
+    }
+
+    // Actualizar el último estado de la transacción en caso de que todas las comisiones estén con el último estado
+    private void checkTransactionLastStatus(TransactionModel transactionDB, String pointOfLastStatus, LocalDateTime currentTime) {
+        boolean isLastStatus = true;
+        for(TransactionComissionModel transactionCommission : transactionDB.getCommissions()) {
+            String commissionStatus = transactionCommission.getCommissionStatus();
+            if(!pointOfLastStatus.equals(commissionStatus)) {
+                isLastStatus = false;
+                break;
+            }
+        }
+        if(isLastStatus) {
+            transactionDB.setStatus(pointOfLastStatus);
+            transactionDB.setUpdatedDate(currentTime);
+        }
+    }
+
+    // Buscar los usuarios para actualizar sus datos y crear los objetos de pagos
+    public String manageUsersAndPaymentsForCommission(List<ReportUserDto> usersRequest, List<UserModel> updateUsersInDB,
+            List<PaymentModel> updatePaymentsInDB, UserRepository userRepository, LocalDateTime currentTime) {
+        String message = "";
+        String paymentDate = "";
+        try {
+            DateTimeFormatter formatterDate = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            paymentDate = currentTime.format(formatterDate);
+        } catch (Exception e) {
+            LOGGER_MESSAGES.info("No ha sido posible crear el formato para la fecha de pago");
+        }
+        for(ReportUserDto userRequest : usersRequest) {
+            // Primero buscamos usuario en la DB
+            String userEmailRequest = userRequest.getEmail();
+            Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(userEmailRequest);
+            if(userOptional.isEmpty()) {
+                message = "No fue posible encontrar el usuario con email: " + userEmailRequest;
+                return message;
+            }
+            UserModel userDB = userOptional.get();
+            String userIdRequest = userRequest.getUserId();
+            String userIdDB = userDB.getUserId();
+            if(userIdRequest == null || userIdDB == null || !userIdRequest.equals(userIdDB)) {
+                message = "El id del usuario de la solicitud no es el mismo al id del usuario encontrado con email: " + userEmailRequest;
+                return message;
+            }
+            // Comparamos el total de la comisión cancelada con todas las comisiones asociadas al usuario, además de ir guardando todas las transacciones del usuario
+            int expectedCommissions = userRequest.getTotalCommission();
+            int calculatedCommissions = 0;
+            Set<String> transactionIds = new HashSet<>();
+            for(ReportTransactionDataDto reportTransaction : userRequest.getTransactionData()) {
+                calculatedCommissions += reportTransaction.commission();
+                transactionIds.add(reportTransaction.transactionId());
+            }
+            if(expectedCommissions != calculatedCommissions) {
+                message = "La comisión calculada : $" + calculatedCommissions + ", no es la misma a la comisión esperada: $" + expectedCommissions + ", del usuario con email: " + userEmailRequest;
+                return message;
+            }
+            // Esta bien el usuario y su comisión, ahora se revisa su cuenta a la que se deposito
+            ReportAccountDto userAccount = userRequest.getAccount();
+            if(userAccount == null) {
+                message = "No se ha podido identificar la cuenta bancaria del usuario con email: " + userEmailRequest;
+                return message;
+            }
+            // Esta todo correcto se crea objeto de pago, se actualiza wallet de usuario y se agregan a los objetos para actualizar en DB
+            PaymentModel novaPayment = new PaymentModel(new ObjectId(), userIdRequest, userAccount, expectedCommissions, userRequest.getVoucher(), paymentDate, transactionIds, currentTime, currentTime);
+            updatePaymentsInDB.add(novaPayment);
+            WalletModel wallet = userDB.getWallet();
+            wallet.setAvailableBalance(wallet.getAvailableBalance() - expectedCommissions);
+            wallet.setTotalBalance(wallet.getAvailableBalance() + wallet.getOutstandingBalance());
+            wallet.setPaymentBalance(wallet.getPaymentBalance() + expectedCommissions);
+            wallet.addPaymentId(novaPayment.getPaymentId());
+            updateUsersInDB.add(userDB);
+        } 
+        return message;
+    }
 
 }

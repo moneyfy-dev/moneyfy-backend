@@ -20,9 +20,9 @@ import org.springframework.validation.Errors;
 
 import com.referidos.app.segurosref.dtos.ReferredDto;
 import com.referidos.app.segurosref.dtos.UserCommissionDto;
-import com.referidos.app.segurosref.dtos.earnings.MonthlyCommissionDto;
-import com.referidos.app.segurosref.dtos.earnings.MonthlyDataDto;
-import com.referidos.app.segurosref.dtos.earnings.MonthlyEarningDto;
+import com.referidos.app.segurosref.dtos.earning.MonthlyCommissionDto;
+import com.referidos.app.segurosref.dtos.earning.MonthlyDataDto;
+import com.referidos.app.segurosref.dtos.earning.MonthlyEarningDto;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.helpers.UserHelper;
 import com.referidos.app.segurosref.helpers.BindingHelper;

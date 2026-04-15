@@ -34,7 +34,7 @@ import com.referidos.app.segurosref.models.ReferredModel;
 import com.referidos.app.segurosref.models.UserDataModel;
 import com.referidos.app.segurosref.models.UserModel;
 import com.referidos.app.segurosref.models.WalletModel;
-import com.referidos.app.segurosref.provider.EmailServiceProvider;
+import com.referidos.app.segurosref.providers.EmailServiceProvider;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;

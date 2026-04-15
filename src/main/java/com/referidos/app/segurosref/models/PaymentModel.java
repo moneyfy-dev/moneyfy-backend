@@ -15,7 +15,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-@JsonPropertyOrder(value = {"paymentId", "userId", "account", "payment", "voucher", "paymentDate", "transactionsId", "createdDate", "updatedDate"})
+@JsonPropertyOrder(value = {"paymentId", "userId", "account", "payment", "voucher", "paymentDate", "transactionIds", "createdDate", "updatedDate"})
 @Document(collection = "payments")
 public class PaymentModel {
 
@@ -26,7 +26,7 @@ public class PaymentModel {
     private int payment;
     private String voucher;
     private String paymentDate;
-    private Set<String> transactionsId;
+    private Set<String> transactionIds;
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 
@@ -36,8 +36,8 @@ public class PaymentModel {
     }
     // Métodos de lógica, propios de la clase
     public Set<String> addTransactionId(String transactionId) {
-        this.transactionsId.add(transactionId);
-        return this.transactionsId;
+        this.transactionIds.add(transactionId);
+        return this.transactionIds;
     }
 
 }

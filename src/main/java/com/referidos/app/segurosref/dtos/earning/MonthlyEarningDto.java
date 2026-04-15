@@ -1,4 +1,4 @@
-package com.referidos.app.segurosref.dtos.earnings;
+package com.referidos.app.segurosref.dtos.earning;
 
 import java.util.List;
 

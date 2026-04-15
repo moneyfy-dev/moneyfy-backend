@@ -52,8 +52,8 @@ import com.referidos.app.segurosref.models.AccountModel;
 import com.referidos.app.segurosref.models.BrandDataModel;
 import com.referidos.app.segurosref.models.BrandModel;
 import com.referidos.app.segurosref.models.WalletModel;
-import com.referidos.app.segurosref.provider.ApiBciProvider;
-import com.referidos.app.segurosref.provider.EmailServiceProvider;
+import com.referidos.app.segurosref.providers.ApiBciProvider;
+import com.referidos.app.segurosref.providers.EmailServiceProvider;
 import com.referidos.app.segurosref.repositories.InsurerRepository;
 import com.referidos.app.segurosref.repositories.PaymentRepository;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
@@ -722,6 +722,7 @@ public class QuoterServiceImpl implements QuoterService {
         }
         // Ya agregamos a todas las transacciones aprobadas y el id del usuario respectivo más su comisión, ahora buscamos al
         // usuario si es posible para actualizar sus datos (en ambos arreglos)
+        List<ReportUserDto> usersToDelete = new ArrayList<>();
         for(ReportUserDto userApproved : usersApproved) {
             try {
                 UserModel userDB = userRepository.findById(new ObjectId(userApproved.getUserId())).orElseThrow();
@@ -730,7 +731,7 @@ public class QuoterServiceImpl implements QuoterService {
                 if(UserHelper.isTestUser(email) || UserHelper.isDefaulUser(email)) {
                     // No se contabiliza usuario porque es el usuario de la aplicación
                     quoterHelper.addUserProblem(usersProblem, userApproved, "Usuario de prueba de la aplicación");
-                    usersApproved.remove(userApproved);
+                    usersToDelete.add(userApproved);
                     continue;
                 }
                 userApproved.setName(userData.getName() + " " + userData.getSurname());
@@ -740,17 +741,20 @@ public class QuoterServiceImpl implements QuoterService {
                     userApproved.setAccount(new ReportAccountDto(userAccount.getAccountId(), userAccount.getHolderName(), userAccount.getEmail(), userAccount.getBank(), userAccount.getAccountType(), userAccount.getAccountNumber()));
                 } else {
                     quoterHelper.addUserProblem(usersProblem, userApproved, "No es posible encontrar una cuenta bancaria activa del usuario");
-                    usersApproved.remove(userApproved);
+                    usersToDelete.add(userApproved);
                 }
             } catch(IllegalArgumentException e) {
                 // El ObjectId no es correcto
                 quoterHelper.addUserProblem(usersProblem, userApproved, "No es posible encontrar al usuario por su Id");
-                usersApproved.remove(userApproved);
+                usersToDelete.add(userApproved);
             } catch(NoSuchElementException e) {
                 // No se encontró el registro
                 quoterHelper.addUserProblem(usersProblem, userApproved, "No es posible encontrar al usuario por su Id");
-                usersApproved.remove(userApproved);
+                usersToDelete.add(userApproved);
             }
+        }
+        if(usersToDelete.size() > 0) {
+            usersApproved.removeAll(usersToDelete);
         }
         // Arreglo con usuarios con problemas
         for(ReportUserDto userProblem : usersProblem) {
@@ -784,31 +788,39 @@ public class QuoterServiceImpl implements QuoterService {
     @Transactional
     public ResponseEntity<?> commissionPayments(CommissionPaymentRequest commissionPaymentRequest, HttpServletRequest request) {
         if(!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
-            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
+            return ResponseHelper.failedDependency("No es posible continuar con la solicitud", "failed dependency");
         }
-        if(true) {
-            return ResponseHelper.ok("se necesita actualizar el flujo", Map.of("info", "info"));
+        // Obtención de usuarios actualizados de la solicitud y creación de objetos para el flujo
+        List<ReportUserDto> usersRequest = commissionPaymentRequest.updateUsers();
+        List<TransactionModel> updateTransactionsInDB = new ArrayList<>();
+        List<UserModel> updateUsersInDB = new ArrayList<>();
+        List<PaymentModel> updatePaymentsInDB = new ArrayList<>();
+        LocalDateTime currentTime = LocalDateTime.now();
+        String message = "";
+        // Buscamos las transacciones para actualizar sus comisiones
+        message = quoterHelper.manageTransactionsForCommission(usersRequest, updateTransactionsInDB, transactionRepository, currentTime);
+        if(!message.equals("")) {
+            return ResponseHelper.failedDependency("No es posible continuar con la solicitud", message);
         }
-        // Se buscan los usuarios para actualizar las comisiones que fueron pagadas
-        List<UserModel> updateUsers = new ArrayList<>();
-        List<TransactionModel> updateTransactions = new ArrayList<>();
-        List<PaymentModel> userPayments = new ArrayList<>();
-        String pointOfLastStatus = "Liberado";
-        LocalDateTime currenDateTime = LocalDateTime.now();
-        // Buscamos las transacciones, para actualizar sus comisiones
-
-        // Actualizamos la wallet de los usuarios
-
-        // Creamos los pagos relacionados a los usuarios
-
-        // No hay error y se actualizan todos los registros
-        updateTransactions = transactionRepository.saveAll(updateTransactions);
-        updateUsers = userRepository.saveAll(updateUsers);
-        userPayments = paymentRepository.saveAll(userPayments);
+        // Actualizamos la wallet de los usuarios y creamos los pagos relacionados a los usuarios
+        message = quoterHelper.manageUsersAndPaymentsForCommission(usersRequest, updateUsersInDB, updatePaymentsInDB, userRepository, currentTime);
+        if(!message.equals("")) {
+            return ResponseHelper.failedDependency("No es posible continuar con la solicitud", message);
+        }
+        if(updateTransactionsInDB.size() <= 0 || updateUsersInDB.size() <= 0 || updatePaymentsInDB.size() <= 0) {
+            message = "No se han encontrado registros para ser actualizados dentro del flujo";
+            return ResponseHelper.failedDependency("No es posible continuar con la solicitud", message);
+        }
+        // Solamente si no existen errores, se persiten los cambios
+        updateTransactionsInDB = transactionRepository.saveAll(updateTransactionsInDB);
+        updateUsersInDB = userRepository.saveAll(updateUsersInDB);
+        updatePaymentsInDB = paymentRepository.saveAll(updatePaymentsInDB);
         Map<String, Object> data = new LinkedHashMap<>();
-        data.put("transactions", updateTransactions);
-        data.put("users", updateUsers);
-        data.put("payments", userPayments);
+        message = "Se ha posido recuperar y actualizar la data correctamente";
+        data.put("message", message);
+        data.put("transactions", updateTransactionsInDB);
+        data.put("users", updateUsersInDB);
+        data.put("payments", updatePaymentsInDB);
         return ResponseHelper.ok("Se han generado los pagos de los usuarios y se ha actualizado la data relacionada", data);
     }
 

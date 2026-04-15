@@ -1,4 +1,4 @@
-package com.referidos.app.segurosref.seeder;
+package com.referidos.app.segurosref.seeders;
 
 import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
 

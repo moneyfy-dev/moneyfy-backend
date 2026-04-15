@@ -1,4 +1,4 @@
-package com.referidos.app.segurosref.provider;
+package com.referidos.app.segurosref.providers;
 
 import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
 
