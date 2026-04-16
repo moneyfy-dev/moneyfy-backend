@@ -190,11 +190,12 @@ public class QuoterServiceImpl implements QuoterService {
         // Buscamos si existe ya existe el registro para volver a cargarlo y no crear duplicidad
         List<QuoterModel> quoters = userDB.getQuoters();
         QuoterModel userQuoter = null;
+        String pointOfCurrentStatus = "Iniciando";
         for(QuoterModel quoterDB : quoters) {
             String quoterStatus = quoterDB.getQuoterStatus();
             String quoterOwnerId = quoterDB.getQuoterOwnerData().getPersonalId();
             QuoterCarModel quoterCar = quoterDB.getQuoterCarData();
-            if(quoterStatus.equals("Iniciando") && quoterOwnerId.equals(ownerId) &&
+            if(quoterStatus.equals(pointOfCurrentStatus) && quoterOwnerId.equals(ownerId) &&
                     quoterCar.getPpu().equals(ppu) && quoterCar.getBrand().equals(vehicleFound.getBrand()) &&
                     quoterCar.getModel().equals(vehicleFound.getModel()) && quoterCar.getYear().equals(vehicleFound.getYear())) {
                 userQuoter = quoterDB;
@@ -206,7 +207,7 @@ public class QuoterServiceImpl implements QuoterService {
             QuoterOwnerModel quoterOwner = new QuoterOwnerModel(ownerId, "", "", "");
             QuoterPurchaserModel quoterPurchaser = new QuoterPurchaserModel("", "", "", "", "", "", "");
             userQuoter = quoterHelper.createQuoteStructure(quoterOwner, vehicleFound, quoterPurchaser,
-                    "Iniciando", LocalDateTime.now());
+                    pointOfCurrentStatus, LocalDateTime.now());
             userDB.addQuoter(userQuoter);
             userDB = userRepository.save(userDB);
         }
@@ -410,7 +411,7 @@ public class QuoterServiceImpl implements QuoterService {
                 quoterPlan.setMonthlyPrice(planSelected.monthlyPrice());
                 quoterPlan.setDeductibleDesc(planSelected.deductibleDesc());
                 quoterPlan.setDiscount(planSelected.discount());
-                // Actualizamos la dirección de la cotización
+                // Actualizamos la dirección de la cotización para la inspección
                 QuoterAddressModel quoterAddress = quoterDB.getQuoterAddressData();
                 quoterAddress.setStreet(planSelected.street().strip()); 
                 quoterAddress.setStreetNumber(planSelected.streetNumber().strip());
@@ -537,10 +538,9 @@ public class QuoterServiceImpl implements QuoterService {
             String quoterStatusDB = quoterDB.getQuoterStatus();
             if(quoterId.equals(quoterIdDB) && quoterStatusDB.equals("Pendiente")) {
                 // Se intenta cerrar la venta, dependiendo del estado entregado
-                TransactionModel transactionDB = transactionRepository.findByUserIdAndQuoterId(userC.getUserId(), quoterId).orElseThrow();
-                String transactionStatusDB = transactionDB.getStatus();
-                if(!transactionStatusDB.equals("Pendiente") || !transactionDB.getUserReferringFound()) {
-                    return ResponseHelper.failedDependency("el estado de la transacción es: " + transactionStatusDB, "failed dependency");
+                TransactionModel transactionDB = transactionRepository.findByUserIdAndQuoterIdAndStatus(userC.getUserId(), quoterId, "Pendiente").orElseThrow();
+                if(!transactionDB.getUserReferringFound()) {
+                    return ResponseHelper.failedDependency("Se necesita revisar transacción por referidor no encontrado", "failed dependency");
                 }
                 transactionId = transactionDB.getTransactionId();
                 int commissionScope = transactionDB.getCommissionScope();

@@ -49,11 +49,11 @@ public class QuoterHelper {
     // Funciones de apoyo con data de prueba
     public List<QuoterCarModel> vehicleList() {
         List<QuoterCarModel> list = new ArrayList<>();
-        QuoterCarModel car1 = new QuoterCarModel("11AA22", "Chevrolet", "Captiva", "2021", "SUV", "Plateado", "AA1234BB5678", "FAEBDC892354A1B3C6", "SAIC-GM-Wuling");
-        QuoterCarModel car2 = new QuoterCarModel("AB1234", "Toyota", "Corolla", "2019", "SEDAN", "Blanco", "123ABC456DEF", "789GHI012JKL", "Toyota Motor Corporation");
-        QuoterCarModel car3 = new QuoterCarModel("DE5678", "BMW", "3 Series", "2022", "SEDAN", "Negro", "456DEF789GHI", "012JKL345MNO", "BMW AG");
-        QuoterCarModel car4 = new QuoterCarModel("GH9012", "Ford", "Fiesta", "2018", "HATCHBACK", "Azul", "789GHI012JKL", "345MNO678PQR", "Ford Motor Company");
-        QuoterCarModel car5 = new QuoterCarModel("JK34DL", "Mercedes-Benz", "C-Class", "2021", "SEDAN", "Gris", "012JKL345MNO", "678PQR901STU", "Mercedes-Benz AG");
+        QuoterCarModel car1 = new QuoterCarModel("11AA22", "CHANGAN", "CS35", "2022", "SUV", "Plateado", "AA1234BB5678", "FAEBDC892354A1B3C6", "SAIC-GM-Wuling");
+        QuoterCarModel car2 = new QuoterCarModel("AB1234", "AUDI", "S4", "2018", "SEDAN", "Blanco", "123ABC456DEF", "789GHI012JKL", "Toyota Motor Corporation");
+        QuoterCarModel car3 = new QuoterCarModel("DE5678", "CHEVROLET", "AVEO", "2012", "HATCHBACK", "Azul", "456DEF789GHI", "012JKL345MNO", "BMW AG");
+        QuoterCarModel car4 = new QuoterCarModel("GH9012", "CITROEN", "C-5", "2017", "SEDAN", "Gris", "789GHI012JKL", "345MNO678PQR", "Ford Motor Company");
+        QuoterCarModel car5 = new QuoterCarModel("JK34DL", "TOYOTA", "RUSH", "2021", "STATION WAGON", "Blanco", "012JKL345MNO", "678PQR901STU", "Mercedes-Benz AG");
         list.add(car1);
         list.add(car2);
         list.add(car3);
@@ -62,7 +62,7 @@ public class QuoterHelper {
         return list;
     }
     public QuoterCarModel buildDefaultVehicle(boolean update, String ppu, String brand, String model, String year) {
-        return update ? (new QuoterCarModel(ppu, brand, model, year, "", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis")) : (new QuoterCarModel(ppu, "OPEL", "CORSA", "2023", "HATCHBACK", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis"));
+        return update ? (new QuoterCarModel(ppu, brand, model, year, "", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis")) : (new QuoterCarModel(ppu, "AUDI", "A3", "2021", "HATCHBACK", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis"));
     }
 
     public List<QuoterOwnerModel> ownerList() {

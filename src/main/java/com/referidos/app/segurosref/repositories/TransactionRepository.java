@@ -17,6 +17,8 @@ public interface TransactionRepository extends MongoRepository<TransactionModel,
     long countByUserIdAndCommissionScopeGTEAndStatusPassed(String userId, int commissionScope);
     
     Optional<TransactionModel> findByUserIdAndQuoterId(String userId, String quoterId);
+
+    Optional<TransactionModel> findByUserIdAndQuoterIdAndStatus(String userId, String quoterId, String status);
     
     boolean existsByUserIdAndQuoterId(String userId, String quoterId);
     
