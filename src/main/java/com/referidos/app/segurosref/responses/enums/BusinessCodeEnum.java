@@ -2,13 +2,16 @@ package com.referidos.app.segurosref.responses.enums;
 
 public enum BusinessCodeEnum {
 
+    APP_INCORRECT_FORMAT(10, "El formato de los datos enviados no es válido o es incorrecto para procesar la solicitud"),
     EXTERNAL_SERVICE_ERROR(50, "Error de conexión con el proveedor"),
     INSUFFICIENT_FUNDS(51, "Saldo insuficiente para la operación"),
     QUOTA_LIMIT_REACHED(60, "Has superado el límite de cotizaciones"),
     FDI_DEAL_EXCEPTION(70, "Error de excepción al intentar crear el deal en el servicio externo (FDI)"),
     FDI_DEAL_UNEXPECTED_RESPONSE(71, "Respuesta no esperada del servicio externo al procesar el deal"),
     FDI_DEAL_UPDATE_EXCEPTION(72, "Error de excepción al intentar actualizar el deal en el servicio externo (FDI)"),
-    FDI_DEAL_UPDATE_UNEXPECTED_RESPONSE(73, "Respuesta no esperada del servicio externo al actualizar la información del deal");
+    FDI_DEAL_UPDATE_UNEXPECTED_RESPONSE(73, "Respuesta no esperada del servicio externo al actualizar la información del deal"),
+    FDI_ITEM_CREATION_EXCEPTION(74, "Error de excepción al intentar crear el ítem asegurable en el servicio externo (FDI)"),
+    FDI_ITEM_CREATION_UNEXPECTED_RESPONSE(75, "Respuesta no esperada del servicio externo al crear el ítem asegurable");
 
     private final int errorCode;
     private final String errorDescription;

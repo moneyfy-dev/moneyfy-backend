@@ -3,7 +3,7 @@ package com.referidos.app.segurosref.integrations.fdi.requests;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder(value={"streetName", "building", "countryCode", "regionCode", "communeCode"})
-public record FDIUpdateAddressRequest(
+public record FDIDealUpAddressRequest(
     String streetName,
     Integer building,
     String countryCode,

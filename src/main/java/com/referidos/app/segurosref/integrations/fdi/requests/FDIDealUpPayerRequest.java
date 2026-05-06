@@ -2,11 +2,12 @@ package com.referidos.app.segurosref.integrations.fdi.requests;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder(value={"idNumber", "email", "address"})
-public record FDIUpdateContractorRequest(
+@JsonPropertyOrder(value={"idNumber", "email", "phone", "address"})
+public record FDIDealUpPayerRequest(
     String idNumber,
     String email,
-    FDIUpdateAddressRequest address
+    Integer phone,
+    FDIDealUpAddressRequest address
 ) {
 
 }
