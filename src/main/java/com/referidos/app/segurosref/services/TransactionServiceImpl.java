@@ -20,7 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 @Service
 public class TransactionServiceImpl implements TransactionService {
 
-    @Value(value = "${api.key.moneyfy}")
+    @Value(value = "${moneyfy.api-key}")
     private String apiKeyMF;
 
     @Autowired

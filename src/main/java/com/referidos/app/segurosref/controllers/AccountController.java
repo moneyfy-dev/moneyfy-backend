@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.requests.AccountRequest;
-import com.referidos.app.segurosref.responses.GeneralResponses;
+import com.referidos.app.segurosref.responses.GeneralResponse;
 import com.referidos.app.segurosref.services.AccountService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -63,7 +63,7 @@ public class AccountController {
                 description = "The user account was created successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -71,7 +71,7 @@ public class AccountController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -84,7 +84,7 @@ public class AccountController {
             )
         }
     )
-    public ResponseEntity<GeneralResponses> create(@RequestBody AccountRequest account, BindingResult bindingResult, Authentication auth) {
+    public ResponseEntity<GeneralResponse> create(@RequestBody AccountRequest account, BindingResult bindingResult, Authentication auth) {
         accountService.validate(account, bindingResult, true);
         if(bindingResult.hasErrors()) {
             return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
@@ -112,7 +112,7 @@ public class AccountController {
                 description = "The user account was updated successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -120,7 +120,7 @@ public class AccountController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -133,7 +133,7 @@ public class AccountController {
             )
         }
     )
-    public ResponseEntity<GeneralResponses> update(@RequestBody AccountRequest account, BindingResult bindingResult, Authentication auth) {
+    public ResponseEntity<GeneralResponse> update(@RequestBody AccountRequest account, BindingResult bindingResult, Authentication auth) {
         accountService.validate(account, bindingResult, false);
         if(bindingResult.hasErrors()) {
             return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
@@ -167,7 +167,7 @@ public class AccountController {
                 description = "The user account was deleted successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -175,12 +175,12 @@ public class AccountController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }
     )
-    public ResponseEntity<GeneralResponses> delete(@PathVariable String accountId, Authentication auth) {
+    public ResponseEntity<GeneralResponse> delete(@PathVariable String accountId, Authentication auth) {
         if(!ObjectId.isValid(accountId)) {
             return ResponseHelper.failedDependency("no se ha podido identificar el recurso", "failed dependency");
         }
@@ -213,7 +213,7 @@ public class AccountController {
                 description = "The user account was selected successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -221,12 +221,12 @@ public class AccountController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }
     )
-    public ResponseEntity<GeneralResponses> select(@PathVariable String accountId, Authentication auth) {
+    public ResponseEntity<GeneralResponse> select(@PathVariable String accountId, Authentication auth) {
         if(!ObjectId.isValid(accountId)) {
             return ResponseHelper.failedDependency("no se ha podido identificar el recurso", "failed dependency");
         }

@@ -30,14 +30,14 @@ import com.referidos.app.segurosref.repositories.BrandRepository;
 @Component
 public class BCIQuotationClient {
 
-    @Value(value = "${url.bci.tarifacion}")
+    @Value(value = "${bci.tarifacion.url}")
     private String urlBCITarifacion;
 
-    @Value(value = "${api.key.bci.tarifacion}")
+    @Value(value = "${bci.tarifacion.api-key}")
     private String apiKeyBCITarifacion;
 
     @Transactional
-    public Map<String, Object> getPlansFromBCI(String purchaserId, String brandIdBCI, String modelIdBCI, int year) {
+    public Map<String, Object> quoteVehicle(String purchaserId, String brandIdBCI, String modelIdBCI, int year) {
         String errorMessage = "";
         int code = 0;
         String requestBody = "";

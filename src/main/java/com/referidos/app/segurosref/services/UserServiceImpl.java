@@ -42,7 +42,7 @@ import com.referidos.app.segurosref.repositories.UserRepository;
 import com.referidos.app.segurosref.requests.ChangePwdRequest;
 import com.referidos.app.segurosref.requests.UserRegisterRequest;
 import com.referidos.app.segurosref.requests.UserUpdateRequest;
-import com.referidos.app.segurosref.responses.GeneralResponses;
+import com.referidos.app.segurosref.responses.GeneralResponse;
 import com.referidos.app.segurosref.validators.UserValidator;
 
 @Service
@@ -122,7 +122,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public ResponseEntity<GeneralResponses> hydrationData(String emailAuth, String updateCredential, String device) {
+    public ResponseEntity<GeneralResponse> hydrationData(String emailAuth, String updateCredential, String device) {
         // Endpoint utilizado para refrescar la data de la aplicación, por lo tanto, un buen lugar para
         // actualizar el refresh token, en caso de ser necesario.
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
@@ -138,7 +138,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public ResponseEntity<GeneralResponses> listReferreds(String emailAuth, String updateCredential, String device) {
+    public ResponseEntity<GeneralResponse> listReferreds(String emailAuth, String updateCredential, String device) {
         UserModel userA = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         List<ReferredDto> referredsDto = new ArrayList<>(); // Lista de todos los referidos que se van a mostrar.
         List<ReferredModel> referredsB = referredRepository.findAllByUserReferring(emailAuth);
@@ -214,7 +214,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional(readOnly = true)
     @Override
-    public ResponseEntity<GeneralResponses> obtainCommissions(String emailAuth) {
+    public ResponseEntity<GeneralResponse> obtainCommissions(String emailAuth) {
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         UserDataModel userDataDB = userDB.getPersonalData();
         String userId = userDB.getUserId();
@@ -256,7 +256,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional(readOnly = true)
     @Override
-    public ResponseEntity<GeneralResponses> obtainPayments(String emailAuth) {
+    public ResponseEntity<GeneralResponse> obtainPayments(String emailAuth) {
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         String userId = userDB.getUserId();
         List<PaymentModel> userPayments = paymentRepository.findAllByUserId(userId);
@@ -266,7 +266,7 @@ public class UserServiceImpl implements UserService {
     // SERVICIO PARA OBTENER LAS GANANCIAS DEL USUARIO EN LOS ÚLTIMOS 5 MESES
     @Transactional(readOnly = true)
     @Override
-    public ResponseEntity<GeneralResponses> monthlyEarnings(String emailAuth) {
+    public ResponseEntity<GeneralResponse> monthlyEarnings(String emailAuth) {
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         String userId = userDB.getUserId();
         LocalDateTime currentDate = LocalDateTime.now();

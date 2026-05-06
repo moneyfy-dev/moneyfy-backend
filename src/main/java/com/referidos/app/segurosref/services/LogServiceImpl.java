@@ -18,7 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 @Service
 public class LogServiceImpl implements LogService {
 
-    @Value(value = "${api.key.moneyfy}")
+    @Value(value = "${moneyfy.api-key}")
     private String apiKeyMF;
 
     @Autowired

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.referidos.app.segurosref.requests.SeedRequest;
-import com.referidos.app.segurosref.responses.GeneralResponses;
+import com.referidos.app.segurosref.responses.GeneralResponse;
 import com.referidos.app.segurosref.services.SeedService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -63,7 +63,7 @@ public class SeedController {
                 description = "The cities were registered successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -71,7 +71,7 @@ public class SeedController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }
@@ -108,7 +108,7 @@ public class SeedController {
                 description = "The test and default users were updated successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -116,7 +116,7 @@ public class SeedController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }
@@ -153,7 +153,7 @@ public class SeedController {
                 description = "The test and default users were updated successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -161,7 +161,7 @@ public class SeedController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }
@@ -198,7 +198,7 @@ public class SeedController {
                 description = "The vehicle brands were created successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -206,7 +206,7 @@ public class SeedController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }

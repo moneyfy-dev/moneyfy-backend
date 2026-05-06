@@ -42,7 +42,7 @@ import com.referidos.app.segurosref.requests.ConfirmUserRequest;
 import com.referidos.app.segurosref.requests.PasswordResetRequest;
 import com.referidos.app.segurosref.requests.UserLoginRequest;
 import com.referidos.app.segurosref.requests.UserRegisterRequest;
-import com.referidos.app.segurosref.responses.GeneralResponses;
+import com.referidos.app.segurosref.responses.GeneralResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -95,7 +95,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     // SERVICIOS PARA EL FLUJO DE REGISTRAR UN NUEVO USUARIO DE LA APLICACIÓN
-    public ResponseEntity<GeneralResponses> userRegister(UserRegisterRequest userRegister) {
+    public ResponseEntity<GeneralResponse> userRegister(UserRegisterRequest userRegister) {
         // Luego de ser validados los primeros datos, se valida el código de referido para saber si se puede continuar
         String[] userReferring = this.validateCodeToRefer(userRegister.codeToRefer());
         if(userReferring == null) {
@@ -112,7 +112,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @SuppressWarnings("null")
     @Transactional
-    private ResponseEntity<GeneralResponses> createUnconfirmedUser(String[] userReferring, UserDataModel userData,
+    private ResponseEntity<GeneralResponse> createUnconfirmedUser(String[] userReferring, UserDataModel userData,
             WalletModel wallet, NotificationModel notifs) {
         // En caso de no sea haya incluído el código de referido se los valores de userReferring son "Sin Usuario"
         String email = userData.getEmail(); // Mail se trabaja en minúsculas
@@ -172,7 +172,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<GeneralResponses> confirmRegistration(ConfirmUserRequest confirm,
+    public ResponseEntity<GeneralResponse> confirmRegistration(ConfirmUserRequest confirm,
             HttpServletRequest request) throws JsonProcessingException {
         String userEmail = confirm.email().toLowerCase();
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
@@ -189,7 +189,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Transactional
-    private ResponseEntity<GeneralResponses> successfulRegistration(UserModel userDB, HttpServletRequest request) throws JsonProcessingException {
+    private ResponseEntity<GeneralResponse> successfulRegistration(UserModel userDB, HttpServletRequest request) throws JsonProcessingException {
         UserDataModel userData = userDB.getPersonalData();
         String userEmail = userData.getEmail();
         String codeToRefer = DataHelper.generateCodeToRefer(userRepository);
@@ -248,7 +248,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     // SERVICIO PARA INICIO DE SESSIÓN DE UN USUARIO DE LA APLICACIÓN
     @Transactional
-    public ResponseEntity<GeneralResponses> userLogin(UserLoginRequest requestUserLoginDto,
+    public ResponseEntity<GeneralResponse> userLogin(UserLoginRequest requestUserLoginDto,
             HttpServletRequest request) throws JsonProcessingException {
         String email = requestUserLoginDto.email().toLowerCase();
         String pwd = requestUserLoginDto.pwd();
@@ -312,7 +312,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     // SERVICIO PARA CAMBIAR EL DISPOSITIVO RELACIONADO A LA CUENTA DEL USUARIO DE LA APLICACIÓN
     @Transactional
-    public ResponseEntity<GeneralResponses> confirmDeviceChange(ConfirmUserRequest confirm, HttpServletRequest request) {
+    public ResponseEntity<GeneralResponse> confirmDeviceChange(ConfirmUserRequest confirm, HttpServletRequest request) {
         String userEmail = confirm.email().toLowerCase();
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
         UserDataModel userData = userDB.getPersonalData();
@@ -338,7 +338,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     // SERVICIOS PARA EL FLUJO DE RESTABLECIMIENTO DE LA CONTRASEÑA DEL USUARIO DE LA APLICACIÓN
     @Transactional
-    public ResponseEntity<GeneralResponses> restorePassword(String email) {
+    public ResponseEntity<GeneralResponse> restorePassword(String email) {
         // Verificamos primero si es un usuario de prueba
         String userEmail = email.toLowerCase();
         if(UserHelper.isTestUser(userEmail)) {
@@ -381,7 +381,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Transactional
-    public ResponseEntity<GeneralResponses> confirmPasswordReset(PasswordResetRequest passwordReset, HttpServletRequest request) {
+    public ResponseEntity<GeneralResponse> confirmPasswordReset(PasswordResetRequest passwordReset, HttpServletRequest request) {
         String userEmail = passwordReset.email().toLowerCase();
         // Verificamos primero si es un usuario de prueba
         if(UserHelper.isTestUser(userEmail)) {
@@ -434,7 +434,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     // SERVICIO PARA REENVIAR CÓDIGO DE CONFIRMACIÓN EN FLUJO ACTIVO, YA SEA DE: REGISTRAR USUARIO, CAMBIO DE DISPOSITIVO O REESTABLECIMIENTO DE LA CONTRASEÑA
     @Transactional
-    public ResponseEntity<GeneralResponses> resendUserCode(String email, String type) {
+    public ResponseEntity<GeneralResponse> resendUserCode(String email, String type) {
         // Verificamos primero si es un usuario de prueba
         String userEmail = email.toLowerCase();
         if(UserHelper.isTestUser(userEmail)) {
@@ -490,7 +490,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     // SERVICIO PARA DESHABILITAR/ELIMINAR USUARIO DE LA APLICACIÓN
     @SuppressWarnings("null")
     @Transactional
-    public ResponseEntity<GeneralResponses> disableAccount(String emailAuth) {
+    public ResponseEntity<GeneralResponse> disableAccount(String emailAuth) {
         // Verificamos primero si es un usuario de prueba
         if(UserHelper.isTestUser(emailAuth)) {
             return ResponseHelper.failedDependency("el usuario de prueba, no puede desactivarse", "failed dependency");
@@ -570,7 +570,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     // SERVICIO SUPUESTO PARA CREAR USUARIO ADMINISTRADOR, NO IMPLEMENTADO
-    public ResponseEntity<GeneralResponses> userSave(UserRegisterRequest userRegister) {
+    public ResponseEntity<GeneralResponse> userSave(UserRegisterRequest userRegister) {
         // Luego de ser validados los primeros datos, se valida el código de referido para saber si se puede continuar
         String[] userReferring = this.validateCodeToRefer(userRegister.codeToRefer());
         if(userReferring == null) {

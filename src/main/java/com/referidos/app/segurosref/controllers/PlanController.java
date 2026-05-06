@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.referidos.app.segurosref.responses.GeneralResponses;
+import com.referidos.app.segurosref.responses.GeneralResponse;
 import com.referidos.app.segurosref.services.PlanService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -61,7 +61,7 @@ public class PlanController {
                 description = "The plan was encountered successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -69,7 +69,7 @@ public class PlanController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }

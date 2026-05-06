@@ -76,7 +76,7 @@ import jakarta.servlet.http.HttpServletRequest;
 @Service
 public class QuoterServiceImpl implements QuoterService {
 
-    @Value(value = "${api.key.moneyfy}")
+    @Value(value = "${moneyfy.api-key}")
     private String apiKeyMF;
 
     @Value(value="${report.commission.cutoff-date}")
@@ -347,7 +347,7 @@ public class QuoterServiceImpl implements QuoterService {
                         // Se pudo encontrar el ids de la aseguradora tanto para consultar por marca y modelo
                         String brandId = brandAndModelId[2];
                         String modelId = brandAndModelId[3];
-                        Map<String, Object> searchPlanBCI = bciQuotationClient.getPlansFromBCI(purchaserId, brandId, modelId, Integer.parseInt(year));
+                        Map<String, Object> searchPlanBCI = bciQuotationClient.quoteVehicle(purchaserId, brandId, modelId, Integer.parseInt(year));
                         errorPlanFinder = (String) searchPlanBCI.get("errorPlanFinder");
                         errorMessage = (String) searchPlanBCI.get("errorMessage");
                         requestBody = (String) searchPlanBCI.get("requestBody");

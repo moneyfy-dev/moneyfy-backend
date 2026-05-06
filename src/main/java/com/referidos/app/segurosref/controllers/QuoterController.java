@@ -21,7 +21,7 @@ import com.referidos.app.segurosref.requests.CommissionReportRequest;
 import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
 import com.referidos.app.segurosref.requests.GenerateTransactionRequest;
 import com.referidos.app.segurosref.requests.SelectPlanRequest;
-import com.referidos.app.segurosref.responses.GeneralResponses;
+import com.referidos.app.segurosref.responses.GeneralResponse;
 import com.referidos.app.segurosref.requests.SearchVehicleRequest;
 import com.referidos.app.segurosref.requests.SearchPlanRequest;
 import com.referidos.app.segurosref.services.QuoterService;
@@ -60,7 +60,7 @@ public class QuoterController {
                 description = "Available brands found",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -68,7 +68,7 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -98,7 +98,7 @@ public class QuoterController {
                 description = "Available insurers found",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -106,7 +106,7 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -143,7 +143,7 @@ public class QuoterController {
                 description = "The vehicle was encountered successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -151,7 +151,7 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -193,7 +193,7 @@ public class QuoterController {
                 description = "There were plans encountered for the vehicle",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -201,7 +201,7 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -243,7 +243,7 @@ public class QuoterController {
                 description = "The quote was updated successfully with the plan provided",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -251,7 +251,7 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -293,7 +293,7 @@ public class QuoterController {
                 description = "The transaction was generated successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -301,7 +301,7 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -338,7 +338,7 @@ public class QuoterController {
                 description = "The user's quote was finalized successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -346,7 +346,7 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -392,7 +392,7 @@ public class QuoterController {
                 description = "The commission report was generated successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -400,7 +400,7 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }
@@ -430,7 +430,7 @@ public class QuoterController {
                 description = "The commissions were updated successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -438,7 +438,7 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }

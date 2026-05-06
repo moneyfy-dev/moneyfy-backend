@@ -22,7 +22,7 @@ import com.referidos.app.segurosref.requests.EmailRequest;
 import com.referidos.app.segurosref.requests.PasswordResetRequest;
 import com.referidos.app.segurosref.requests.UserLoginRequest;
 import com.referidos.app.segurosref.requests.UserRegisterRequest;
-import com.referidos.app.segurosref.responses.GeneralResponses;
+import com.referidos.app.segurosref.responses.GeneralResponse;
 import com.referidos.app.segurosref.services.UserDetailsServiceImpl;
 import com.referidos.app.segurosref.services.UserService;
 
@@ -70,7 +70,7 @@ public class AuthController {
                 description = "Confirmation code was sent successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -78,12 +78,12 @@ public class AuthController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }
     )
-    public ResponseEntity<GeneralResponses> register(@RequestBody UserRegisterRequest user, BindingResult bindingResult) {
+    public ResponseEntity<GeneralResponse> register(@RequestBody UserRegisterRequest user, BindingResult bindingResult) {
         userService.validateRegister(user, bindingResult);
         if(bindingResult.hasErrors()) {
             return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
@@ -111,7 +111,7 @@ public class AuthController {
                 description = "User registered successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -119,12 +119,12 @@ public class AuthController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }
     )
-    public ResponseEntity<GeneralResponses> confirmRegistration(@RequestBody ConfirmUserRequest confirm,
+    public ResponseEntity<GeneralResponse> confirmRegistration(@RequestBody ConfirmUserRequest confirm,
                 HttpServletRequest request) throws JsonProcessingException {
         return userDetailsServiceImpl.confirmRegistration(confirm, request);
     }
@@ -150,7 +150,7 @@ public class AuthController {
                 description = "Successful authentication",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -158,12 +158,12 @@ public class AuthController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }
     )
-    public ResponseEntity<GeneralResponses> login(@RequestBody UserLoginRequest requestUser,
+    public ResponseEntity<GeneralResponse> login(@RequestBody UserLoginRequest requestUser,
             HttpServletRequest request) throws JsonProcessingException {
         return userDetailsServiceImpl.userLogin(requestUser, request);
     }
@@ -189,7 +189,7 @@ public class AuthController {
                 description = "The device of your account was changed successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -197,12 +197,12 @@ public class AuthController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }
     )
-    public ResponseEntity<GeneralResponses> confirmDeviceChange(@RequestBody ConfirmUserRequest confirm, HttpServletRequest request) {
+    public ResponseEntity<GeneralResponse> confirmDeviceChange(@RequestBody ConfirmUserRequest confirm, HttpServletRequest request) {
         return userDetailsServiceImpl.confirmDeviceChange(confirm, request);
     }
 
@@ -227,7 +227,7 @@ public class AuthController {
                 description = "The authorization code was sent successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -235,12 +235,12 @@ public class AuthController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }
     )
-    public ResponseEntity<GeneralResponses> restorePassword(@RequestBody EmailRequest emailRequest) {
+    public ResponseEntity<GeneralResponse> restorePassword(@RequestBody EmailRequest emailRequest) {
         return userDetailsServiceImpl.restorePassword(emailRequest.email());
     }
 
@@ -264,7 +264,7 @@ public class AuthController {
                 description = "Your user's password was changed successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -272,12 +272,12 @@ public class AuthController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }
     )
-    public ResponseEntity<GeneralResponses> confirmPasswordReset(@RequestBody PasswordResetRequest passwordReset, HttpServletRequest request) {
+    public ResponseEntity<GeneralResponse> confirmPasswordReset(@RequestBody PasswordResetRequest passwordReset, HttpServletRequest request) {
         return userDetailsServiceImpl.confirmPasswordReset(passwordReset, request);
     }
 
@@ -302,7 +302,7 @@ public class AuthController {
                 description = "The authorization code was resent successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -310,12 +310,12 @@ public class AuthController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }
     )
-    public ResponseEntity<GeneralResponses> resendUserCode(@RequestBody EmailRequest emailRequest) {
+    public ResponseEntity<GeneralResponse> resendUserCode(@RequestBody EmailRequest emailRequest) {
         return userDetailsServiceImpl.resendUserCode(emailRequest.email(), emailRequest.type());
     }
 
@@ -332,7 +332,7 @@ public class AuthController {
                 description = "The user account was disabled successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -340,7 +340,7 @@ public class AuthController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -353,7 +353,7 @@ public class AuthController {
             )
         }
     )
-    public ResponseEntity<GeneralResponses> disableAccount(Authentication auth) {
+    public ResponseEntity<GeneralResponse> disableAccount(Authentication auth) {
         return userDetailsServiceImpl.disableAccount(auth.getPrincipal().toString());
     }
 
