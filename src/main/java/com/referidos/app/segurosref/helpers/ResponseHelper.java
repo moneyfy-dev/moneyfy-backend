@@ -3,12 +3,10 @@ package com.referidos.app.segurosref.helpers;
 import static com.referidos.app.segurosref.configs.JwtConfig.CONTENT_TYPE;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,17 +16,6 @@ import com.referidos.app.segurosref.responses.GeneralResponses;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class ResponseHelper {
-
-    public static Map<String, Object> buildErrorFields(BindingResult result) {
-        Map<String, Object> json = new HashMap<>();
-
-        result.getFieldErrors().forEach(error -> {
-            String fieldName = error.getField();
-            json.put(fieldName, "The field " + fieldName + " " + error.getDefaultMessage());
-        });
-        
-        return json;
-    }
 
     public static ResponseEntity<GeneralResponses> response(String message, int status, Object data) {
         return ResponseEntity.status(status).body(new GeneralResponses(message, status, data));

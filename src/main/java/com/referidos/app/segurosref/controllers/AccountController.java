@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.requests.AccountRequest;
 import com.referidos.app.segurosref.responses.GeneralResponses;
@@ -86,7 +87,7 @@ public class AccountController {
     public ResponseEntity<GeneralResponses> create(@RequestBody AccountRequest account, BindingResult bindingResult, Authentication auth) {
         accountService.validate(account, bindingResult, true);
         if(bindingResult.hasErrors()) {
-            return ResponseHelper.preconditionMap("información no aceptada", ResponseHelper.buildErrorFields(bindingResult));
+            return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
         }
         return accountService.create(account, auth.getPrincipal().toString());
     }
@@ -135,7 +136,7 @@ public class AccountController {
     public ResponseEntity<GeneralResponses> update(@RequestBody AccountRequest account, BindingResult bindingResult, Authentication auth) {
         accountService.validate(account, bindingResult, false);
         if(bindingResult.hasErrors()) {
-            return ResponseHelper.preconditionMap("información no aceptada", ResponseHelper.buildErrorFields(bindingResult));
+            return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
         }
         return accountService.update(account, auth.getPrincipal().toString());
     }

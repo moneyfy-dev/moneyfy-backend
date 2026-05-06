@@ -1,5 +1,4 @@
-package com.referidos.app.segurosref.providers;
-
+package com.referidos.app.segurosref.integrations.bci.clients;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,16 +19,16 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.referidos.app.segurosref.dtos.TestPlanDto;
+import com.referidos.app.segurosref.integrations.bci.pojos.BCIQuotePojo;
+import com.referidos.app.segurosref.integrations.bci.pojos.BCIQuoteProductPojo;
+import com.referidos.app.segurosref.integrations.bci.pojos.BCIQuoteDescriptionPojo;
 import com.referidos.app.segurosref.models.BrandDataModel;
 import com.referidos.app.segurosref.models.BrandInsurerModel;
 import com.referidos.app.segurosref.models.BrandModel;
-import com.referidos.app.segurosref.pojo.bci.QuoteBciPojo;
-import com.referidos.app.segurosref.pojo.bci.QuoteProductBciPojo;
-import com.referidos.app.segurosref.pojo.bci.QuoteRateBciPojo;
 import com.referidos.app.segurosref.repositories.BrandRepository;
 
 @Component
-public class ApiBciProvider {
+public class BCIQuotationClient {
 
     @Value(value = "${url.bci.tarifacion}")
     private String urlBCITarifacion;
@@ -92,11 +91,11 @@ public class ApiBciProvider {
             requestBody = mapper.writeValueAsString(requestBodyMap);
             HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
             @SuppressWarnings("null")
-            ResponseEntity<QuoteBciPojo> response = restTemplate.exchange(urlBCITarifacion, HttpMethod.POST, requestEntity, QuoteBciPojo.class);
+            ResponseEntity<BCIQuotePojo> response = restTemplate.exchange(urlBCITarifacion, HttpMethod.POST, requestEntity, BCIQuotePojo.class);
             
             // Si el código de la respuesta es correcto seguimos con la lógica, si no, retornamos un error.
             if(response.getStatusCode() == HttpStatus.OK) {
-                QuoteBciPojo quoteBci = mapper.convertValue(response.getBody(), QuoteBciPojo.class);
+                BCIQuotePojo quoteBci = mapper.convertValue(response.getBody(), BCIQuotePojo.class);
                 if(quoteBci == null) {
                     return Map.of("errorPlanFinder", "10", "errorMessage", "El cuerpo de la respuesta es nulo", "requestBody", requestBody, "responseStr", responseStr); // Opción 9, error: objeto nulo
                 }
@@ -110,10 +109,10 @@ public class ApiBciProvider {
                 double discount = quoteBci.getDescuento();
                 int totalMonths = quoteBci.getCantidadCuotas();
                 // Iteramos por cada producto
-                for(QuoteProductBciPojo product : quoteBci.getProductos()) {
+                for(BCIQuoteProductPojo product : quoteBci.getProductos()) {
                     String planName = product.getNombreProducto();
                     // Iteramos por cada tarifa del plan, que varía por el deducible
-                    for(QuoteRateBciPojo rate : product.getTarifas()) {
+                    for(BCIQuoteDescriptionPojo rate : product.getTarifas()) {
                         String deductibleId = String.valueOf(rate.getIdDeducible());
                         String deductibleDesc = rate.getDescripcionDeducible();
                         double grossPriceUF = rate.getPrimaAnualBruta();

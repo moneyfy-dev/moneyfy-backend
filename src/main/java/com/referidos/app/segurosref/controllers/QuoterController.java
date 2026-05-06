@@ -14,15 +14,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.requests.CommissionPaymentRequest;
 import com.referidos.app.segurosref.requests.CommissionReportRequest;
 import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
 import com.referidos.app.segurosref.requests.GenerateTransactionRequest;
 import com.referidos.app.segurosref.requests.SelectPlanRequest;
+import com.referidos.app.segurosref.responses.GeneralResponses;
 import com.referidos.app.segurosref.requests.SearchVehicleRequest;
 import com.referidos.app.segurosref.requests.SearchPlanRequest;
-import com.referidos.app.segurosref.responses.GeneralResponses;
 import com.referidos.app.segurosref.services.QuoterService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -167,7 +168,7 @@ public class QuoterController {
             Authentication auth) {
         quoterService.validateVehicleFinder(searchVehicle, bindingResult);
         if(bindingResult.hasErrors()) {
-            return ResponseHelper.preconditionMap("información no aceptada", ResponseHelper.buildErrorFields(bindingResult));
+            return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
         }
         return quoterService.searchVehicle(searchVehicle, auth.getPrincipal().toString());
     }
@@ -217,7 +218,7 @@ public class QuoterController {
             Authentication auth) {
         quoterService.validatePlanFinder(searchPlan, bindingResult);
         if(bindingResult.hasErrors()) {
-            return ResponseHelper.preconditionMap("información no aceptada", ResponseHelper.buildErrorFields(bindingResult));
+            return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
         }
         return quoterService.searchPlan(searchPlan, auth.getPrincipal().toString());
     }
@@ -267,7 +268,7 @@ public class QuoterController {
             Authentication auth) {
         quoterService.validateSelectedPlan(selectPlan, bindingResult);
         if(bindingResult.hasErrors()) {
-            return ResponseHelper.preconditionMap("información no aceptada", ResponseHelper.buildErrorFields(bindingResult));
+            return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
         }
         return quoterService.selectPlan(selectPlan, auth.getPrincipal().toString());
     }

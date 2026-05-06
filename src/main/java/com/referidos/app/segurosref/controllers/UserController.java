@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.referidos.app.segurosref.helpers.BindingHelper;
+import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.requests.ChangePwdRequest;
 import com.referidos.app.segurosref.requests.UserUpdateRequest;
@@ -139,7 +140,7 @@ public class UserController {
             Authentication authentication) {
         userService.validatePasswordChanged(changePwd, bindingResult);
         if(bindingResult.hasErrors()) {
-            return ResponseHelper.preconditionMap("información no aceptada", ResponseHelper.buildErrorFields(bindingResult));
+            return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
         }
         return userService.changePassword(changePwd, authentication.getPrincipal().toString());
     }

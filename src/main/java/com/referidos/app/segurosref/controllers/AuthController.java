@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.requests.ConfirmUserRequest;
 import com.referidos.app.segurosref.requests.EmailRequest;
@@ -85,7 +86,7 @@ public class AuthController {
     public ResponseEntity<GeneralResponses> register(@RequestBody UserRegisterRequest user, BindingResult bindingResult) {
         userService.validateRegister(user, bindingResult);
         if(bindingResult.hasErrors()) {
-            return ResponseHelper.preconditionMap("información no aceptada", ResponseHelper.buildErrorFields(bindingResult));
+            return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
         }
         return userDetailsServiceImpl.userRegister(user);
     }

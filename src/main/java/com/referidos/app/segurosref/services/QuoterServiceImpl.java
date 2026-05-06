@@ -33,6 +33,8 @@ import com.referidos.app.segurosref.helpers.QuoterHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.helpers.UserHelper;
 import com.referidos.app.segurosref.helpers.ValidateInputHelper;
+import com.referidos.app.segurosref.integrations.bci.clients.BCIQuotationClient;
+import com.referidos.app.segurosref.integrations.email.providers.EmailAppProvider;
 import com.referidos.app.segurosref.models.InsurerModel;
 import com.referidos.app.segurosref.models.PaymentModel;
 import com.referidos.app.segurosref.models.DeviceModel;
@@ -52,8 +54,6 @@ import com.referidos.app.segurosref.models.AccountModel;
 import com.referidos.app.segurosref.models.BrandDataModel;
 import com.referidos.app.segurosref.models.BrandModel;
 import com.referidos.app.segurosref.models.WalletModel;
-import com.referidos.app.segurosref.providers.ApiBciProvider;
-import com.referidos.app.segurosref.providers.EmailServiceProvider;
 import com.referidos.app.segurosref.repositories.InsurerRepository;
 import com.referidos.app.segurosref.repositories.PaymentRepository;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
@@ -117,10 +117,10 @@ public class QuoterServiceImpl implements QuoterService {
     private QuoterValidator quoterValidator;
 
     @Autowired
-    private ApiBciProvider apiBciProvider;
+    private BCIQuotationClient bciQuotationClient;
 
     @Autowired
-    private EmailServiceProvider emailProvider;
+    private EmailAppProvider emailAppProvider;
 
     @Autowired
     private QuoterHelper quoterHelper;
@@ -340,14 +340,14 @@ public class QuoterServiceImpl implements QuoterService {
                     break;
                 }
                 case "aseguradora4" -> { // ASEGURADORA 4 == BCI
-                    String[] brandAndModelId = apiBciProvider.findBrandAndModelId(brandRepository, "BCI", brand, model);
+                    String[] brandAndModelId = bciQuotationClient.findBrandAndModelId(brandRepository, "BCI", brand, model);
                     errorPlanFinder = brandAndModelId[0];
                     errorMessage = brandAndModelId[1];
                     if(errorPlanFinder.equals("") && errorMessage.equals("")) {
                         // Se pudo encontrar el ids de la aseguradora tanto para consultar por marca y modelo
                         String brandId = brandAndModelId[2];
                         String modelId = brandAndModelId[3];
-                        Map<String, Object> searchPlanBCI = apiBciProvider.getPlansFromBCI(purchaserId, brandId, modelId, Integer.parseInt(year));
+                        Map<String, Object> searchPlanBCI = bciQuotationClient.getPlansFromBCI(purchaserId, brandId, modelId, Integer.parseInt(year));
                         errorPlanFinder = (String) searchPlanBCI.get("errorPlanFinder");
                         errorMessage = (String) searchPlanBCI.get("errorMessage");
                         requestBody = (String) searchPlanBCI.get("requestBody");
@@ -505,7 +505,7 @@ public class QuoterServiceImpl implements QuoterService {
                     // Se actualizan el estado, fecha de actualización y se envía el detalle del plan que se está cotizando al usuario
                     quoterDB.setQuoterStatus(pointOfCurrentStatus);
                     quoterDB.setUpdatedDate(currentDateTime);
-                    emailProvider.sendQuoteDetails(userC, quoterDB);
+                    emailAppProvider.sendQuoteDetails(userC, quoterDB);
                     // Guardamos en la base de datos y retornamos el usuario de la consulta (userC), id del cotizador, y id de la transacción
                     userRepository.saveAll(users);
                     transactionRepository.save(novaTransaction);

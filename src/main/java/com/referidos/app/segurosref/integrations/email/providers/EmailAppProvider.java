@@ -1,8 +1,6 @@
-package com.referidos.app.segurosref.providers;
+package com.referidos.app.segurosref.integrations.email.providers;
 
 import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
-
-// import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -12,13 +10,13 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import com.referidos.app.segurosref.helpers.DataHelper;
+import com.referidos.app.segurosref.integrations.email.clients.EmailDefaultClient;
 import com.referidos.app.segurosref.models.QuoterAddressModel;
 import com.referidos.app.segurosref.models.QuoterCarModel;
 import com.referidos.app.segurosref.models.QuoterModel;
@@ -31,10 +29,10 @@ import com.referidos.app.segurosref.models.UserModel;
 import jakarta.mail.internet.MimeMessage;
 
 @Component
-public class EmailServiceProvider {
+public class EmailAppProvider {
 
     @Autowired
-    private JavaMailSender mailSender;
+    private EmailDefaultClient emailClient;
 
     @Autowired
     private TemplateEngine templateEngine;
@@ -267,7 +265,7 @@ public class EmailServiceProvider {
 
     @SuppressWarnings("null")
     private void sendEmail(String[] toUsers, String subject, Map<String, Object> templateData, String htmlTemplate) throws Exception {
-        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessage message = emailClient.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
         helper.setTo(toUsers);
         helper.setSubject(subject);
@@ -279,7 +277,7 @@ public class EmailServiceProvider {
         String htmlContent = templateEngine.process(htmlTemplate, context);
 
         helper.setText(htmlContent, true);
-        mailSender.send(message);
+        emailClient.send(message);
     }
 
     // Información dinámica que se agrega a la plantilla
@@ -311,7 +309,7 @@ public class EmailServiceProvider {
     @SuppressWarnings("null")
     private void testEmail(String[] toUsers, String subject, String message) {
         try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessage mimeMessage = emailClient.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
 
             // Establecer el remitente con nombre personalizado
@@ -321,7 +319,7 @@ public class EmailServiceProvider {
             helper.setSubject(subject);
             helper.setText(message, false); // El segundo parámetro indica si el contenido es HTML (false para texto plano)
 
-            mailSender.send(mimeMessage);
+            emailClient.send(mimeMessage);
         } catch (Exception e) {
             LOGGER_MESSAGES.info("No es posible enviar el gmail en texto plano: " + e.getMessage());
         }

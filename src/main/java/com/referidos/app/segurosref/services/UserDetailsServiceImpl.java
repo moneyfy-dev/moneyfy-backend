@@ -27,6 +27,7 @@ import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.helpers.UserHelper;
 import com.referidos.app.segurosref.helpers.ValidateInputHelper;
+import com.referidos.app.segurosref.integrations.email.providers.EmailAppProvider;
 import com.referidos.app.segurosref.models.DeviceModel;
 import com.referidos.app.segurosref.models.NotificationDataModel;
 import com.referidos.app.segurosref.models.NotificationModel;
@@ -34,7 +35,6 @@ import com.referidos.app.segurosref.models.ReferredModel;
 import com.referidos.app.segurosref.models.UserDataModel;
 import com.referidos.app.segurosref.models.UserModel;
 import com.referidos.app.segurosref.models.WalletModel;
-import com.referidos.app.segurosref.providers.EmailServiceProvider;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
@@ -59,7 +59,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private ReferredRepository referredRepository;
 
     @Autowired
-    private EmailServiceProvider emailProvider;
+    private EmailAppProvider emailAppProvider;
 
     @Autowired
     private ValidateInputHelper validateInputHelper;
@@ -155,7 +155,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         // Todo bien, se envía email para confirmar registro
         String[] toUsers = {email};
         String codeAuth = userData.generateRandomCode();
-        emailProvider.sendAuthCodeToRegisterUser(toUsers, codeAuth);
+        emailAppProvider.sendAuthCodeToRegisterUser(toUsers, codeAuth);
 
         // Se genera el nuevo usuario (no confirmado), además del registro del referido...
         String userReferringState = (userReferring[0].equals("Sin usuario")) ? "Desactivado" : "Activado";
@@ -236,7 +236,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     // Enviamos notificación por mail, solo si el usuario A la tiene notificación activada
                     if(userANotifPreference.isByEmail() && userANotifPreference.isReferredRegistered()) {
                         String userACodeToRefer = userA.getCodeToRefer();
-                        emailProvider.novaUserRegisteredByCodeToRefer(userAEmail, userACodeToRefer, fullNameReferredUser);
+                        emailAppProvider.novaUserRegisteredByCodeToRefer(userAEmail, userACodeToRefer, fullNameReferredUser);
                     }
                 } catch(NoSuchElementException e) {
                     LOGGER_MESSAGES.info("No es posible identificar al usuario que ha referido");
@@ -277,7 +277,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         // No existe dispositivo y puede que el usuario este intentando entrar desde otro, se envía código para actualizar dispositivo
                         String[] toUsers = {email};
                         String code = userData.generateRandomCode();
-                        emailProvider.sendAuthCodeToChangeDevice(toUsers, code);
+                        emailAppProvider.sendAuthCodeToChangeDevice(toUsers, code);
                         userData.setCodeAuth(pwdEncoder.encode(code));
                         userData.setCodeExpirationTime(currentDateTime);
                         userRepository.save(userDB);
@@ -294,7 +294,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 case "Desactivado" -> {
                     UserModel activateUser = userHelper.checkUserAccount(userRepository, deviceRepository, referredRepository, userDB, device, deviceIp);
                     if(activateUser != null) {
-                        emailProvider.userAccountActivated(email, device, deviceIp);
+                        emailAppProvider.userAccountActivated(email, device, deviceIp);
                         return ResponseHelper.accepted("el usuario se ha activado nuevamente", DataHelper.buildUser(activateUser));
                     } else {
                         // El usuario deja de existir, ya que, queda obsoleto
@@ -354,7 +354,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             String codeAuth = userData.generateRandomCode();
             switch(statusUserDB) {
                 case "Activado" -> {
-                    emailProvider.sendAuthCodeToRestorePassword(toUsers, codeAuth);
+                    emailAppProvider.sendAuthCodeToRestorePassword(toUsers, codeAuth);
                     break;
                 }
                 case "Desactivado" -> {
@@ -363,7 +363,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         return ResponseHelper.failedDependency("datos anticuados", "failed dependency");
                     } else {
                         // Todavía se puede habilitar
-                        emailProvider.sendAuthCodeToRestorePassword(toUsers, codeAuth);
+                        emailAppProvider.sendAuthCodeToRestorePassword(toUsers, codeAuth);
                     }
                     break;
                 }
@@ -410,7 +410,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     case "Desactivado" -> {
                         userDB = userHelper.checkUserAccount(userRepository, deviceRepository, referredRepository, userDB, device, deviceIp);
                         if(userDB != null) {
-                            emailProvider.userAccountActivated(userEmail, device, deviceIp); // Se ha vuelto ha activar el usuario
+                            emailAppProvider.userAccountActivated(userEmail, device, deviceIp); // Se ha vuelto ha activar el usuario
                         } else {
                             // Usuario quedo obsoleto
                             return ResponseHelper.failedDependency("datos anticuados", "failed dependency");
@@ -452,7 +452,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 case "registerUser": {
                     if(userData.getSessionToken().equals("") && userData.getRefreshToken().equals("")
                         && userStatusDB.equals("Desactivado")) {
-                        emailProvider.sendAuthCodeToRegisterUser(toUsers, code);
+                        emailAppProvider.sendAuthCodeToRegisterUser(toUsers, code);
                         isValid = true;
                     }
                     break;
@@ -460,14 +460,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 case "changeDevice": {
                     if(!userData.getSessionToken().equals("") && !userData.getRefreshToken().equals("")
                         && userStatusDB.equals("Activado")) {
-                        emailProvider.sendAuthCodeToChangeDevice(toUsers, code);
+                        emailAppProvider.sendAuthCodeToChangeDevice(toUsers, code);
                         isValid = true;
                     }
                     break;
                 }
                 case "restorePassword": {
                     if(!userData.getSessionToken().equals("") && !userData.getRefreshToken().equals("")) {
-                        emailProvider.sendAuthCodeToRestorePassword(toUsers, code);
+                        emailAppProvider.sendAuthCodeToRestorePassword(toUsers, code);
                         isValid = true;
                     }
                     break;
@@ -528,7 +528,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if(updateTheReferreds.size() > 0) {
             referredRepository.saveAll(updateTheReferreds);
         }
-        emailProvider.userAccountDisabled(emailAuth, currentDateTime);
+        emailAppProvider.userAccountDisabled(emailAuth, currentDateTime);
         return ResponseHelper.ok("la cuenta del usuario se ha deshabilitado por un rango de 30 días, luego del tiempo estipulado, si no hay actividad la cuenta se eliminará definitivamente", Map.of("info", "ok"));
     }
 

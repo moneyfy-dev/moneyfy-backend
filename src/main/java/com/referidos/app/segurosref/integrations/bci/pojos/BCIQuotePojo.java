@@ -1,11 +1,11 @@
-package com.referidos.app.segurosref.pojo.bci;
+package com.referidos.app.segurosref.integrations.bci.pojos;
 
 import java.util.List;
 
 import lombok.Data;
 
 @Data
-public class QuoteBciPojo {
+public class BCIQuotePojo {
 
     // Estructura de campos para la API de BCI
     private String RutaDocumento;
@@ -23,7 +23,7 @@ public class QuoteBciPojo {
     private Double Descuento;
     private Long IdCotizacion;
     private String VigenciaCotizacion; // Formato: "dd-mm-yyyy"
-    private List<QuoteProductBciPojo> Productos;
+    private List<BCIQuoteProductPojo> Productos;
     private Integer Error;
 
 }
