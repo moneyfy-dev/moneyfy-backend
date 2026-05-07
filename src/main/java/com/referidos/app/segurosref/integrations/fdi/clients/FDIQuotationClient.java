@@ -128,8 +128,8 @@ public class FDIQuotationClient {
             String urlUpdateDeal = fdiBaseUrl + "/deals/" + dealToken;
             // Construcción cuerpo de solicitud
             FDIDealUpRequest requestUpdateDeal = new FDIDealUpRequest(
-                new FDIDealUpContractorRequest("11.111.111-1", fdiContractorEmail, new FDIDealUpAddressRequest("Calle 00", 1111, "15", "13", "13101")),
-                new FDIDealUpPayerRequest("22.222.222-2", fdiPayerEmail, 911111111, new FDIDealUpAddressRequest("Calle 01", 1111, "15", "13", "13101")));
+                new FDIDealUpContractorRequest("11111111-1", fdiContractorEmail, new FDIDealUpAddressRequest("Calle 00", 1111, "15", "13", "13101")),
+                new FDIDealUpPayerRequest("22222222-2", fdiPayerEmail, 911111111, new FDIDealUpAddressRequest("Calle 01", 1111, "15", "13", "13101")));
             // Creamos entidad http y realizamos petición
             HttpEntity<FDIDealUpRequest> entity = new HttpEntity<>(requestUpdateDeal, headers);
             ResponseEntity<Void> response = restTemplate.exchange(urlUpdateDeal, HttpMethod.PUT, entity, Void.class);
@@ -156,7 +156,7 @@ public class FDIQuotationClient {
             // Construcción cuerpo de solicitud
             FDIItemCrRequest requestCreateItem = new FDIItemCrRequest(
                 new FDIItemCrVehicleRequest(132, 2004, 2021, "CXLS79", "132", "2004"),
-                new FDIDealUpPayerRequest("22.222.222-2", fdiPayerEmail, 911111111, new FDIDealUpAddressRequest("Calle 01", 1111, "15", "13", "13101")));
+                new FDIDealUpPayerRequest("22222222-2", fdiPayerEmail, 911111111, new FDIDealUpAddressRequest("Calle 01", 1111, "15", "13", "13101")));
             // Creamos entidad http y realizamos petición
             HttpEntity<FDIItemCrRequest> entity = new HttpEntity<>(requestCreateItem, headers);
             ResponseEntity<FDIItemCreatePojo> response = restTemplate.exchange(urlCreateItem, HttpMethod.POST, entity, FDIItemCreatePojo.class);
