@@ -7,9 +7,11 @@ import com.referidos.app.segurosref.integrations.BaseIntegrationResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true) // Compara usando la clase padre (internalErrorCode)
 public class FDIQuoteDealPojo extends BaseIntegrationResponse {
 

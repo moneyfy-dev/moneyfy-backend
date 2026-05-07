@@ -365,6 +365,8 @@ public class QuoterServiceImpl implements QuoterService {
                 }
                 case "aseguradora5" -> {
                     // Momentaneó antes del cambio de estructura de esta respuesta
+                    errorPlanFinder = "0";
+                    errorMessage = "Se encontro la aseguradora";
                     Object[] response = fdiQuotationClient.quoteVehicle();
                     Integer errorCode = (response[0] != null) ? (Integer) response[0] : null;
                     planList = (response[1] != null) ? (List<QuotationPlanDto>) response[1] : planList;
