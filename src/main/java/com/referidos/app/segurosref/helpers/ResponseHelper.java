@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.referidos.app.segurosref.dtos.ResultQuoteDto;
+import com.referidos.app.segurosref.dtos.quotation.QuotationDto;
 import com.referidos.app.segurosref.responses.GeneralResponse;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,9 +26,9 @@ public class ResponseHelper {
         return ResponseHelper.response(buildMessage, HttpStatus.OK.value(), info);
     }
 
-    public static ResponseEntity<GeneralResponse> ok(String message, ResultQuoteDto resultQuoteDto) {
+    public static ResponseEntity<GeneralResponse> ok(String message, QuotationDto quotationDto) {
         String buildMessage = "Solicitud realizada: " + message;
-        return ResponseHelper.response(buildMessage, HttpStatus.OK.value(), resultQuoteDto);
+        return ResponseHelper.response(buildMessage, HttpStatus.OK.value(), quotationDto);
     }
 
     public static ResponseEntity<GeneralResponse> created(String message, Map<String, Object> info) {

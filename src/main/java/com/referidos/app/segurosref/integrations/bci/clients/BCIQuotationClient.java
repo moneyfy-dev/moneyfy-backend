@@ -18,9 +18,9 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.referidos.app.segurosref.dtos.TestPlanDto;
 import com.referidos.app.segurosref.integrations.bci.pojos.BCIQuotePojo;
 import com.referidos.app.segurosref.integrations.bci.pojos.BCIQuoteProductPojo;
+import com.referidos.app.segurosref.dtos.quotation.QuotationPlanDto;
 import com.referidos.app.segurosref.integrations.bci.pojos.BCIQuoteDescriptionPojo;
 import com.referidos.app.segurosref.models.BrandDataModel;
 import com.referidos.app.segurosref.models.BrandInsurerModel;
@@ -104,7 +104,7 @@ public class BCIQuotationClient {
                     return Map.of("errorPlanFinder", "11", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr); // Opción 10, error: la cotización no se ha podido a llevar a cabo
                 }
                 // Obtenemos la data principal
-                List<TestPlanDto> plans = new ArrayList<>();
+                List<QuotationPlanDto> plans = new ArrayList<>();
                 double valueUF = quoteBci.getTasaCambioUF();
                 double discount = quoteBci.getDescuento();
                 int totalMonths = quoteBci.getCantidadCuotas();
@@ -124,7 +124,7 @@ public class BCIQuotationClient {
                         // Creamos el id del plan único con el id del tipo de plan y id del deducible
                         String planId = String.valueOf(product.getIdProducto()) + "_" + deductibleId;
                         // FALTA AGREGAR LOS DETALLES DEPENDIENDO DEL PLAN ----
-                        TestPlanDto novaPlan = new TestPlanDto(planId, "BCI", planName, valueUF,
+                        QuotationPlanDto novaPlan = new QuotationPlanDto(planId, "BCI", planName, valueUF,
                                 grossPriceUF, totalMonths, monthlyPriceUF, monthlyPrice, deductible, deductibleDesc,
                                 discount, "", "", "", "");
                         plans.add(novaPlan);

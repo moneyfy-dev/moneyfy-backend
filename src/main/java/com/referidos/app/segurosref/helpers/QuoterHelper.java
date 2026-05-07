@@ -14,9 +14,9 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.referidos.app.segurosref.dtos.TestPlanDto;
 import com.referidos.app.segurosref.dtos.TransactionCommissionDto;
 import com.referidos.app.segurosref.dtos.TransactionDto;
+import com.referidos.app.segurosref.dtos.quotation.QuotationPlanDto;
 import com.referidos.app.segurosref.dtos.report.ReportAccountDto;
 import com.referidos.app.segurosref.dtos.report.ReportTransactionDataDto;
 import com.referidos.app.segurosref.dtos.report.ReportUserDto;
@@ -80,28 +80,28 @@ public class QuoterHelper {
         return list;
     }
 
-    public List<TestPlanDto> planList1() {
-        List<TestPlanDto> list = new ArrayList<>();
+    public List<QuotationPlanDto> planList1() {
+        List<QuotationPlanDto> list = new ArrayList<>();
         double valueUF = 37000.00;
         String stolenCar = "Valor comercial";
         String workshopType = "Oficial de la marca";
         // Creamos planes de prueba
-        TestPlanDto plan1 = new TestPlanDto("TRACTOR045678987", "Tractor Seguros Automotriz",
+        QuotationPlanDto plan1 = new QuotationPlanDto("TRACTOR045678987", "Tractor Seguros Automotriz",
                 "Plan protector de auto", valueUF, 24.86, 11, 24.86/11,
                 (24.86/11)*valueUF, 3, "Deducible 3 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan1, "70%", "800 UF", "90", "3");
-        TestPlanDto plan2 = new TestPlanDto("TRACTOR123456789", "Tractor Seguros Automotriz",
+        QuotationPlanDto plan2 = new QuotationPlanDto("TRACTOR123456789", "Tractor Seguros Automotriz",
                 "Seguro auto completo", valueUF, 22.72, 11, 22.72/11,
                 (22.72/11)*valueUF, 5, "Deducible 5 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan2, "80%", "1200 UF", "120", "4");
-        TestPlanDto plan3 = new TestPlanDto("TRACTOR987654321", "Tractor Seguros Automotriz",
+        QuotationPlanDto plan3 = new QuotationPlanDto("TRACTOR987654321", "Tractor Seguros Automotriz",
                 "Plan seguro auto asegurado", valueUF, 27.81, 11, 27.81/11,
                 (27.81/11)*valueUF, 0, "Deducible 0 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan3, "60%", "1500 UF", "90", "4");
-        TestPlanDto plan4 = new TestPlanDto("TRACTOR12975678953", "Tractor Seguros Automotriz",
+        QuotationPlanDto plan4 = new QuotationPlanDto("TRACTOR12975678953", "Tractor Seguros Automotriz",
                 "Seguro auto premium", valueUF, 20.12, 11, 20.12/11,
                 (20.12/11)*valueUF, 10, "Deducible 10 UF", 0.0, stolenCar, "",
                 "", workshopType);
@@ -113,18 +113,18 @@ public class QuoterHelper {
         return list;
     }
 
-    public List<TestPlanDto> planList2() {
-        List<TestPlanDto> list = new ArrayList<>();
+    public List<QuotationPlanDto> planList2() {
+        List<QuotationPlanDto> list = new ArrayList<>();
         double valueUF = 37000.00;
         String stolenCar = "Valor comercial";
         String workshopType = "Oficial de la marca";
         // Creamos planes de prueba
-        TestPlanDto plan1 = new TestPlanDto("SEGUROSALAMEDA045678987", "Seguros Alameda",
+        QuotationPlanDto plan1 = new QuotationPlanDto("SEGUROSALAMEDA045678987", "Seguros Alameda",
                 "Asistencia en viaje", valueUF, 23.55, 11, 23.55/11,
                 (23.55/11)*valueUF, 5, "Deducible 5 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan1, "70%", "1200 UF", "90", "3");
-        TestPlanDto plan2 = new TestPlanDto("SEGUROSALAMEDA123456789", "Seguros Alameda",
+        QuotationPlanDto plan2 = new QuotationPlanDto("SEGUROSALAMEDA123456789", "Seguros Alameda",
                 "Tu trasporte asegurado", valueUF, 27.01, 11, 27.01/11,
                 (27.01/11)*valueUF, 3, "Deducible 3 UF", 0.0, stolenCar, "",
                 "", workshopType);
@@ -134,23 +134,23 @@ public class QuoterHelper {
         return list;
     }
 
-    public List<TestPlanDto> planList3() {
-        List<TestPlanDto> list = new ArrayList<>();
+    public List<QuotationPlanDto> planList3() {
+        List<QuotationPlanDto> list = new ArrayList<>();
         double valueUF = 37000.00;
         String stolenCar = "Valor comercial";
         String workshopType = "Oficial de la marca";
         // Creamos planes de prueba
-        TestPlanDto plan1 = new TestPlanDto("LOSALAMOS045678987", "Los Alamos Seguros Automotriz",
+        QuotationPlanDto plan1 = new QuotationPlanDto("LOSALAMOS045678987", "Los Alamos Seguros Automotriz",
                 "Proteción ultra automóvil", valueUF, 22.03, 11, 22.03/11,
                 (22.03/11)*valueUF, 3, "Deducible 3 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan1, "65%", "1500 uf", "180", "3");
-        TestPlanDto plan2 = new TestPlanDto("LOSALAMOS123456789", "Los Alamos Seguros Automotriz",
+        QuotationPlanDto plan2 = new QuotationPlanDto("LOSALAMOS123456789", "Los Alamos Seguros Automotriz",
                 "Plan de automóvil asegurado", valueUF, 21.41, 11, 21.41/11,
                 (21.41/11)*valueUF, 3, "Deducible 3 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan2, "75%", "1000 UF", "120", "4");
-        TestPlanDto plan3 = new TestPlanDto("LOSALAMOS987654321", "Los Alamos Seguros Automotriz",
+        QuotationPlanDto plan3 = new QuotationPlanDto("LOSALAMOS987654321", "Los Alamos Seguros Automotriz",
                 "Seguro MAX automóvil", valueUF, 23.38, 11, 23.38/11,
                 (23.38/11)*valueUF, 5, "Deducible 5 UF", 0.0, stolenCar, "",
                 "", workshopType);
@@ -161,7 +161,7 @@ public class QuoterHelper {
         return list;
     }
 
-    public void adjustTestPlan(TestPlanDto testPlan, String lossPercentage, String thirdPartyUF, String daysReplacement,
+    public void adjustTestPlan(QuotationPlanDto testPlan, String lossPercentage, String thirdPartyUF, String daysReplacement,
             String yearsRenewal) {
         // Adjust data
         String totalLoss = "Valor comercial en caso de daños mayores al " + lossPercentage + " del valor";

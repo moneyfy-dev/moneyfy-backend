@@ -8,14 +8,15 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class FDICreateItemPojo extends BaseIntegrationResponse {
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+public class FDIItemCreatePojo extends BaseIntegrationResponse {
     
     private String status;
     private Integer code;
+    @EqualsAndHashCode.Include
     private Integer itemId;
 
-    public FDICreateItemPojo(Integer internalErrorCode) {
+    public FDIItemCreatePojo(Integer internalErrorCode) {
         super(internalErrorCode);
     }
 

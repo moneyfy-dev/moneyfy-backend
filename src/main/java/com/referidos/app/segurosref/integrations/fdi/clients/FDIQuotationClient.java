@@ -1,5 +1,12 @@
 package com.referidos.app.segurosref.integrations.fdi.clients;
 
+import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -9,10 +16,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.referidos.app.segurosref.dtos.quotation.QuotationPlanCoverDto;
+import com.referidos.app.segurosref.dtos.quotation.QuotationPlanDto;
 import com.referidos.app.segurosref.integrations.fdi.dtos.FDIQuotationDto;
-import com.referidos.app.segurosref.integrations.fdi.pojos.FDICreateItemPojo;
+import com.referidos.app.segurosref.integrations.fdi.dtos.FDIQuotationPlanCoverDto;
+import com.referidos.app.segurosref.integrations.fdi.dtos.FDIQuotationPlanDto;
+import com.referidos.app.segurosref.integrations.fdi.pojos.FDIItemCreatePojo;
 import com.referidos.app.segurosref.integrations.fdi.pojos.FDIQuoteDealPojo;
-import com.referidos.app.segurosref.integrations.fdi.pojos.FDICreateDealPojo;
+import com.referidos.app.segurosref.integrations.fdi.pojos.FDIQuoteDetailPojo;
+import com.referidos.app.segurosref.integrations.fdi.pojos.FDIQuoteItemPojo;
+import com.referidos.app.segurosref.integrations.fdi.pojos.FDIQuotePlanCoverPojo;
+import com.referidos.app.segurosref.integrations.fdi.pojos.FDIQuotePlanParamPojo;
+import com.referidos.app.segurosref.integrations.fdi.pojos.FDIQuotePlanParamRangeValuePojo;
+import com.referidos.app.segurosref.integrations.fdi.pojos.FDIQuotePlanPojo;
+import com.referidos.app.segurosref.integrations.fdi.pojos.FDIDealCreatePojo;
 import com.referidos.app.segurosref.integrations.fdi.requests.FDIDealUpAddressRequest;
 import com.referidos.app.segurosref.integrations.fdi.requests.FDIDealUpContractorRequest;
 import com.referidos.app.segurosref.integrations.fdi.requests.FDIDealUpRequest;
@@ -41,31 +58,40 @@ public class FDIQuotationClient {
     @Value(value = "${fdi.qa.update-endpoint.payer-email}")
     private String fdiPayerEmail;
 
-    public FDIQuotationDto quoteVehicle() {
+    public Object[] quoteVehicle() {
         // Se inicia y se revisa creación de deal
-        FDICreateDealPojo dealCreateResponse = this.createDeal();
+        FDIDealCreatePojo dealCreateResponse = this.createDeal();
         if(dealCreateResponse.hasError()) {
-            return new FDIQuotationDto(dealCreateResponse.getInternalErrorCode());
+            return new Object[] {dealCreateResponse.getInternalErrorCode(), null};
         }
         // Se actualiza deal para ingresar información más relevante
         String dealToken = dealCreateResponse.getToken();
         Integer dealUpdateCodeResponse = this.updateDeal(dealToken);
         if(dealUpdateCodeResponse != null && dealUpdateCodeResponse != -1) {
-            return new FDIQuotationDto(dealUpdateCodeResponse);
+            return new Object[] {dealUpdateCodeResponse, null};
         }
         // Se crea item/riesgo asegurable en el deal
-        FDICreateItemPojo itemCreateResponse = this.createItem(dealToken);
+        FDIItemCreatePojo itemCreateResponse = this.createItem(dealToken);
         if(itemCreateResponse.hasError()) {
-            return new FDIQuotationDto(itemCreateResponse.getInternalErrorCode());
+            return new Object[] {itemCreateResponse.getInternalErrorCode(), null};
         }
         // Se realiza la cotización del item asegurable
         FDIQuoteDealPojo quoteDealResponse = this.quoteDeal(dealToken);
-        return null;
+        if(quoteDealResponse.hasError()) {
+            return new Object[] {quoteDealResponse.getInternalErrorCode(), null};
+        }
+        // Se realizaron todas las peticiones necesarias para construir el dto de cotización de FDI
+        FDIQuotationDto fdiQuotationDto = this.buildFDIQuotationDto(dealToken, quoteDealResponse);
+        if(fdiQuotationDto.hasError()) {
+            return new Object[] {fdiQuotationDto.getInternalErrorCode(), null};
+        }
+        // Se creó correctamente el objeto dto de cotización de FDI, ahora se retorna construye objeto que entiende la app
+        return this.buildResponseQuotationFDI(fdiQuotationDto);
     }
 
     // Endpoint para iniciar cotización creando deal
     @SuppressWarnings("null")
-    private FDICreateDealPojo createDeal() {
+    private FDIDealCreatePojo createDeal() {
         try {
             RestTemplate restTemplate = new RestTemplate();
             // Agregamos datos de cabecera
@@ -75,17 +101,19 @@ public class FDIQuotationClient {
             headers.set("brokerIdNumber", fdiBrokerId);
             String urlCreateDeal = fdiBaseUrl + "/deals";
             HttpEntity<Void> entity = new HttpEntity<>(headers);
-            ResponseEntity<FDICreateDealPojo> response = restTemplate.exchange(urlCreateDeal, HttpMethod.POST, entity, FDICreateDealPojo.class);
+            ResponseEntity<FDIDealCreatePojo> response = restTemplate.exchange(urlCreateDeal, HttpMethod.POST, entity, FDIDealCreatePojo.class);
             // Revisar si es una respuesta correcta
             if(response.getStatusCode() == HttpStatus.CREATED) {
-                FDICreateDealPojo body = response.getBody();
+                FDIDealCreatePojo body = response.getBody();
                 body.setInternalErrorCode(-1);
                 return body;
             }
+            LOGGER_MESSAGES.info("Respuesta no esperada del servicio externo al procesar el deal: " + response.getStatusCode().value());
         } catch(Exception e) {
-            return new FDICreateDealPojo(70);
+            LOGGER_MESSAGES.info("Error de excepción al intentar crear el deal en el servicio externo (FDI): " + e.getMessage());
+            return new FDIDealCreatePojo(70);
         }
-        return new FDICreateDealPojo(71);
+        return new FDIDealCreatePojo(71);
     }
 
     // Endpoint para actualizar datos relevantes del deal
@@ -108,15 +136,17 @@ public class FDIQuotationClient {
             if (response.getStatusCode() == HttpStatus.NO_CONTENT) {
                 return -1; // Éxito
             }
+            LOGGER_MESSAGES.info("Respuesta inesperada en actualización: " + response.getStatusCode().value());
         } catch(Exception e) {
-            return 72; // Nuevo código: Error de excepción en actualización
+            LOGGER_MESSAGES.info("Error de excepción en actualización del deal en el servicio externo (FDI): " + e.getMessage());
+            return 72;
         }
-        return 73; // Nuevo código: Respuesta inesperada en actualización
+        return 73;
     }
 
     // Crear el item asegurable del deal
     @SuppressWarnings("null")
-    private FDICreateItemPojo createItem(String dealToken) {
+    private FDIItemCreatePojo createItem(String dealToken) {
         try {
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
@@ -129,20 +159,101 @@ public class FDIQuotationClient {
                 new FDIDealUpPayerRequest("22.222.222-2", fdiPayerEmail, 911111111, new FDIDealUpAddressRequest("Calle 01", 1111, "15", "13", "13101")));
             // Creamos entidad http y realizamos petición
             HttpEntity<FDIItemCrRequest> entity = new HttpEntity<>(requestCreateItem, headers);
-            ResponseEntity<FDICreateItemPojo> response = restTemplate.exchange(urlCreateItem, HttpMethod.POST, entity, FDICreateItemPojo.class);
+            ResponseEntity<FDIItemCreatePojo> response = restTemplate.exchange(urlCreateItem, HttpMethod.POST, entity, FDIItemCreatePojo.class);
             if(response.getStatusCode() == HttpStatus.CREATED) {
-                FDICreateItemPojo body = response.getBody();
+                FDIItemCreatePojo body = response.getBody();
                 body.setInternalErrorCode(-1);
                 return body;
             }
+            LOGGER_MESSAGES.info("Respuesta inesperada al crear item asegurable: " + response.getStatusCode().value());
         } catch (Exception e) {
-            return new FDICreateItemPojo(74); // Nuevo código: Error de excepción al crear item asegurable
+            LOGGER_MESSAGES.info("Error de excepción al crear item asegurable: " + e.getMessage());
+            return new FDIItemCreatePojo(74);
         }
-        return new FDICreateItemPojo(75); // Nuevo código: Respuesta inesperada al crear item asegurable
+        return new FDIItemCreatePojo(75);
     }
 
+    @SuppressWarnings("null")
     private FDIQuoteDealPojo quoteDeal(String dealToken) {
-        return null;
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", fdiApiKey);
+            headers.set("x-api-version", fdiVersion);
+            String urlGetQuotations = fdiBaseUrl + "/deals/" + dealToken + "/items/quotations";
+            // Creamos entidad http y realizamos petición (No hay cuerpo de solicitud)
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+            ResponseEntity<FDIQuoteDealPojo> response = restTemplate.exchange(urlGetQuotations, HttpMethod.GET, entity, FDIQuoteDealPojo.class);
+            // Hacer LOG, porque se deshabilitó el endpoint de cotización
+            if(response.getStatusCode() == HttpStatus.OK) {
+                FDIQuoteDealPojo body = response.getBody();
+                body.setInternalErrorCode(-1);
+                return body;
+            }
+            LOGGER_MESSAGES.info("Respuesta no esperada del servicio externo al procesar la cotización del deal: " + response.getStatusCode().value());
+        } catch (Exception e) {
+            LOGGER_MESSAGES.info("Error de excepción al intentar solicitar la cotización final del deal: " + e.getMessage());
+            return new FDIQuoteDealPojo(76);
+        }
+        return new FDIQuoteDealPojo(77);
+    }
+
+    private FDIQuotationDto buildFDIQuotationDto(String dealToken, FDIQuoteDealPojo quoteDealResponse) {
+        FDIQuotationDto fdiQuotationDto = new FDIQuotationDto(quoteDealResponse.getInternalErrorCode());
+        fdiQuotationDto.setDealToken(dealToken);
+        try {
+            // Cotizaciones del plan puede tener más de un deducible, si es así, por deducible se crea un nuevo plan
+            Set<FDIQuotationPlanDto> plansDto = new HashSet<>();
+            FDIQuoteItemPojo itemPojo = quoteDealResponse.getItems().get(0);
+            fdiQuotationDto.setItemId(itemPojo.getItemId());
+            for(FDIQuoteDetailPojo quotationPojo : itemPojo.getQuotations()) {
+                // Como el plan es el mismo y solo cambia dependiendo el deducible, se busca los gastos que cubre que será lo mismo independiente del deducible
+                Set<FDIQuotationPlanCoverDto> coversDto = new HashSet<>();
+                FDIQuotePlanPojo planDetailPojo = quotationPojo.getPlan();
+                for(FDIQuotePlanCoverPojo coverPojo : planDetailPojo.getCoverages()) {
+                    coversDto.add(new FDIQuotationPlanCoverDto(coverPojo.getId(), coverPojo.getName(), coverPojo.getMainDescription(), coverPojo.getGeneralDescription(), coverPojo.getIsMain(), coverPojo.getIsParam(), coverPojo.getValueDescription(), coverPojo.getPolCad(), coverPojo.getValue()));
+                }
+                // Ahora buscamos los deducibles. Y por deducibles creamos un plan de la cotización específica
+                for(FDIQuotePlanParamPojo parameterPojo : planDetailPojo.getParameters()) {
+                    if(parameterPojo.getType().equals("Deducible")) {
+                        // Se encuentra el parámetro del deducible, se buscan los deducibles disponibles
+                        for(FDIQuotePlanParamRangeValuePojo valueDeducPojo : parameterPojo.getRanges().get(0).getValues()) {
+                            Integer deductibleUF = (Integer) valueDeducPojo.getValue();
+                            String deductibleDesc = "Deducible " + String.valueOf(deductibleUF) + " UF";
+                            String uniquePlan = quotationPojo.getPlanId() + "_" + String.valueOf(deductibleUF);
+                            Integer totalMonths = 11;
+                            Double monthlyPriceUF = (quotationPojo.getGrossWrittenPremium() + quotationPojo.getBrokerage()) / totalMonths;
+                            Double monthlyPrice = monthlyPriceUF * quotationPojo.getValueUf();
+                            plansDto.add(new FDIQuotationPlanDto(uniquePlan, planDetailPojo.getName(), quotationPojo.getPlanId(), quotationPojo.getId(), quotationPojo.getFIDId(), quotationPojo.getExpiryDate(), quotationPojo.getPolicyInceptionDate(), quotationPojo.getPolicyExpiryDate(), quotationPojo.getPolicyPeriodVigency(), quotationPojo.getNetPremium(), quotationPojo.getGrossWrittenPremium(), quotationPojo.getBrokerage(), quotationPojo.getLiabilityAmount(), quotationPojo.getGarageType(), quotationPojo.getVehicleReplacement(), quotationPojo.getInspectionRequired(), quotationPojo.getMonthlyPremium(), monthlyPriceUF, monthlyPrice, quotationPojo.getValueUf(), totalMonths, deductibleUF, deductibleDesc, 0.0, planDetailPojo.getPaymentPlan(), planDetailPojo.getPaymentPipeline(), planDetailPojo.getQuotationPeriod(), planDetailPojo.getPaymentWay(), coversDto));
+                        }
+                        break; // Ya se crearon todos los planes por deducible de la cotización, se sigue con la otra
+                    }
+                }
+            }
+            // Entregar error si no se asignaron planes correctamente
+            fdiQuotationDto.setPlans(plansDto);
+            if(plansDto.size() <= 0) {
+                LOGGER_MESSAGES.info("No se han encontrado planes al construir el dto de la cotización de FDI");
+                return new FDIQuotationDto(78);
+            }
+            return fdiQuotationDto;
+        } catch(Exception e) {
+            LOGGER_MESSAGES.info("Error de excepción al construir el dto de la cotización de FDI: " + e.getMessage());
+            return new FDIQuotationDto(79);
+        }
+    }
+
+    private Object[] buildResponseQuotationFDI(FDIQuotationDto fdiQuotationDto) {
+        List<QuotationPlanDto> plansDto = new ArrayList<>();
+        for(FDIQuotationPlanDto planDtoFDI : fdiQuotationDto.getPlans()) {
+            // Crear la lista de cobertura para agregarle al plan, antes de crearlo
+            Set<QuotationPlanCoverDto> coveragesDto = new HashSet<>();
+            for(FDIQuotationPlanCoverDto coverageDtoFDI : planDtoFDI.getCoverages()) {
+                coveragesDto.add(new QuotationPlanCoverDto(coverageDtoFDI.getId(), coverageDtoFDI.getName(), coverageDtoFDI.getGeneralDescription(), coverageDtoFDI.getPolCad(), coverageDtoFDI.getValue()));
+            }
+            plansDto.add(new QuotationPlanDto(planDtoFDI.getUniquePlan(), planDtoFDI.getPlanId(), "FDI", planDtoFDI.getPlanName(), planDtoFDI.getValueUF(), planDtoFDI.getGrossWrittenPremiumUF(), planDtoFDI.getTotalMonths(), planDtoFDI.getMonthlyPriceUF(), planDtoFDI.getMonthlyPrice(), planDtoFDI.getDeductibleUF(), planDtoFDI.getDeductibleDesc(), planDtoFDI.getDiscount(), "", "", String.valueOf(planDtoFDI.getLiabilityAmount()), planDtoFDI.getGarageType(), fdiQuotationDto.getDealToken(), fdiQuotationDto.getItemId(), planDtoFDI.getQuotationId(), planDtoFDI.getFIDId(), planDtoFDI.getExpiryDate(), planDtoFDI.getBrokerageUF(), planDtoFDI.getVehicleReplacement(), planDtoFDI.getInspectionRequired(), planDtoFDI.getMonthlyPremium(), planDtoFDI.getPaymentPlan(), planDtoFDI.getQuotationPeriod(), planDtoFDI.getPaymentWay(), coveragesDto, new HashSet<>()));
+        }
+        return new Object[] {-1, plansDto};
     }
 
 }

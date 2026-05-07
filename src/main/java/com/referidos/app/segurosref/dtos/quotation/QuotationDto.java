@@ -1,4 +1,4 @@
-package com.referidos.app.segurosref.dtos;
+package com.referidos.app.segurosref.dtos.quotation;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 @JsonPropertyOrder(value = {"quoterId", "error", "errorMessage", "requestBody", "response", "insurer", "plans"})
-public class ResultQuoteDto {
+public class QuotationDto {
 
     private String quoterId;
     private String error;
@@ -19,6 +19,6 @@ public class ResultQuoteDto {
     private String requestBody;
     private String response;
     private InsurerModel insurer;
-    private List<TestPlanDto> plans;
+    private List<QuotationPlanDto> plans;
 
 }

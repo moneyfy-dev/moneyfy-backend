@@ -22,10 +22,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 
-import com.referidos.app.segurosref.dtos.ResultQuoteDto;
-import com.referidos.app.segurosref.dtos.TestPlanDto;
 import com.referidos.app.segurosref.dtos.VehicleBrandDto;
 import com.referidos.app.segurosref.dtos.VehicleModelDto;
+import com.referidos.app.segurosref.dtos.quotation.QuotationDto;
+import com.referidos.app.segurosref.dtos.quotation.QuotationPlanDto;
 import com.referidos.app.segurosref.dtos.report.ReportAccountDto;
 import com.referidos.app.segurosref.dtos.report.ReportUserDto;
 import com.referidos.app.segurosref.helpers.DataHelper;
@@ -35,6 +35,7 @@ import com.referidos.app.segurosref.helpers.UserHelper;
 import com.referidos.app.segurosref.helpers.ValidateInputHelper;
 import com.referidos.app.segurosref.integrations.bci.clients.BCIQuotationClient;
 import com.referidos.app.segurosref.integrations.email.providers.EmailAppProvider;
+import com.referidos.app.segurosref.integrations.fdi.clients.FDIQuotationClient;
 import com.referidos.app.segurosref.models.InsurerModel;
 import com.referidos.app.segurosref.models.PaymentModel;
 import com.referidos.app.segurosref.models.DeviceModel;
@@ -67,6 +68,7 @@ import com.referidos.app.segurosref.requests.CommissionReportRequest;
 import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
 import com.referidos.app.segurosref.requests.GenerateTransactionRequest;
 import com.referidos.app.segurosref.requests.SelectPlanRequest;
+import com.referidos.app.segurosref.responses.enums.BusinessCodeEnum;
 import com.referidos.app.segurosref.requests.SearchVehicleRequest;
 import com.referidos.app.segurosref.requests.SearchPlanRequest;
 import com.referidos.app.segurosref.validators.QuoterValidator;
@@ -118,6 +120,9 @@ public class QuoterServiceImpl implements QuoterService {
 
     @Autowired
     private BCIQuotationClient bciQuotationClient;
+
+    @Autowired
+    private FDIQuotationClient fdiQuotationClient;
 
     @Autowired
     private EmailAppProvider emailAppProvider;
@@ -299,7 +304,7 @@ public class QuoterServiceImpl implements QuoterService {
             }
         }
         // Ahora entregaremos los planes, dependiendo de la aseguradora, enviando los datos del vehículo verificado.
-        List<TestPlanDto> planList = new ArrayList<>();
+        List<QuotationPlanDto> planList = new ArrayList<>();
         InsurerModel returnInsurerDB = new InsurerModel("", "", "", "", "");
         returnInsurerDB.setInsurerId(new ObjectId());
         Optional<InsurerModel> insurerOptional = insurerRepository.findByAlias(insurerAlias);
@@ -353,16 +358,30 @@ public class QuoterServiceImpl implements QuoterService {
                         requestBody = (String) searchPlanBCI.get("requestBody");
                         responseStr = (String) searchPlanBCI.get("responseStr");
                         if(errorPlanFinder.equals("0")) {
-                            planList = (List<TestPlanDto>) searchPlanBCI.get("plans");
+                            planList = (List<QuotationPlanDto>) searchPlanBCI.get("plans");
                         }
                     }
-                    
+                    break;
+                }
+                case "aseguradora5" -> {
+                    // Momentaneó antes del cambio de estructura de esta respuesta
+                    Object[] response = fdiQuotationClient.quoteVehicle();
+                    Integer errorCode = (response[0] != null) ? (Integer) response[0] : null;
+                    planList = (response[1] != null) ? (List<QuotationPlanDto>) response[1] : planList;
+                    if(errorCode != null && errorCode != -1) {
+                        BusinessCodeEnum businessCodeEnum = BusinessCodeEnum.fromCode(errorCode);
+                        errorPlanFinder = String.valueOf(businessCodeEnum.getErrorCode());
+                        errorMessage = businessCodeEnum.getErrorDescription();
+                    }
+                    break;
                 }
             }
         }
 
+        // Crear la cotización DTO en los planes y aquí consultar si tuvo error o no para registrar planes históricos
+
         // Guardar planes en BD en caso de no existir
-        for(TestPlanDto insurerPlan : planList) {
+        for(QuotationPlanDto insurerPlan : planList) {
             String insurerPlanId = insurerPlan.getPlanId();
             @SuppressWarnings("null")
             Optional<PlanModel> optionalPlan = planRepository.findById(insurerPlanId);
@@ -376,8 +395,8 @@ public class QuoterServiceImpl implements QuoterService {
         }
 
         @SuppressWarnings("null") // Se validaron todos los escenarios y siempre se crea una cotización, por lo tanto, existe id
-        ResultQuoteDto resultQuote = new ResultQuoteDto(userQuoter.getQuoterId(), errorPlanFinder, errorMessage, requestBody, responseStr, returnInsurerDB, planList);
-        return ResponseHelper.ok("se ha realizado la cotización", resultQuote);
+        QuotationDto quotationDto = new QuotationDto(userQuoter.getQuoterId(), errorPlanFinder, errorMessage, requestBody, responseStr, returnInsurerDB, planList);
+        return ResponseHelper.ok("se ha realizado la cotización", quotationDto);
     }
 
     @Override

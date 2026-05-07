@@ -8,12 +8,13 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class FDICreateDealPojo extends BaseIntegrationResponse {
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+public class FDIDealCreatePojo extends BaseIntegrationResponse {
 
+    @EqualsAndHashCode.Include // Solo este campo se usará para equals y hashcode
     private String token;
 
-    public FDICreateDealPojo(Integer internalErrorCode) {
+    public FDIDealCreatePojo(Integer internalErrorCode) {
         super(internalErrorCode);
     }
 
