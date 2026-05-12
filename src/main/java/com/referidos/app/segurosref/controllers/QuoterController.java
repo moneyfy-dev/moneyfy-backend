@@ -14,15 +14,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.requests.CommissionPaymentRequest;
 import com.referidos.app.segurosref.requests.CommissionReportRequest;
 import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
 import com.referidos.app.segurosref.requests.GenerateTransactionRequest;
 import com.referidos.app.segurosref.requests.SelectPlanRequest;
+import com.referidos.app.segurosref.responses.GeneralResponse;
 import com.referidos.app.segurosref.requests.SearchVehicleRequest;
 import com.referidos.app.segurosref.requests.SearchPlanRequest;
-import com.referidos.app.segurosref.responses.GeneralResponses;
 import com.referidos.app.segurosref.services.QuoterService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -59,7 +60,7 @@ public class QuoterController {
                 description = "Available brands found",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -67,7 +68,7 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -97,7 +98,7 @@ public class QuoterController {
                 description = "Available insurers found",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -105,7 +106,7 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -142,7 +143,7 @@ public class QuoterController {
                 description = "The vehicle was encountered successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -150,7 +151,7 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -167,7 +168,7 @@ public class QuoterController {
             Authentication auth) {
         quoterService.validateVehicleFinder(searchVehicle, bindingResult);
         if(bindingResult.hasErrors()) {
-            return ResponseHelper.preconditionMap("información no aceptada", ResponseHelper.buildErrorFields(bindingResult));
+            return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
         }
         return quoterService.searchVehicle(searchVehicle, auth.getPrincipal().toString());
     }
@@ -192,7 +193,7 @@ public class QuoterController {
                 description = "There were plans encountered for the vehicle",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -200,7 +201,7 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -217,7 +218,7 @@ public class QuoterController {
             Authentication auth) {
         quoterService.validatePlanFinder(searchPlan, bindingResult);
         if(bindingResult.hasErrors()) {
-            return ResponseHelper.preconditionMap("información no aceptada", ResponseHelper.buildErrorFields(bindingResult));
+            return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
         }
         return quoterService.searchPlan(searchPlan, auth.getPrincipal().toString());
     }
@@ -242,7 +243,7 @@ public class QuoterController {
                 description = "The quote was updated successfully with the plan provided",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -250,7 +251,7 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -267,7 +268,7 @@ public class QuoterController {
             Authentication auth) {
         quoterService.validateSelectedPlan(selectPlan, bindingResult);
         if(bindingResult.hasErrors()) {
-            return ResponseHelper.preconditionMap("información no aceptada", ResponseHelper.buildErrorFields(bindingResult));
+            return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
         }
         return quoterService.selectPlan(selectPlan, auth.getPrincipal().toString());
     }
@@ -292,7 +293,7 @@ public class QuoterController {
                 description = "The transaction was generated successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -300,7 +301,7 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -337,7 +338,7 @@ public class QuoterController {
                 description = "The user's quote was finalized successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -345,7 +346,7 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -362,7 +363,7 @@ public class QuoterController {
         return quoterService.finalizeQuote(finalizeQuote, auth.getPrincipal().toString(), request.getRequestURI());
     }
 
-    // ENDPOINTS QUE FORMAN PARTE DEL FLUJO DEL RETIRO DE DINERO DISPONIBLE DEL USUARIO
+    // Endpoint que genera reporte de pago pendiente de comisiones, con fecha de recolección de comisiones hasta los días 5 del mes y que se pagan los días 10 del mes
     @PostMapping(value = "/commission/report")
     @PreAuthorize(value = "permitAll()")
     @Operation(
@@ -377,13 +378,21 @@ public class QuoterController {
                 schema = @Schema(implementation = CommissionReportRequest.class)
             )
         ),
+        parameters = {
+            @Parameter(
+                name = "Api-Key-MoneyFy",
+                in = ParameterIn.HEADER,
+                description = "Security parameter for some public endpoints",
+                required = true
+            )
+        },
         responses = {
             @ApiResponse(
                 responseCode = "200",
                 description = "The commission report was generated successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -391,15 +400,16 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }
     )
     public ResponseEntity<?> commissionReport(@RequestBody CommissionReportRequest commissionReportRequest, HttpServletRequest request) {
-        return quoterService.commissionReport(commissionReportRequest, request.getRequestURI());
+        return quoterService.commissionReport(commissionReportRequest, request);
     }
 
+    // Endpoint para actualizar las comisiones que fueron pagadas
     @PostMapping(value = "/commission/payments")
     @PreAuthorize(value = "permitAll()")
     @Operation(
@@ -420,7 +430,7 @@ public class QuoterController {
                 description = "The commissions were updated successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -428,56 +438,13 @@ public class QuoterController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         }
     )
-    public ResponseEntity<?> commissionPayments(@RequestBody CommissionPaymentRequest commissionPaymentRequest) {
-        return quoterService.commissionPayments(commissionPaymentRequest);
-    }
-
-    // ENDPOINTS UTILIZADOS PARA REALIZAR PRUEBAS Y LÓGICAS DE LA APLICACIÓN
-    @GetMapping(value = "/view/test/data")
-    @PreAuthorize(value = "permitAll()")
-    @Operation(
-        summary = "View the test data",
-        description = "View the test data to make the differents tests",
-        tags = {"Quoter Controller"},
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "There was test data encountered",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
-                )
-            )
-        }
-    )
-    public ResponseEntity<?> viewTestData() {
-        return quoterService.viewTestData();
-    }
-
-    @PostMapping(value = "/test/nova/functions")
-    @PreAuthorize(value = "permitAll()")
-    @Operation(
-        summary = "Test nova functions",
-        description = "Test nova functions",
-        tags = {"Quoter Controller"},
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The function has finished successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
-                )
-            )
-        }
-    )
-    public String testNovaFunctions() {
-        return quoterService.testNovaFunctions();
+    public ResponseEntity<?> commissionPayments(@RequestBody CommissionPaymentRequest commissionPaymentRequest, HttpServletRequest request) {
+        return quoterService.commissionPayments(commissionPaymentRequest, request);
     }
 
 }

@@ -13,7 +13,7 @@ import lombok.Data;
 
 @Data
 @JsonPropertyOrder(value = {"transactionId", "planId", "userId", "quoterId", "status", "commissionTotal", "commissionScope",
-        "observation", "commissions", "createdDate", "updatedDate", "approvalDate"})
+        "userReferringFound", "observation", "commissions", "createdDate", "updatedDate", "approvalDate"})
 @Document(collection = "transactions")
 public class TransactionModel {
 
@@ -25,6 +25,7 @@ public class TransactionModel {
     private String status;
     private int commissionTotal;
     private int commissionScope;
+    private Boolean userReferringFound;
     private String observation;
     private List<TransactionComissionModel> commissions;
     private LocalDateTime createdDate;
@@ -33,7 +34,7 @@ public class TransactionModel {
 
     // Constructor personalizado
     public TransactionModel(String transactionId, String planId, String userId, String quoterId, String status,
-            int commissionTotal, int commissionScope, String observation, LocalDateTime createdDate,
+            int commissionTotal, int commissionScope, boolean userReferringFound, String observation, LocalDateTime createdDate,
             LocalDateTime updatedDate, LocalDateTime approvalDate) {
         this.commissions = new ArrayList<>();
         this.transactionId = transactionId;
@@ -43,6 +44,7 @@ public class TransactionModel {
         this.status = status;
         this.commissionTotal = commissionTotal;
         this.commissionScope = commissionScope;
+        this.userReferringFound = userReferringFound;
         this.observation = observation;
         this.createdDate = createdDate;
         this.updatedDate = updatedDate;

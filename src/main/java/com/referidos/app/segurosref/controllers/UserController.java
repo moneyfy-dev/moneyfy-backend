@@ -16,10 +16,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.referidos.app.segurosref.helpers.BindingHelper;
+import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.requests.ChangePwdRequest;
 import com.referidos.app.segurosref.requests.UserUpdateRequest;
-import com.referidos.app.segurosref.responses.GeneralResponses;
+import com.referidos.app.segurosref.responses.GeneralResponse;
 import com.referidos.app.segurosref.services.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -64,7 +65,7 @@ public class UserController {
                 description = "The user was updated successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -72,7 +73,7 @@ public class UserController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -114,7 +115,7 @@ public class UserController {
                 description = "the user password was changed successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -122,7 +123,7 @@ public class UserController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -139,7 +140,7 @@ public class UserController {
             Authentication authentication) {
         userService.validatePasswordChanged(changePwd, bindingResult);
         if(bindingResult.hasErrors()) {
-            return ResponseHelper.preconditionMap("información no aceptada", ResponseHelper.buildErrorFields(bindingResult));
+            return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
         }
         return userService.changePassword(changePwd, authentication.getPrincipal().toString());
     }
@@ -156,7 +157,7 @@ public class UserController {
                 description = "the user data was hydrated successfully",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -164,7 +165,7 @@ public class UserController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -177,7 +178,7 @@ public class UserController {
             )
         }
     )
-    public ResponseEntity<GeneralResponses> hydrationData(Authentication auth, HttpServletRequest request) {
+    public ResponseEntity<GeneralResponse> hydrationData(Authentication auth, HttpServletRequest request) {
         return userService.hydrationData(auth.getPrincipal().toString(), auth.getCredentials().toString(), request.getHeader("User-Agent"));
     }
 
@@ -193,7 +194,7 @@ public class UserController {
                 description = "The referreds have been recovered",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -201,7 +202,7 @@ public class UserController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -214,7 +215,7 @@ public class UserController {
             )
         }
     )
-    public ResponseEntity<GeneralResponses> listReferreds(Authentication auth, HttpServletRequest request) {
+    public ResponseEntity<GeneralResponse> listReferreds(Authentication auth, HttpServletRequest request) {
         return userService.listReferreds(auth.getPrincipal().toString(), auth.getCredentials().toString(), request.getHeader("User-Agent"));
     }
 
@@ -230,7 +231,7 @@ public class UserController {
                 description = "The commissions have been recovered",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -238,7 +239,7 @@ public class UserController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -251,7 +252,7 @@ public class UserController {
             )
         }
     )
-    public ResponseEntity<GeneralResponses> obtainCommissions(Authentication auth) {
+    public ResponseEntity<GeneralResponse> obtainCommissions(Authentication auth) {
         return userService.obtainCommissions(auth.getPrincipal().toString());
     }
 
@@ -267,7 +268,7 @@ public class UserController {
                 description = "The payments have been recovered",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -275,7 +276,7 @@ public class UserController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -288,7 +289,7 @@ public class UserController {
             )
         }
     )
-    public ResponseEntity<GeneralResponses> obtainPayments(Authentication auth) {
+    public ResponseEntity<GeneralResponse> obtainPayments(Authentication auth) {
         return userService.obtainPayments(auth.getPrincipal().toString());
     }
 
@@ -305,7 +306,7 @@ public class UserController {
                 description = "The monthly earnings of the user have been recovered",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             ),
             @ApiResponse(
@@ -313,7 +314,7 @@ public class UserController {
                 description = "General responses",
                 content = @Content(
                     mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponses.class)
+                    schema = @Schema(implementation = GeneralResponse.class)
                 )
             )
         },
@@ -326,7 +327,7 @@ public class UserController {
             )
         }
     )
-    public ResponseEntity<GeneralResponses> monthlyEarnings(Authentication auth) {
+    public ResponseEntity<GeneralResponse> monthlyEarnings(Authentication auth) {
         return userService.monthlyEarnings(auth.getPrincipal().toString());
     }
 

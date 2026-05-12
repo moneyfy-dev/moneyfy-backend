@@ -15,7 +15,8 @@ public class FilterHelper {
         }
         return endpoint.equals("/") || endpoint.equals("/swagger-ui.html") || endpoint.startsWith("/swagger-ui")
             || endpoint.startsWith("/v3/api-docs") || (endpoint.startsWith("/auth") && !endpoint.equals("/auth/disable/account"))
-            || endpoint.startsWith("/seed");
+            || endpoint.startsWith("/seed" ) || endpoint.contains("/quoter/commission")
+            || endpoint.startsWith("/log") || endpoint.startsWith("/transaction");
     }
 
 }

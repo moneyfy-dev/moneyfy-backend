@@ -1,28 +1,26 @@
 package com.referidos.app.segurosref.helpers;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+
+import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import com.referidos.app.segurosref.dtos.TestPlanDto;
-import com.referidos.app.segurosref.dtos.commission.CommissionAccountDto;
-import com.referidos.app.segurosref.dtos.commission.CommissionConflictDto;
-import com.referidos.app.segurosref.dtos.commission.CommissionDataDto;
-import com.referidos.app.segurosref.dtos.commission.CommissionPaymentDto;
-import com.referidos.app.segurosref.dtos.commission.CommissionReportDto;
+import com.referidos.app.segurosref.dtos.TransactionCommissionDto;
+import com.referidos.app.segurosref.dtos.TransactionDto;
+import com.referidos.app.segurosref.dtos.quotation.QuotationPlanDto;
+import com.referidos.app.segurosref.dtos.report.ReportAccountDto;
+import com.referidos.app.segurosref.dtos.report.ReportTransactionDataDto;
+import com.referidos.app.segurosref.dtos.report.ReportUserDto;
 import com.referidos.app.segurosref.models.AccountModel;
-import com.referidos.app.segurosref.models.LogModel;
 import com.referidos.app.segurosref.models.PaymentModel;
 import com.referidos.app.segurosref.models.QuoterAddressModel;
 import com.referidos.app.segurosref.models.QuoterCarModel;
@@ -35,10 +33,8 @@ import com.referidos.app.segurosref.models.TransactionComissionModel;
 import com.referidos.app.segurosref.models.TransactionModel;
 import com.referidos.app.segurosref.models.UserModel;
 import com.referidos.app.segurosref.models.WalletModel;
-import com.referidos.app.segurosref.repositories.LogRepository;
 import com.referidos.app.segurosref.repositories.TransactionRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
-import com.referidos.app.segurosref.requests.CommissionReportRequest;
 
 // Se inyecta como repositorio en el servicio de "Quoter", pero, realizando funcionalidades de servicio
 @Component 
@@ -53,11 +49,11 @@ public class QuoterHelper {
     // Funciones de apoyo con data de prueba
     public List<QuoterCarModel> vehicleList() {
         List<QuoterCarModel> list = new ArrayList<>();
-        QuoterCarModel car1 = new QuoterCarModel("11AA22", "Chevrolet", "Captiva", "2021", "Plateado", "AA1234BB5678", "FAEBDC892354A1B3C6", "SAIC-GM-Wuling");
-        QuoterCarModel car2 = new QuoterCarModel("AB1234", "Toyota", "Corolla", "2019", "Blanco", "123ABC456DEF", "789GHI012JKL", "Toyota Motor Corporation");
-        QuoterCarModel car3 = new QuoterCarModel("DE5678", "BMW", "3 Series", "2022", "Negro", "456DEF789GHI", "012JKL345MNO", "BMW AG");
-        QuoterCarModel car4 = new QuoterCarModel("GH9012", "Ford", "Fiesta", "2018", "Azul", "789GHI012JKL", "345MNO678PQR", "Ford Motor Company");
-        QuoterCarModel car5 = new QuoterCarModel("JK34DL", "Mercedes-Benz", "C-Class", "2021", "Gris", "012JKL345MNO", "678PQR901STU", "Mercedes-Benz AG");
+        QuoterCarModel car1 = new QuoterCarModel("11AA22", "CHANGAN", "CS35", "2022", "SUV", "Plateado", "AA1234BB5678", "FAEBDC892354A1B3C6", "SAIC-GM-Wuling");
+        QuoterCarModel car2 = new QuoterCarModel("AB1234", "AUDI", "S4", "2018", "SEDAN", "Blanco", "123ABC456DEF", "789GHI012JKL", "Toyota Motor Corporation");
+        QuoterCarModel car3 = new QuoterCarModel("DE5678", "CHEVROLET", "AVEO", "2012", "HATCHBACK", "Azul", "456DEF789GHI", "012JKL345MNO", "BMW AG");
+        QuoterCarModel car4 = new QuoterCarModel("GH9012", "CITROEN", "C-5", "2017", "SEDAN", "Gris", "789GHI012JKL", "345MNO678PQR", "Ford Motor Company");
+        QuoterCarModel car5 = new QuoterCarModel("JK34DL", "TOYOTA", "RUSH", "2021", "STATION WAGON", "Blanco", "012JKL345MNO", "678PQR901STU", "Mercedes-Benz AG");
         list.add(car1);
         list.add(car2);
         list.add(car3);
@@ -66,7 +62,7 @@ public class QuoterHelper {
         return list;
     }
     public QuoterCarModel buildDefaultVehicle(boolean update, String ppu, String brand, String model, String year) {
-        return update ? (new QuoterCarModel(ppu, brand, model, year, "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis")) : (new QuoterCarModel(ppu, "OPEL", "CORSA", "2023", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis"));
+        return update ? (new QuoterCarModel(ppu, brand, model, year, "", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis")) : (new QuoterCarModel(ppu, "AUDI", "A3", "2021", "HATCHBACK", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis"));
     }
 
     public List<QuoterOwnerModel> ownerList() {
@@ -84,28 +80,28 @@ public class QuoterHelper {
         return list;
     }
 
-    public List<TestPlanDto> planList1() {
-        List<TestPlanDto> list = new ArrayList<>();
+    public List<QuotationPlanDto> planList1() {
+        List<QuotationPlanDto> list = new ArrayList<>();
         double valueUF = 37000.00;
         String stolenCar = "Valor comercial";
         String workshopType = "Oficial de la marca";
         // Creamos planes de prueba
-        TestPlanDto plan1 = new TestPlanDto("TRACTOR045678987", "Tractor Seguros Automotriz",
+        QuotationPlanDto plan1 = new QuotationPlanDto("TRACTOR045678987", "Tractor Seguros Automotriz",
                 "Plan protector de auto", valueUF, 24.86, 11, 24.86/11,
                 (24.86/11)*valueUF, 3, "Deducible 3 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan1, "70%", "800 UF", "90", "3");
-        TestPlanDto plan2 = new TestPlanDto("TRACTOR123456789", "Tractor Seguros Automotriz",
+        QuotationPlanDto plan2 = new QuotationPlanDto("TRACTOR123456789", "Tractor Seguros Automotriz",
                 "Seguro auto completo", valueUF, 22.72, 11, 22.72/11,
                 (22.72/11)*valueUF, 5, "Deducible 5 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan2, "80%", "1200 UF", "120", "4");
-        TestPlanDto plan3 = new TestPlanDto("TRACTOR987654321", "Tractor Seguros Automotriz",
+        QuotationPlanDto plan3 = new QuotationPlanDto("TRACTOR987654321", "Tractor Seguros Automotriz",
                 "Plan seguro auto asegurado", valueUF, 27.81, 11, 27.81/11,
                 (27.81/11)*valueUF, 0, "Deducible 0 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan3, "60%", "1500 UF", "90", "4");
-        TestPlanDto plan4 = new TestPlanDto("TRACTOR12975678953", "Tractor Seguros Automotriz",
+        QuotationPlanDto plan4 = new QuotationPlanDto("TRACTOR12975678953", "Tractor Seguros Automotriz",
                 "Seguro auto premium", valueUF, 20.12, 11, 20.12/11,
                 (20.12/11)*valueUF, 10, "Deducible 10 UF", 0.0, stolenCar, "",
                 "", workshopType);
@@ -117,18 +113,18 @@ public class QuoterHelper {
         return list;
     }
 
-    public List<TestPlanDto> planList2() {
-        List<TestPlanDto> list = new ArrayList<>();
+    public List<QuotationPlanDto> planList2() {
+        List<QuotationPlanDto> list = new ArrayList<>();
         double valueUF = 37000.00;
         String stolenCar = "Valor comercial";
         String workshopType = "Oficial de la marca";
         // Creamos planes de prueba
-        TestPlanDto plan1 = new TestPlanDto("SEGUROSALAMEDA045678987", "Seguros Alameda",
+        QuotationPlanDto plan1 = new QuotationPlanDto("SEGUROSALAMEDA045678987", "Seguros Alameda",
                 "Asistencia en viaje", valueUF, 23.55, 11, 23.55/11,
                 (23.55/11)*valueUF, 5, "Deducible 5 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan1, "70%", "1200 UF", "90", "3");
-        TestPlanDto plan2 = new TestPlanDto("SEGUROSALAMEDA123456789", "Seguros Alameda",
+        QuotationPlanDto plan2 = new QuotationPlanDto("SEGUROSALAMEDA123456789", "Seguros Alameda",
                 "Tu trasporte asegurado", valueUF, 27.01, 11, 27.01/11,
                 (27.01/11)*valueUF, 3, "Deducible 3 UF", 0.0, stolenCar, "",
                 "", workshopType);
@@ -138,23 +134,23 @@ public class QuoterHelper {
         return list;
     }
 
-    public List<TestPlanDto> planList3() {
-        List<TestPlanDto> list = new ArrayList<>();
+    public List<QuotationPlanDto> planList3() {
+        List<QuotationPlanDto> list = new ArrayList<>();
         double valueUF = 37000.00;
         String stolenCar = "Valor comercial";
         String workshopType = "Oficial de la marca";
         // Creamos planes de prueba
-        TestPlanDto plan1 = new TestPlanDto("LOSALAMOS045678987", "Los Alamos Seguros Automotriz",
+        QuotationPlanDto plan1 = new QuotationPlanDto("LOSALAMOS045678987", "Los Alamos Seguros Automotriz",
                 "Proteción ultra automóvil", valueUF, 22.03, 11, 22.03/11,
                 (22.03/11)*valueUF, 3, "Deducible 3 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan1, "65%", "1500 uf", "180", "3");
-        TestPlanDto plan2 = new TestPlanDto("LOSALAMOS123456789", "Los Alamos Seguros Automotriz",
+        QuotationPlanDto plan2 = new QuotationPlanDto("LOSALAMOS123456789", "Los Alamos Seguros Automotriz",
                 "Plan de automóvil asegurado", valueUF, 21.41, 11, 21.41/11,
                 (21.41/11)*valueUF, 3, "Deducible 3 UF", 0.0, stolenCar, "",
                 "", workshopType);
         this.adjustTestPlan(plan2, "75%", "1000 UF", "120", "4");
-        TestPlanDto plan3 = new TestPlanDto("LOSALAMOS987654321", "Los Alamos Seguros Automotriz",
+        QuotationPlanDto plan3 = new QuotationPlanDto("LOSALAMOS987654321", "Los Alamos Seguros Automotriz",
                 "Seguro MAX automóvil", valueUF, 23.38, 11, 23.38/11,
                 (23.38/11)*valueUF, 5, "Deducible 5 UF", 0.0, stolenCar, "",
                 "", workshopType);
@@ -165,7 +161,7 @@ public class QuoterHelper {
         return list;
     }
 
-    public void adjustTestPlan(TestPlanDto testPlan, String lossPercentage, String thirdPartyUF, String daysReplacement,
+    public void adjustTestPlan(QuotationPlanDto testPlan, String lossPercentage, String thirdPartyUF, String daysReplacement,
             String yearsRenewal) {
         // Adjust data
         String totalLoss = "Valor comercial en caso de daños mayores al " + lossPercentage + " del valor";
@@ -182,374 +178,229 @@ public class QuoterHelper {
     public QuoterModel createQuoteStructure(QuoterOwnerModel quoterOwner, QuoterCarModel quoterCar,
             QuoterPurchaserModel quoterPurchaser, String quoterStatus, LocalDateTime currentDateTime) {
         // Estructura de los otros objetos del cotizador (vacíos por el momento)
-        QuoterPlanModel quoterPlan = new QuoterPlanModel("", "", "", 0.0, 0.0, 0, 0.0, 0.0, 0, 0.0);
+        QuoterPlanModel quoterPlan = new QuoterPlanModel("", "", "", 0.0, 0.0, 0, 0.0, 0.0, "", 0.0);
         QuoterAddressModel quoterAddress = new QuoterAddressModel("", "", "");
         QuoterPaymentModel quoterPayment = new QuoterPaymentModel("", "", "", "");
         return new QuoterModel(new ObjectId(), quoterStatus, quoterOwner, quoterCar, quoterPurchaser, quoterPlan,
                 quoterAddress, quoterPayment, currentDateTime, currentDateTime);
     }
 
-    // Obtener la fecha de corte y la fecha de pago, para generar el informe de retiro de comisiones
-    public Object[] getCutOffDateAndPaymentDate(LocalDateTime currentDateTime, CommissionReportRequest withdrawalRequest) {
-        int currentYear = currentDateTime.getYear();
-        int currentMonth = currentDateTime.getMonthValue();
-        int currentDayOfMonth = currentDateTime.getDayOfMonth();
-        
-        // POR AHORA LOS DÍAS DE CORTE SON LOS 5 Y LOS DÍA DE PAGO SON LOS 10
-        // Obtenemos la fecha máximo de corte por defecto, en caso de que no se especifique en el cuerpo de la solicitud,
-        // entendiendo que se obtienen todas las transacciones aprobadas hasta los días de corte. Por lo tanto, verificamos
-        // si el día del mes de la fecha actual, es mayor al día de corte, si es así, la máxima fecha de corte sería de
-        // este mes en el día de corte, pero si no, si el día del mes de la fecha actual, es igual o menor al día de corte,
-        // la máxima fecha de corte sería del mes anterior, en el día de corte, porque como aún no se ha pasado el día de
-        // corte, se pueden seguir acumulando ventas de planes. Ahora, en caso de que se haya específicado la fecha de
-        // corte, solo se puede permitir realizar un informe como máximo, hasta la próxima fecha de corte, ejemplo: si el
-        // día de corte son los 15, y hoy estamos a 2025-20-01, la fecha máxima de corte sería para 2025-15-01, pero, como
-        // se específico en la solicitud, puede ser hasta 2025-15-02.
-        LocalDateTime maxCutOffDate;
-        LocalDateTime maxPaymentDate;
-        if(currentDayOfMonth <= commissionCutoffDate) { // No ha pasado el día de corte, por lo tanto, la fecha máxima de corte, es del mes anterior en el día de corte
-            int maxYearCutoffDate = currentYear;
-            int maxMonthCutoffDate = currentMonth;
-            if(maxMonthCutoffDate == 1) {
-                maxYearCutoffDate -= 1;
-                maxMonthCutoffDate = 12;
-            } else {
-                maxMonthCutoffDate -= 1;
-            }
-            maxCutOffDate = LocalDateTime.of(maxYearCutoffDate, maxMonthCutoffDate, commissionCutoffDate, 23, 59, 59);
-            maxPaymentDate = LocalDateTime.of(maxYearCutoffDate, maxMonthCutoffDate, commissionPaymentDate, 23, 59, 59);
-        } else { // Paso el día de corte, por lo tanto, la fecha máxima de corte, es de este mes en el día de corte
-            maxCutOffDate = LocalDateTime.of(currentYear, currentMonth, commissionCutoffDate, 23, 59, 59); 
-            maxPaymentDate = LocalDateTime.of(currentYear, currentMonth, commissionPaymentDate, 23, 59, 59);
-        }
-
-        // En resumen, si no se específica fecha de corte, se obtiene la máxima fecha de corte, que sería la fecha actual
-        // con el día de corte, en caso de que se haya pasado el día de corte, o el mes pasado con la fecha de corte de la
-        // fecha actual, en caso de que NO se haya pasado la fecha de corte, y en caso contrario la fecha máxima de corte,
-        // puede ser hasta 1 mes más del máximo.
-        String cutoffDateStr = withdrawalRequest.cutoffDate();
-        DateTimeFormatter formatterDate = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDateTime cutoffDate = null;
-        LocalDateTime paymentDate = null;
-        String errorMessage = null;
-
-        if(DataHelper.isNull(cutoffDateStr)) {
-            cutoffDate = maxCutOffDate;
-            paymentDate = maxPaymentDate;    
-        } else {
-            try {
-                LocalDate dateDelivered = LocalDate.parse(cutoffDateStr, formatterDate);
-                LocalDate maxCutOffDateLocalDate = maxCutOffDate.toLocalDate().plusMonths(1);
-                int yearDelivered = dateDelivered.getYear();
-                int monthDelivered = dateDelivered.getMonthValue();
-                int dayDelivered = dateDelivered.getDayOfMonth();
-                if(dateDelivered.isAfter(maxCutOffDateLocalDate)) {
-                    errorMessage = "la fecha de corte no puede sobrepasar la fecha de corte máxima, de la cual, se puede consultar: " + maxCutOffDateLocalDate;
-                } else if(dayDelivered != commissionCutoffDate) {
-                    errorMessage = "la fecha de corte, debe considerar el día de corte: " + commissionCutoffDate;
-                }
-                cutoffDate = LocalDateTime.of(yearDelivered, monthDelivered, commissionCutoffDate, 23, 59, 59);
-                paymentDate = LocalDateTime.of(yearDelivered, monthDelivered, commissionPaymentDate, 23, 59, 59);
-            } catch (DateTimeParseException e) {
-                errorMessage = "no se pudo obtener la fecha de corte proporcionada, con el formato: YYYY-MM-DD";
-            }
-        }
-
-        return new Object[] {errorMessage, cutoffDate, paymentDate};
-    }
-
-
     // Generamos el cuerpo de una nueva transacción
-    public TransactionModel generateNovaTransactionStructure(String transactionId, UserModel userC,
-            QuoterModel quoterDB, int commissionTotal, String currentStatus, LocalDateTime currentDateTime) {
-        String userCId = userC.getUserId();
-        TransactionModel novaTransaction = new TransactionModel(transactionId, quoterDB.getQuoterPlanData().getQuoterPlanId(),
-                userCId, quoterDB.getQuoterId(), currentStatus, commissionTotal, 1,
-                "La comisión está siendo procesada", currentDateTime, currentDateTime, DataHelper.deprecatedDateTime());
-        novaTransaction.addCommission(new TransactionComissionModel(userCId, commissionTotal, currentStatus));
+    public TransactionModel generateNovaTransactionStructure(String transactionId, String userCId, QuoterModel quoterDB, String status, int commissionTotal, int commissionScope, String observation, LocalDateTime currentDateTime) {
+        String planId = quoterDB.getQuoterPlanData().getQuoterPlanId();
+        String quoterId = quoterDB.getQuoterId();
+        TransactionModel novaTransaction = new TransactionModel(transactionId, planId, userCId, quoterId, status, commissionTotal,
+                commissionScope, true, observation, currentDateTime, currentDateTime, DataHelper.deprecatedDateTime());
+        novaTransaction.addCommission(new TransactionComissionModel(userCId, commissionTotal, status));
         return novaTransaction;
     }
 
-    public void generateCommissionReport(CommissionReportDto commissionReport, LocalDateTime afterDate, String endpoint,
-            LocalDateTime currentDateTime, TransactionRepository transactionRepository, UserRepository userRepository,
-            LogRepository logRepository) {
-        // Buscamos todas las transacciones que esten con el estado "Aprobado" o con el estado "Confirmando" (en caso de
-        // que el usuario no haya confirmado su cuenta bancaria para recibir sus comisiones) y que además la transacción,
-        // tiene que haberse realizado antes de la fecha que viene después de la fecha de corte.
-        List<TransactionModel> transactionsDB = transactionRepository.findAllByApprovalDateBeforeAndStatusProcessing(afterDate);
-        int totalPaymentTransactions=0;
-        int totalPaymentUsers=0;
-        for(TransactionModel transactionDB : transactionsDB) {
-            String transactionId = transactionDB.getTransactionId();
-            int transactionCommmission = 0;
-            for(TransactionComissionModel commissionDB : transactionDB.getCommissions()) {
-                if(commissionDB.getCommissionStatus().equals("Liberado")) {
-                    // Ya se pago la comisión, pero, hay comisiones que se tienen que pagar en está transacción
-                    continue;
-                }
-                String commissionUserId = commissionDB.getUserId();
-                int commissionPayment = commissionDB.getUserCommission();
-                // Buscamos si ya existe el usuario en el reporte de comisiones
-                boolean existsUserReport = false;
-                for(CommissionPaymentDto commissionData : commissionReport.getPayments()) {
-                    if(commissionUserId.equals(commissionData.getUserId())) {
-                        existsUserReport = true;
-                        commissionData.setPayment(commissionData.getPayment() + commissionPayment);
-                        commissionData.addCommission(new CommissionDataDto(transactionId, commissionPayment));
-                        break;
-                    }
-                }
-                // Si no existe el usuario en el reporte se crea
-                if(!existsUserReport) {
-                    CommissionPaymentDto novaCommisionData = new CommissionPaymentDto(commissionUserId, "",
-                            null, commissionPayment, "");
-                    novaCommisionData.addCommission(new CommissionDataDto(transactionId, commissionPayment));
-                    commissionReport.addPayment(novaCommisionData);
-                }
-                // Sumamos las comisiones de la trasacción
-                transactionCommmission += commissionPayment;
-            }
-            totalPaymentTransactions += transactionCommmission;
-            commissionReport.addTransactionId(transactionId);
-        }
-        // Ya se obtuvieron las comisiones del usuario en las transacciones. Ahora, buscamos el usuario para agregar su
-        // estado, cuenta bancaria y confirmar el monto que se le debe cancelar
-        for(CommissionPaymentDto commissionData : commissionReport.getPayments()) {
-            // Sumamos las comisiones ya calculadas desde los usuarios
-            totalPaymentUsers += commissionData.getPayment();
-            String userId = commissionData.getUserId();
-            if(!ObjectId.isValid(userId)) {
-                // Generamos log de error en caso de existir conflicto
-                String reference = "ID de usuario incorrecto en reporte de comisiones";
-                if(!logRepository.existsByTypeAndStatusAndReferenceAndUserId("ERROR", "Grave", reference, userId)) {
-                    LogModel logUserIdInvalid = new LogModel(null, "ERROR", reference,
-                            endpoint, "Grave", userId, "", "", new HashMap<>(),
-                            currentDateTime, currentDateTime);
-                    logRepository.save(logUserIdInvalid);
-                }
-                // Agregamos conflicto existente
-                commissionReport.addConflict(new CommissionConflictDto(userId, reference));
-                continue;
-            }
-            // Buscamos el usuario
-            Optional<UserModel> optionalUser = userRepository.findById(new ObjectId(userId));
-            if(optionalUser.isPresent()) {
-                UserModel userDB = optionalUser.get();
-                CommissionAccountDto userAccount = null;
-                String userStatus = userDB.getPersonalData().getStatus();
-                // Buscamos la cuenta bancaria del usuario
-                for(AccountModel userAccountDB : userDB.getAccounts()) {
-                    if(userAccountDB.isSelected()) {
-                        userAccount = new CommissionAccountDto(userAccountDB.getPersonalId(), userAccountDB.getHolderName(),
-                                userAccountDB.getEmail(), userAccountDB.getBank(), userAccountDB.getAccountType(),
-                                userAccountDB.getAccountNumber());
-                    }
-                }
-                // Agregamos conflictos en dependiendo del los resultados y seteamos los campos de la cuenta del usuario y su estado
-                if(userAccount == null){
-                    // Generamos log de error en caso de existir conflicto
-                    String reference = "Cuenta bancaria de usuario no encontrada";
-                    if(!logRepository.existsByTypeAndStatusAndReferenceAndUserId("ERROR", "Grave", reference, userId)) {
-                        LogModel logUserAccountNotFound = new LogModel(null, "ERROR", reference, endpoint,
-                                "Grave", userId, "", "", new HashMap<>(),
-                                currentDateTime, currentDateTime);
-                        logUserAccountNotFound.addData("userAccounts", userDB.getAccounts());
-                        logRepository.save(logUserAccountNotFound);
-                    }
-                    // Agregamos conflicto existente
-                    commissionReport.addConflict(new CommissionConflictDto(userId, reference));
-                }
-                if(!userStatus.equals("Activado")) {
-                    // Generamos log de error en caso de existir conflicto
-                    String reference = "El usuario no se encuentra activado en el reporte de comisiones";
-                    if(!logRepository.existsByTypeAndStatusAndReferenceAndUserId("ERROR", "Grave", reference, userId)) {
-                        LogModel logUserInactive = new LogModel(null, "ERROR", reference,
-                                endpoint, "Grave", userId, "", "", new HashMap<>(),
-                                currentDateTime, currentDateTime);
-                        logRepository.save(logUserInactive);
-                    }
-                    // Agregamos conflicto existente
-                    commissionReport.addConflict(new CommissionConflictDto(userId, reference));
-                }
-                commissionData.setAccount(userAccount);
-                commissionData.setStatus(userStatus);
-            } else {
-                // Generamos log de error en caso de existir conflicto
-                String reference = "El usuario no fue encontrado en el reporte de comisiones";
-                if(!logRepository.existsByTypeAndStatusAndReferenceAndUserId("ERROR", "Grave", reference, userId)) {
-                    LogModel logUserNotFound = new LogModel(null, "ERROR", reference,
-                            endpoint, "Grave", userId, "", "", new HashMap<>(),
-                            currentDateTime, currentDateTime);
-                    logRepository.save(logUserNotFound);
-                }
-                // Agregamos conflicto existente
-                commissionReport.addConflict(new CommissionConflictDto(userId, reference));
+    // Checkeamos si existe el usuario con problemas en el arreglo para crearlo o actualizarlo si es el caso
+    public void checkReportUsersProblem(List<ReportUserDto> usersProblem, String userId, String userName, String userEmail, String transactionId, int commission, String transactionMessage) {
+        for(ReportUserDto userProblem : usersProblem) {
+            if(userId.equals(userProblem.getUserId())) {
+                userProblem.setName((!userName.equals("")) ? userName : userProblem.getName());
+                userProblem.setEmail((!userEmail.equals("")) ? userEmail : userProblem.getEmail());
+                userProblem.addTransactionData(new ReportTransactionDataDto(transactionId, commission, transactionMessage));
+                return;
             }
         }
-        commissionReport.setTotalUsers(commissionReport.getPayments().size());
-        commissionReport.setTotalPaymentTransactions(totalPaymentTransactions);
-        commissionReport.setTotalPaymentUsers(totalPaymentUsers);
-        if(totalPaymentTransactions != totalPaymentUsers) {
-            // Agregamos conflicto existente
-            commissionReport.addConflict(new CommissionConflictDto("", "El total de pago de las transacciones, no es equivalente con las comisiones de los usuarios."));
-        }
+        // No está el usuario se agrega en el arreglo
+        usersProblem.add(new ReportUserDto(userId, userName, userEmail, commission, "", "Usuario con detalles", null).addTransactionData(new ReportTransactionDataDto(transactionId, commission, transactionMessage)));
     }
 
-    // Flujos para actualizar las comisiones pagadas
-    @Transactional(readOnly = true)
-    public String updateCommissionPayments(List<CommissionPaymentDto> payments, List<UserModel> updateUsers,
-            List<TransactionModel> updateTransactions, List<PaymentModel> listUserPayments, String lastStatus,
-            String confirmationStatus, LocalDateTime currenDateTime, TransactionRepository transactionRepository,
-            UserRepository userRepository) {
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        for(CommissionPaymentDto payment : payments) {
-            String userId = payment.getUserId();
-            if(!ObjectId.isValid(userId)) {
-                return "el id de usuario: " + userId + ", no es correcto";
+    // Checkeamos si existe el usuario con aprobado+ en el arreglo para crearlo o actualizarlo si es el caso
+    public void checkReportUsersApproved(List<ReportUserDto> usersApproved, String userId, String userName, String userEmail, ReportAccountDto accountDto, String transactionId, int commission, String transactionMessage) {
+        for(ReportUserDto userApproved : usersApproved) {
+            if(userId.equals(userApproved.getUserId())) {
+                userApproved.setName((!userName.equals("")) ? userName : userApproved.getName());
+                userApproved.setEmail((!userEmail.equals("")) ? userEmail : userApproved.getEmail());
+                userApproved.setTotalCommission(userApproved.getTotalCommission() + commission);
+                userApproved.setAccount((accountDto != null) ? accountDto : userApproved.getAccount());
+                userApproved.addTransactionData(new ReportTransactionDataDto(transactionId, commission, transactionMessage));
+                return;
             }
-            Optional<UserModel> optionalUser = userRepository.findById(new ObjectId(userId));
-            if(optionalUser.isPresent()) {
-                // Se encontró el usuario y se puede seguir la lógica
-                UserModel userDB = optionalUser.get();
-                CommissionAccountDto userAccount = payment.getAccount();
-                int userPayment = payment.getPayment();
-                int userPaymentTotal = 0;
-                for(CommissionDataDto commission : payment.getCommissions()) {
-                    String transactionId = commission.transactionId();
-                    int transactionCommision = commission.commission();
-                    userPaymentTotal += transactionCommision;
-                    boolean existsTransaction = false; // Buscamos si existe la transacción en la lista de transacciones
-                    for(TransactionModel updateTransaction : updateTransactions) {
-                        if(transactionId.equals(updateTransaction.getTransactionId())) {
-                            // Existe la transasacción, así que, se busca la comisión que se tiene que actualizar
-                            existsTransaction = true;
-                            boolean existsCommission = false;
-                            for(TransactionComissionModel commissionDB : updateTransaction.getCommissions()) {
-                                int transactionCommissionDB = commissionDB.getUserCommission();
-                                String transactionUserId = commissionDB.getUserId();
-                                String commissionStatus = commissionDB.getCommissionStatus();
-                                if(transactionCommision == transactionCommissionDB && userId.equals(transactionUserId)) {
-                                    // Está es la transacción que se tiene que actualizar, antes se verifica que no este pagada.
-                                    if(commissionStatus.equals(lastStatus)) {
-                                        return "la comisión del usuario, ya se encuentra pagada en la transacción: " + transactionId;
-                                    }
-                                    commissionDB.setCommissionStatus(lastStatus);
-                                    existsCommission = true;
-                                    break;
-                                }
-                            }
-                            if(!existsCommission) {
-                                return "no se encontro la comisión del usuario: " + userId + ", en la transacción: " + transactionId;
-                            }
-                            break;
-                        }
-                    }
-                    // Si no existe la transacción, se debe buscar por la base de datos, buscar la comisión que se debe actualizar y agregar a las transacciones que se deben actualizar
-                    if(!existsTransaction) {
-                        Optional<TransactionModel> optionalTransaction = transactionRepository.findById(transactionId);
-                        if(optionalTransaction.isPresent()) {
-                            // Se encontró la transacción, ahora se busca la comisión para ser actualizada
-                            TransactionModel transactionDB = optionalTransaction.get();
-                            String transactionStatus = transactionDB.getStatus();
-                            if(!transactionStatus.equals("Aprobado") && !transactionStatus.equals(confirmationStatus)) {
-                                return "el estado de la transacción: " + transactionId + ", no es correcto: " + transactionStatus;
-                            }
-                            boolean existsCommission = false;
-                            for(TransactionComissionModel commissionDB : transactionDB.getCommissions()) {
-                                int transactionCommissionDB = commissionDB.getUserCommission();
-                                String transactionUserId = commissionDB.getUserId();
-                                String commissionStatus = commissionDB.getCommissionStatus();
-                                if(transactionCommision == transactionCommissionDB && userId.equals(transactionUserId)) {
-                                    // Está es la transacción que se tiene que actualizar, antes se verifica que no este pagada.
-                                    if(commissionStatus.equals(lastStatus)) {
-                                        return "la comisión del usuario: " + userId + ", ya se encuentra pagada en la transacción: " + transactionId;
-                                    }
-                                    commissionDB.setCommissionStatus(lastStatus);
-                                    updateTransactions.add(transactionDB); // Agregamos transacción con una comisión actualizada
-                                    existsCommission = true;
-                                    break;
-                                }
-                            }
-                            if(!existsCommission) {
-                                return "no se encontro la comisión del usuario: " + userId + ", en la transacción: " + transactionId;
-                            }
-                        } else {
-                            return "transacción no encontrada: " + transactionId;
-                        }
-                    }
-                } // Fin de actualización de comisiones de las transacciones
-                // Ahora verificamos que el total de comisiones actualizadas, debe ser el mismo monto que se menciona que se pago
-                if(userPayment != userPaymentTotal) {
-                    return "el monto total de las comisiones, no es el mismo que el monto de pago al usuario: " + userId;
+        }
+        // No está el usuario se agrega en el arreglo
+        usersApproved.add(new ReportUserDto(userId, userName, userEmail, commission, "", "Usuario aprobado", accountDto).addTransactionData(new ReportTransactionDataDto(transactionId, commission, transactionMessage)));
+    }
+
+    // Agregamos un usuario al arreglo de los usuarios con problemas por una excepción y con mensaje explicativo
+    public void addUserProblem(List<ReportUserDto> usersProblem, ReportUserDto userApproved, String generalMessage) {
+        String userId = userApproved.getUserId();
+        for(ReportUserDto userProblem : usersProblem) {
+            if(userId.equals(userProblem.getUserId())) {
+                userProblem.setGeneralMessage(userProblem.getGeneralMessage() + " - " + generalMessage);
+                userProblem.setName(userApproved.getName());
+                userProblem.setEmail(userApproved.getEmail());
+                userProblem.setTotalCommission(userProblem.getTotalCommission() + userApproved.getTotalCommission());
+                // Agregamos las transacciones que tenía el usuario aprobado
+                for(ReportTransactionDataDto transactionData : userApproved.getTransactionData()) {
+                    userProblem.addTransactionData(transactionData);
                 }
-                // Actualización de wallet del usuario
-                WalletModel userWallet = userDB.getWallet();
-                int availableBalance = userWallet.getAvailableBalance() - userPayment;
-                if(availableBalance < 0) {
-                    return "el monto pagado, es mayor al saldo disponible del usuario: " + userId;
-                }
-                if(userAccount == null || DataHelper.isNull(userAccount.bank()) || DataHelper.isNull(userAccount.accountNumber())) {
-                    return "la cuenta de bancaria para el recibo de comisiones del usuario: " + userId + ", no es correcta";
-                }
-                userWallet.setAvailableBalance(availableBalance);
-                userWallet.setPaymentBalance(userWallet.getPaymentBalance() + userPayment);
-                userWallet.setTotalBalance(availableBalance + userWallet.getOutstandingBalance());
-                // Creación de objeto para el egreso de comisiones (SE DEBE AGREGAR LOS IDS DE LOS EGRESOS EN EL USUARIO)
-                PaymentModel novaPayment = new PaymentModel(new ObjectId(), userId, userAccount,
-                        userPayment, availableBalance, payment.getVoucher(), currenDateTime.format(dateFormatter),
-                        currenDateTime, currenDateTime);
-                // Finalmente, agregamos el usuario que se tiene que actualizar a la lista de usuarios y el nuevo egreso a la lista de egresos
-                userWallet.addPaymentId(novaPayment.getPaymentId());
-                updateUsers.add(userDB);
-                listUserPayments.add(novaPayment);
-            } else {
-                return "usuario no encontrado: " + userId;
+                return;
+            }
+        }
+        // No se encontró el usuario con detalles, y ahora se agrega
+        usersProblem.add(new ReportUserDto(userId, userApproved.getName(), userApproved.getEmail(), userApproved.getTotalCommission(), userApproved.getVoucher(), generalMessage, null).setTransactionData(userApproved.getTransactionData()));
+    }
+
+    // Revisar si el usuario tiene una cuenta bancaria activa para poder pagale las comisiones
+    public AccountModel checkUserAccount(UserModel userDB) {
+        for(AccountModel userAccountDB : userDB.getAccounts()) {
+            if(userAccountDB.isSelected()) {
+                return userAccountDB;
             }
         }
         return null;
     }
-    public Map<String, Object> confirmingTransactionStatus(List<TransactionModel> updateTransactions,
-            List<UserModel> updateUsers, List<PaymentModel> listUserPayments, String lastStatus,
-            String confirmationStatus, LocalDateTime currenDateTime) {
-        Map<String, Object> dataUpdated = new HashMap<>();
-        List<String> transactionIds = new ArrayList<>();
-        List<String> userIds = new ArrayList<>();
-        List<String> paymentIds = new ArrayList<>();
-        // Confirmamos el estado de la transacción y agregamos los ids de las transacciones actualizadas
-        for(TransactionModel updateTransaction : updateTransactions) {
-            boolean isTransactionFinished = true;
-            for(TransactionComissionModel commissionDB : updateTransaction.getCommissions()) {
-                String commissionStatus = commissionDB.getCommissionStatus();
-                if(!commissionStatus.equals(lastStatus)) {
-                    // La transacción aún no se ha liberado
-                    commissionDB.setCommissionStatus(confirmationStatus);
-                    isTransactionFinished = false;
+
+    // Buscamos las transacciones para actualizar sus comisiones
+    public String manageTransactionsForCommission(List<ReportUserDto> usersRequest, List<TransactionModel> updateTransactionsInDB, TransactionRepository transactionRepository, LocalDateTime currentTime) {
+        String message = "";
+        String pointOfLastStatus = "Liberado";
+        // Primero recuperamos todas las transacciones en objeto que nos permita procesarla como única y con uno o más usuarios que se beneficiaron de la transacción
+        List<TransactionDto> transactionsDto = new ArrayList<>();
+        for(ReportUserDto userRequest : usersRequest) {
+            String userIdRequest = userRequest.getUserId();
+            String userEmailRequest = userRequest.getEmail();
+            if(DataHelper.isNull(userIdRequest) || DataHelper.isNull(userEmailRequest)) {
+                message = "Se encontró valor sin declarar en el usuario con email: " + userEmailRequest;
+                return message;
+            }
+            for(ReportTransactionDataDto reportTransaction : userRequest.getTransactionData()) {
+                String reportTransactionId = reportTransaction.transactionId();
+                if(DataHelper.isNull(reportTransactionId)) {
+                    message = "No se encontró la transacción N°" + reportTransactionId + ", del usuario con email: " + userEmailRequest;
+                    return message;
+                }
+                this.buildTransactionDto(transactionsDto, reportTransactionId, userIdRequest, userEmailRequest);
+            }
+        }
+        // Ahora que tenemos las transacciones como si fuera única (con las comisiones de los usuarios), se puede procesar
+        // y si todo sale bien, se puede agregar a la lista de las transacciones que se tienen que actualizar en la db y
+        // no se va a pisar la data
+        for(TransactionDto transactionDto : transactionsDto) {
+            String transactionIdDto = transactionDto.getTransactionId();
+            @SuppressWarnings("null")
+            Optional<TransactionModel> optionalTransaction = transactionRepository.findById(transactionIdDto);
+            if(optionalTransaction.isEmpty()) {
+                message = "La transacción con N°" + transactionIdDto + ", no fue encontrada para actualizar las comisiones de los usuarios";
+                return message;
+            }
+            // Se encontró la transacción ahora se verifica que se encontró todas las comisiones de la transacción
+            TransactionModel transactionDB = optionalTransaction.get();
+            for(TransactionCommissionDto transactionCommissionDto : transactionDto.getCommissions()) {
+                String userIdCommissionDto = transactionCommissionDto.getUserId();
+                String userEmailCommissionDto = transactionCommissionDto.getUserEmail();
+                boolean isUserCommission = false;
+                for(TransactionComissionModel transactionCommissionDB : transactionDB.getCommissions()) {
+                    if(userIdCommissionDto.equals(transactionCommissionDB.getUserId())) {
+                        isUserCommission = true;
+                        transactionCommissionDB.setCommissionStatus(pointOfLastStatus);
+                        break;
+                    }
+                }
+                if(!isUserCommission) {
+                    message = "No se ha podido encontrar usuario en la transacción N°" + transactionIdDto + ", con el email: " + userEmailCommissionDto;
+                    return message;
                 }
             }
-            if(isTransactionFinished) {
-                updateTransaction.setStatus(lastStatus);
-            } else {
-                // La transacción tiene comisiones pendientes que pagar
-                updateTransaction.setStatus(confirmationStatus);
+            transactionDB.setUpdatedDate(currentTime);
+            // Verificar si se debe actualizar el estado general de la transacción y agregar transacción a transacciones que se deben actualizar
+            this.checkTransactionLastStatus(transactionDB, pointOfLastStatus, currentTime);
+            updateTransactionsInDB.add(transactionDB);
+        }
+        return message;
+    }
+
+    // Ayuda a construir el objeto de transacciones que beneficia a un usuario o a varios usuarios
+    private void buildTransactionDto(List<TransactionDto> transactionsDto, String transactionId, String userId, String userEmail) {
+        boolean isTransactionDto = false;
+        for(TransactionDto transactionDto : transactionsDto) {
+            String transactionIdDto = transactionDto.getTransactionId();
+            if(transactionId.equals(transactionIdDto)) {
+                isTransactionDto = true;
+                transactionDto.addTransactionCommissionDto(new TransactionCommissionDto(userId, userEmail));
+                break;
             }
-            updateTransaction.setObservation("La comisión ha sido liberada exitosamente");
-            updateTransaction.setUpdatedDate(currenDateTime);
-            // Agregando los ids de las transacciones actualizadas
-            transactionIds.add(updateTransaction.getTransactionId());
         }
-        // Agregamos los ids de los usuarios actualizados
-        for(UserModel userDB : updateUsers) {
-            userIds.add(userDB.getUserId());
+        if(!isTransactionDto) {
+            transactionsDto.add(new TransactionDto(transactionId).addTransactionCommissionDto(new TransactionCommissionDto(userId, userEmail)));
         }
-        // Agregamos los ids de los pagos creados para las comisiones
-        for(PaymentModel paymentDB : listUserPayments) {
-            paymentIds.add(paymentDB.getPaymentId());
+    }
+
+    // Actualizar el último estado de la transacción en caso de que todas las comisiones estén con el último estado
+    private void checkTransactionLastStatus(TransactionModel transactionDB, String pointOfLastStatus, LocalDateTime currentTime) {
+        boolean isLastStatus = true;
+        for(TransactionComissionModel transactionCommission : transactionDB.getCommissions()) {
+            String commissionStatus = transactionCommission.getCommissionStatus();
+            if(!pointOfLastStatus.equals(commissionStatus)) {
+                isLastStatus = false;
+                break;
+            }
         }
-        // Agregamos al map, todos los registros actualizados y lo devolvemos
-        dataUpdated.put("transactionIds", transactionIds);
-        dataUpdated.put("userIds", userIds);
-        dataUpdated.put("paymentIds", paymentIds);
-        return dataUpdated;
+        if(isLastStatus) {
+            transactionDB.setStatus(pointOfLastStatus);
+            transactionDB.setUpdatedDate(currentTime);
+        }
+    }
+
+    // Buscar los usuarios para actualizar sus datos y crear los objetos de pagos
+    public String manageUsersAndPaymentsForCommission(List<ReportUserDto> usersRequest, List<UserModel> updateUsersInDB,
+            List<PaymentModel> updatePaymentsInDB, UserRepository userRepository, LocalDateTime currentTime) {
+        String message = "";
+        String paymentDate = "";
+        try {
+            DateTimeFormatter formatterDate = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            paymentDate = currentTime.format(formatterDate);
+        } catch (Exception e) {
+            LOGGER_MESSAGES.info("No ha sido posible crear el formato para la fecha de pago");
+        }
+        for(ReportUserDto userRequest : usersRequest) {
+            // Primero buscamos usuario en la DB
+            String userEmailRequest = userRequest.getEmail();
+            Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(userEmailRequest);
+            if(userOptional.isEmpty()) {
+                message = "No fue posible encontrar el usuario con email: " + userEmailRequest;
+                return message;
+            }
+            UserModel userDB = userOptional.get();
+            String userIdRequest = userRequest.getUserId();
+            String userIdDB = userDB.getUserId();
+            if(userIdRequest == null || userIdDB == null || !userIdRequest.equals(userIdDB)) {
+                message = "El id del usuario de la solicitud no es el mismo al id del usuario encontrado con email: " + userEmailRequest;
+                return message;
+            }
+            // Comparamos el total de la comisión cancelada con todas las comisiones asociadas al usuario, además de ir guardando todas las transacciones del usuario
+            int expectedCommissions = userRequest.getTotalCommission();
+            int calculatedCommissions = 0;
+            Set<String> transactionIds = new HashSet<>();
+            for(ReportTransactionDataDto reportTransaction : userRequest.getTransactionData()) {
+                calculatedCommissions += reportTransaction.commission();
+                transactionIds.add(reportTransaction.transactionId());
+            }
+            if(expectedCommissions != calculatedCommissions) {
+                message = "La comisión calculada : $" + calculatedCommissions + ", no es la misma a la comisión esperada: $" + expectedCommissions + ", del usuario con email: " + userEmailRequest;
+                return message;
+            }
+            // Esta bien el usuario y su comisión, ahora se revisa su cuenta a la que se deposito
+            ReportAccountDto userAccount = userRequest.getAccount();
+            if(userAccount == null) {
+                message = "No se ha podido identificar la cuenta bancaria del usuario con email: " + userEmailRequest;
+                return message;
+            }
+            // Esta todo correcto se crea objeto de pago, se actualiza wallet de usuario y se agregan a los objetos para actualizar en DB
+            PaymentModel novaPayment = new PaymentModel(new ObjectId(), userIdRequest, userAccount, expectedCommissions, userRequest.getVoucher(), paymentDate, transactionIds, currentTime, currentTime);
+            updatePaymentsInDB.add(novaPayment);
+            WalletModel wallet = userDB.getWallet();
+            wallet.setAvailableBalance(wallet.getAvailableBalance() - expectedCommissions);
+            wallet.setTotalBalance(wallet.getAvailableBalance() + wallet.getOutstandingBalance());
+            wallet.setPaymentBalance(wallet.getPaymentBalance() + expectedCommissions);
+            wallet.addPaymentId(novaPayment.getPaymentId());
+            updateUsersInDB.add(userDB);
+        } 
+        return message;
     }
 
 }

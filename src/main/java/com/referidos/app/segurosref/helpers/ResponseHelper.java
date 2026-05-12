@@ -3,84 +3,76 @@ package com.referidos.app.segurosref.helpers;
 import static com.referidos.app.segurosref.configs.JwtConfig.CONTENT_TYPE;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.referidos.app.segurosref.dtos.ResultQuoteDto;
-import com.referidos.app.segurosref.responses.GeneralResponses;
+import com.referidos.app.segurosref.dtos.quotation.QuotationDto;
+import com.referidos.app.segurosref.responses.GeneralResponse;
 
 import jakarta.servlet.http.HttpServletResponse;
 
 public class ResponseHelper {
 
-    public static Map<String, Object> buildErrorFields(BindingResult result) {
-        Map<String, Object> json = new HashMap<>();
-
-        result.getFieldErrors().forEach(error -> {
-            String fieldName = error.getField();
-            json.put(fieldName, "The field " + fieldName + " " + error.getDefaultMessage());
-        });
-        
-        return json;
+    public static ResponseEntity<GeneralResponse> response(String message, int status, Object data) {
+        return ResponseEntity.status(status).body(new GeneralResponse(message, status, data));
     }
 
-    public static ResponseEntity<GeneralResponses> response(String message, int status, Object data) {
-        return ResponseEntity.status(status).body(new GeneralResponses(message, status, data));
-    }
-
-    public static ResponseEntity<GeneralResponses> ok(String message, Map<String, Object> info) {
+    public static ResponseEntity<GeneralResponse> ok(String message, Map<String, Object> info) {
         String buildMessage = "Solicitud realizada: " + message;
         return ResponseHelper.response(buildMessage, HttpStatus.OK.value(), info);
     }
 
-    public static ResponseEntity<GeneralResponses> ok(String message, ResultQuoteDto resultQuoteDto) {
+    public static ResponseEntity<GeneralResponse> ok(String message, QuotationDto quotationDto) {
         String buildMessage = "Solicitud realizada: " + message;
-        return ResponseHelper.response(buildMessage, HttpStatus.OK.value(), resultQuoteDto);
+        return ResponseHelper.response(buildMessage, HttpStatus.OK.value(), quotationDto);
     }
 
-    public static ResponseEntity<GeneralResponses> created(String message, Map<String, Object> info) {
+    public static ResponseEntity<GeneralResponse> created(String message, Map<String, Object> info) {
         Map<String, Object> buildInfo = (info != null) ? info : Map.of("info", "created");
         String buildMessage = "Recurso creado: " + message;
         return ResponseHelper.response(buildMessage, HttpStatus.CREATED.value(), buildInfo);
     }
 
-    public static ResponseEntity<GeneralResponses> accepted(String message, Map<String, Object> info) {
+    public static ResponseEntity<GeneralResponse> accepted(String message, Map<String, Object> info) {
         Map<String, Object> buildInfo = (info != null) ? info : Map.of("info", "accepted");
         String buildMessage = "Solicitud aceptada: " + message;
         return ResponseHelper.response(buildMessage, HttpStatus.ACCEPTED.value(), buildInfo);
     }
 
-    public static ResponseEntity<GeneralResponses> imUsed(String message, Map<String, Object> info) {
+    public static ResponseEntity<GeneralResponse> imUsed(String message, Map<String, Object> info) {
         Map<String, Object> buildInfo = (info != null) ? info : Map.of("info", "I'm used");
         String buildMessage = "Recurso en uso: " + message;
         return ResponseHelper.response(buildMessage, HttpStatus.IM_USED.value(), buildInfo);
     }
 
-    public static ResponseEntity<GeneralResponses> gone(String message, String info) {
+    public static ResponseEntity<GeneralResponse> gone(String message, String info) {
         String buildInfo = (info != null) ? info : "gone";
         String buildMessage = "Solicitud expirada: " + message;
         return ResponseHelper.response(buildMessage, HttpStatus.GONE.value(), Map.of("info", buildInfo));
     }
 
-    public static ResponseEntity<GeneralResponses> locked(String message, String info) {
+    public static ResponseEntity<GeneralResponse> locked(String message, String info) {
         String buildInfo = (info != null) ? info : "locked";
         String buildMessage = "Solicitud retenida: " + message;
         return ResponseHelper.response(buildMessage, HttpStatus.LOCKED.value(), Map.of("info", buildInfo));
     }
 
-    public static ResponseEntity<GeneralResponses> failedDependency(String message, String info) {
+    public static ResponseEntity<GeneralResponse> failedDependency(String message, String info) {
         String buildInfo = (info != null) ? info : "failed dependency";
         String buildMessage = "Solicitud irreconocible: " + message;
         return ResponseHelper.response(buildMessage, HttpStatus.FAILED_DEPENDENCY.value(), Map.of("info", buildInfo));
     }
 
-    public static ResponseEntity<GeneralResponses> preconditionMap(String message, Map<String, Object> info) {
+    public static ResponseEntity<GeneralResponse> failedDependency(String message, Map<String, Object> data) {
+        String buildMessage = "Solicitud irreconocible: " + message;
+        return ResponseHelper.response(buildMessage, HttpStatus.FAILED_DEPENDENCY.value(), data);
+    }
+
+    public static ResponseEntity<GeneralResponse> preconditionMap(String message, Map<String, Object> info) {
         Map<String, Object> buildInfo = (info != null) ? info : Map.of("info", "precondition required");
         String buildMessage = "Precondición requerida: " + message;
         return ResponseHelper.response(buildMessage, HttpStatus.PRECONDITION_REQUIRED.value(), buildInfo);
@@ -90,7 +82,7 @@ public class ResponseHelper {
         String buildInfo = (info != null) ? info : "failed dependency";
         String buildMessage = "Solicitud irreconocible: " + message;
         int status = HttpStatus.FAILED_DEPENDENCY.value();
-        GeneralResponses body = new GeneralResponses(buildMessage,
+        GeneralResponse body = new GeneralResponse(buildMessage,
                 status,
                 Map.of("info", buildInfo));
         response.setStatus(status);
@@ -102,7 +94,7 @@ public class ResponseHelper {
         String buildInfo = (info != null) ? info : "expectation failed";
         String buildMessage = "JWT inválido: " + message;
         int status = HttpStatus.EXPECTATION_FAILED.value();
-        GeneralResponses body = new GeneralResponses(buildMessage,
+        GeneralResponse body = new GeneralResponse(buildMessage,
                 status,
                 Map.of("info", buildInfo));
         response.setStatus(status);

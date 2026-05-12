@@ -2,6 +2,7 @@ package com.referidos.app.segurosref.helpers;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 
 // import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
 
@@ -9,6 +10,7 @@ import java.util.Map;
 
 import org.bson.types.ObjectId;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.BindingResult;
 
 import com.referidos.app.segurosref.dtos.TokensDto;
 import com.referidos.app.segurosref.dtos.UserSimpleDto;
@@ -51,6 +53,13 @@ public class DataHelper {
         String jwtRefresh = userModel.getPersonalData().getRefreshToken();
         TokensDto tokens = new TokensDto(jwtSession, jwtRefresh);
         return Map.of("user", userModel, "tokens", tokens, key3, value3, key4, value4);
+    }
+
+    public static Map<String, Object> buildUser(UserModel userModel, Map<String, Object> data) {
+        String jwtSession = userModel.getPersonalData().getSessionToken();
+        String jwtRefresh = userModel.getPersonalData().getRefreshToken();
+        TokensDto tokens = new TokensDto(jwtSession, jwtRefresh);
+        return Map.of("user", userModel, "tokens", tokens, "data", data);
     }
 
     public static LocalDate deprecatedDate() {
@@ -115,15 +124,15 @@ public class DataHelper {
                 if((i+1)%patternMultiple == 0) {
                     sb.append(pattern);
                 } else {
-                    sb.append(letters[ ((int) (Math.random()*62)) ]);
+                    sb.append(letters[ ((int) (Math.random()*letters.length)) ]);
                 }
             }
         } else {
             for(int i=0; i<length; i++) {
-                sb.append(letters[ ((int) (Math.random()*62)) ]);
+                sb.append(letters[ ((int) (Math.random()*letters.length)) ]);
             }
         }
-        // LOGGER_MESSAGES.info("\n-----\nCódigo final generado: " + sb.toString() + "\n-----");
+        // LOGGER_MESSAGES.info("----- " + sb.toString() + "-----\n\n");
         return sb.toString();
     }
 
@@ -143,6 +152,17 @@ public class DataHelper {
             }
         } while(codeToRefer.equals(""));
         return codeToRefer;
+    }
+
+    public static Map<String, Object> buildErrorFields(BindingResult result) {
+        Map<String, Object> json = new HashMap<>();
+
+        result.getFieldErrors().forEach(error -> {
+            String fieldName = error.getField();
+            json.put(fieldName, "The field " + fieldName + " " + error.getDefaultMessage());
+        });
+        
+        return json;
     }
 
 }

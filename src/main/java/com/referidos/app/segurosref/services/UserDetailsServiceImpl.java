@@ -27,6 +27,7 @@ import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.helpers.UserHelper;
 import com.referidos.app.segurosref.helpers.ValidateInputHelper;
+import com.referidos.app.segurosref.integrations.email.providers.EmailAppProvider;
 import com.referidos.app.segurosref.models.DeviceModel;
 import com.referidos.app.segurosref.models.NotificationDataModel;
 import com.referidos.app.segurosref.models.NotificationModel;
@@ -34,7 +35,6 @@ import com.referidos.app.segurosref.models.ReferredModel;
 import com.referidos.app.segurosref.models.UserDataModel;
 import com.referidos.app.segurosref.models.UserModel;
 import com.referidos.app.segurosref.models.WalletModel;
-import com.referidos.app.segurosref.provider.EmailServiceProvider;
 import com.referidos.app.segurosref.repositories.DeviceRepository;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
@@ -42,7 +42,7 @@ import com.referidos.app.segurosref.requests.ConfirmUserRequest;
 import com.referidos.app.segurosref.requests.PasswordResetRequest;
 import com.referidos.app.segurosref.requests.UserLoginRequest;
 import com.referidos.app.segurosref.requests.UserRegisterRequest;
-import com.referidos.app.segurosref.responses.GeneralResponses;
+import com.referidos.app.segurosref.responses.GeneralResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -59,7 +59,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private ReferredRepository referredRepository;
 
     @Autowired
-    private EmailServiceProvider emailProvider;
+    private EmailAppProvider emailAppProvider;
 
     @Autowired
     private ValidateInputHelper validateInputHelper;
@@ -69,9 +69,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Autowired
     private PasswordEncoder pwdEncoder;
-
-    // @Autowired
-    // private ComplexQueryProvider complexQueryProvider;
 
     @Transactional(readOnly=true)
     @Override
@@ -98,7 +95,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     // SERVICIOS PARA EL FLUJO DE REGISTRAR UN NUEVO USUARIO DE LA APLICACIÓN
-    public ResponseEntity<GeneralResponses> userRegister(UserRegisterRequest userRegister) {
+    public ResponseEntity<GeneralResponse> userRegister(UserRegisterRequest userRegister) {
         // Luego de ser validados los primeros datos, se valida el código de referido para saber si se puede continuar
         String[] userReferring = this.validateCodeToRefer(userRegister.codeToRefer());
         if(userReferring == null) {
@@ -115,7 +112,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @SuppressWarnings("null")
     @Transactional
-    private ResponseEntity<GeneralResponses> createUnconfirmedUser(String[] userReferring, UserDataModel userData,
+    private ResponseEntity<GeneralResponse> createUnconfirmedUser(String[] userReferring, UserDataModel userData,
             WalletModel wallet, NotificationModel notifs) {
         // En caso de no sea haya incluído el código de referido se los valores de userReferring son "Sin Usuario"
         String email = userData.getEmail(); // Mail se trabaja en minúsculas
@@ -140,7 +137,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     }
                     default -> {
                         // Es imposible llegar a está instancia, por seguridad se agrega dentro del flujo
-                        return ResponseHelper.failedDependency("datos anticuados", null);
+                        return ResponseHelper.failedDependency("datos anticuados", "failed dependency");
                     }
                 }
             } else {
@@ -158,7 +155,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         // Todo bien, se envía email para confirmar registro
         String[] toUsers = {email};
         String codeAuth = userData.generateRandomCode();
-        emailProvider.sendAuthCodeToRegisterUser(toUsers, codeAuth);
+        emailAppProvider.sendAuthCodeToRegisterUser(toUsers, codeAuth);
 
         // Se genera el nuevo usuario (no confirmado), además del registro del referido...
         String userReferringState = (userReferring[0].equals("Sin usuario")) ? "Desactivado" : "Activado";
@@ -175,7 +172,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<GeneralResponses> confirmRegistration(ConfirmUserRequest confirm,
+    public ResponseEntity<GeneralResponse> confirmRegistration(ConfirmUserRequest confirm,
             HttpServletRequest request) throws JsonProcessingException {
         String userEmail = confirm.email().toLowerCase();
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
@@ -188,11 +185,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             }
             return ResponseHelper.gone("el código ha expirado o no es correcto", null);
         }
-        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
     }
 
     @Transactional
-    private ResponseEntity<GeneralResponses> successfulRegistration(UserModel userDB, HttpServletRequest request) throws JsonProcessingException {
+    private ResponseEntity<GeneralResponse> successfulRegistration(UserModel userDB, HttpServletRequest request) throws JsonProcessingException {
         UserDataModel userData = userDB.getPersonalData();
         String userEmail = userData.getEmail();
         String codeToRefer = DataHelper.generateCodeToRefer(userRepository);
@@ -239,7 +236,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     // Enviamos notificación por mail, solo si el usuario A la tiene notificación activada
                     if(userANotifPreference.isByEmail() && userANotifPreference.isReferredRegistered()) {
                         String userACodeToRefer = userA.getCodeToRefer();
-                        emailProvider.novaUserRegisteredByCodeToRefer(userAEmail, userACodeToRefer, fullNameReferredUser);
+                        emailAppProvider.novaUserRegisteredByCodeToRefer(userAEmail, userACodeToRefer, fullNameReferredUser);
                     }
                 } catch(NoSuchElementException e) {
                     LOGGER_MESSAGES.info("No es posible identificar al usuario que ha referido");
@@ -251,7 +248,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     // SERVICIO PARA INICIO DE SESSIÓN DE UN USUARIO DE LA APLICACIÓN
     @Transactional
-    public ResponseEntity<GeneralResponses> userLogin(UserLoginRequest requestUserLoginDto,
+    public ResponseEntity<GeneralResponse> userLogin(UserLoginRequest requestUserLoginDto,
             HttpServletRequest request) throws JsonProcessingException {
         String email = requestUserLoginDto.email().toLowerCase();
         String pwd = requestUserLoginDto.pwd();
@@ -280,7 +277,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         // No existe dispositivo y puede que el usuario este intentando entrar desde otro, se envía código para actualizar dispositivo
                         String[] toUsers = {email};
                         String code = userData.generateRandomCode();
-                        emailProvider.sendAuthCodeToChangeDevice(toUsers, code);
+                        emailAppProvider.sendAuthCodeToChangeDevice(toUsers, code);
                         userData.setCodeAuth(pwdEncoder.encode(code));
                         userData.setCodeExpirationTime(currentDateTime);
                         userRepository.save(userDB);
@@ -297,15 +294,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 case "Desactivado" -> {
                     UserModel activateUser = userHelper.checkUserAccount(userRepository, deviceRepository, referredRepository, userDB, device, deviceIp);
                     if(activateUser != null) {
-                        emailProvider.userAccountActivated(email, device, deviceIp);
+                        emailAppProvider.userAccountActivated(email, device, deviceIp);
                         return ResponseHelper.accepted("el usuario se ha activado nuevamente", DataHelper.buildUser(activateUser));
                     } else {
                         // El usuario deja de existir, ya que, queda obsoleto
-                        return ResponseHelper.failedDependency("datos anticuados", null);
+                        return ResponseHelper.failedDependency("datos anticuados", "failed dependency");
                     }
                 }
                 default -> {
-                    return ResponseHelper.failedDependency("datos anticuados", null);
+                    return ResponseHelper.failedDependency("datos anticuados", "failed dependency");
                 }
             }
         }
@@ -315,7 +312,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     // SERVICIO PARA CAMBIAR EL DISPOSITIVO RELACIONADO A LA CUENTA DEL USUARIO DE LA APLICACIÓN
     @Transactional
-    public ResponseEntity<GeneralResponses> confirmDeviceChange(ConfirmUserRequest confirm, HttpServletRequest request) {
+    public ResponseEntity<GeneralResponse> confirmDeviceChange(ConfirmUserRequest confirm, HttpServletRequest request) {
         String userEmail = confirm.email().toLowerCase();
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
         UserDataModel userData = userDB.getPersonalData();
@@ -336,16 +333,16 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 return ResponseHelper.gone("el código ha expirado o no es correcto", null);
             }
         }
-        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
     }
 
     // SERVICIOS PARA EL FLUJO DE RESTABLECIMIENTO DE LA CONTRASEÑA DEL USUARIO DE LA APLICACIÓN
     @Transactional
-    public ResponseEntity<GeneralResponses> restorePassword(String email) {
+    public ResponseEntity<GeneralResponse> restorePassword(String email) {
         // Verificamos primero si es un usuario de prueba
         String userEmail = email.toLowerCase();
         if(UserHelper.isTestUser(userEmail)) {
-            return ResponseHelper.failedDependency("el usuario de prueba, no puede reestablecer su contraseña", null);
+            return ResponseHelper.failedDependency("el usuario de prueba, no puede reestablecer su contraseña", "failed dependency");
         }
         // No es un usuario 'seeder', se puede seguir con la lógica
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
@@ -357,21 +354,21 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             String codeAuth = userData.generateRandomCode();
             switch(statusUserDB) {
                 case "Activado" -> {
-                    emailProvider.sendAuthCodeToRestorePassword(toUsers, codeAuth);
+                    emailAppProvider.sendAuthCodeToRestorePassword(toUsers, codeAuth);
                     break;
                 }
                 case "Desactivado" -> {
                     if(userHelper.makeUserObsolete(userRepository, deviceRepository, referredRepository, userDB)) {
                         // Usuario quedo obsoleto
-                        return ResponseHelper.failedDependency("datos anticuados", null);
+                        return ResponseHelper.failedDependency("datos anticuados", "failed dependency");
                     } else {
                         // Todavía se puede habilitar
-                        emailProvider.sendAuthCodeToRestorePassword(toUsers, codeAuth);
+                        emailAppProvider.sendAuthCodeToRestorePassword(toUsers, codeAuth);
                     }
                     break;
                 }
                 default -> {
-                    return ResponseHelper.failedDependency("datos anticuados", null);
+                    return ResponseHelper.failedDependency("datos anticuados", "failed dependency");
                 }
             }
             // Todo bien, porque el usuario está Activado o todavía se puede Habilitar.
@@ -380,15 +377,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             userRepository.save(userDB);
             return ResponseHelper.ok("se ha enviado un código de confirmación para restablecer la contraseña al email: " + userEmail, Map.of("info", "ok"));
         }
-        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
     }
 
     @Transactional
-    public ResponseEntity<GeneralResponses> confirmPasswordReset(PasswordResetRequest passwordReset, HttpServletRequest request) {
+    public ResponseEntity<GeneralResponse> confirmPasswordReset(PasswordResetRequest passwordReset, HttpServletRequest request) {
         String userEmail = passwordReset.email().toLowerCase();
         // Verificamos primero si es un usuario de prueba
         if(UserHelper.isTestUser(userEmail)) {
-            return ResponseHelper.failedDependency("el usuario de prueba, no puede reestablecer su contraseña", null);
+            return ResponseHelper.failedDependency("el usuario de prueba, no puede reestablecer su contraseña", "failed dependency");
         }
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
         UserDataModel userData = userDB.getPersonalData();
@@ -413,15 +410,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     case "Desactivado" -> {
                         userDB = userHelper.checkUserAccount(userRepository, deviceRepository, referredRepository, userDB, device, deviceIp);
                         if(userDB != null) {
-                            emailProvider.userAccountActivated(userEmail, device, deviceIp); // Se ha vuelto ha activar el usuario
+                            emailAppProvider.userAccountActivated(userEmail, device, deviceIp); // Se ha vuelto ha activar el usuario
                         } else {
                             // Usuario quedo obsoleto
-                            return ResponseHelper.failedDependency("datos anticuados", null);
+                            return ResponseHelper.failedDependency("datos anticuados", "failed dependency");
                         }
                         break;
                     }
                     default -> {
-                        return ResponseHelper.failedDependency("datos anticuados", null);
+                        return ResponseHelper.failedDependency("datos anticuados", "failed dependency");
                     }
                 }
                 // Si todo va bien, el usuario está activado o se acaba de habilitar nuevamente
@@ -432,16 +429,16 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         } else {
             return ResponseHelper.gone("el código ha expirado o no es correcto", null);
         }
-        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
     }
 
     // SERVICIO PARA REENVIAR CÓDIGO DE CONFIRMACIÓN EN FLUJO ACTIVO, YA SEA DE: REGISTRAR USUARIO, CAMBIO DE DISPOSITIVO O REESTABLECIMIENTO DE LA CONTRASEÑA
     @Transactional
-    public ResponseEntity<GeneralResponses> resendUserCode(String email, String type) {
+    public ResponseEntity<GeneralResponse> resendUserCode(String email, String type) {
         // Verificamos primero si es un usuario de prueba
         String userEmail = email.toLowerCase();
         if(UserHelper.isTestUser(userEmail)) {
-            return ResponseHelper.failedDependency("el usuario de prueba, no puede obtener códigos de confirmación", null);
+            return ResponseHelper.failedDependency("el usuario de prueba, no puede obtener códigos de confirmación", "failed dependency");
         }
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
         UserDataModel userData = userDB.getPersonalData();
@@ -455,7 +452,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 case "registerUser": {
                     if(userData.getSessionToken().equals("") && userData.getRefreshToken().equals("")
                         && userStatusDB.equals("Desactivado")) {
-                        emailProvider.sendAuthCodeToRegisterUser(toUsers, code);
+                        emailAppProvider.sendAuthCodeToRegisterUser(toUsers, code);
                         isValid = true;
                     }
                     break;
@@ -463,14 +460,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 case "changeDevice": {
                     if(!userData.getSessionToken().equals("") && !userData.getRefreshToken().equals("")
                         && userStatusDB.equals("Activado")) {
-                        emailProvider.sendAuthCodeToChangeDevice(toUsers, code);
+                        emailAppProvider.sendAuthCodeToChangeDevice(toUsers, code);
                         isValid = true;
                     }
                     break;
                 }
                 case "restorePassword": {
                     if(!userData.getSessionToken().equals("") && !userData.getRefreshToken().equals("")) {
-                        emailProvider.sendAuthCodeToRestorePassword(toUsers, code);
+                        emailAppProvider.sendAuthCodeToRestorePassword(toUsers, code);
                         isValid = true;
                     }
                     break;
@@ -487,16 +484,16 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             }
         }
         
-        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", null);
+        return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
     }
 
     // SERVICIO PARA DESHABILITAR/ELIMINAR USUARIO DE LA APLICACIÓN
     @SuppressWarnings("null")
     @Transactional
-    public ResponseEntity<GeneralResponses> disableAccount(String emailAuth) {
+    public ResponseEntity<GeneralResponse> disableAccount(String emailAuth) {
         // Verificamos primero si es un usuario de prueba
         if(UserHelper.isTestUser(emailAuth)) {
-            return ResponseHelper.failedDependency("el usuario de prueba, no puede desactivarse", null);
+            return ResponseHelper.failedDependency("el usuario de prueba, no puede desactivarse", "failed dependency");
         }
         // No se puede deshabilitar/eliminar, si el usuario tiene transacciones pendientes o tiene dinero disponible en su wallet
         UserModel userB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
@@ -531,7 +528,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if(updateTheReferreds.size() > 0) {
             referredRepository.saveAll(updateTheReferreds);
         }
-        emailProvider.userAccountDisabled(emailAuth, currentDateTime);
+        emailAppProvider.userAccountDisabled(emailAuth, currentDateTime);
         return ResponseHelper.ok("la cuenta del usuario se ha deshabilitado por un rango de 30 días, luego del tiempo estipulado, si no hay actividad la cuenta se eliminará definitivamente", Map.of("info", "ok"));
     }
 
@@ -573,7 +570,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     // SERVICIO SUPUESTO PARA CREAR USUARIO ADMINISTRADOR, NO IMPLEMENTADO
-    public ResponseEntity<GeneralResponses> userSave(UserRegisterRequest userRegister) {
+    public ResponseEntity<GeneralResponse> userSave(UserRegisterRequest userRegister) {
         // Luego de ser validados los primeros datos, se valida el código de referido para saber si se puede continuar
         String[] userReferring = this.validateCodeToRefer(userRegister.codeToRefer());
         if(userReferring == null) {

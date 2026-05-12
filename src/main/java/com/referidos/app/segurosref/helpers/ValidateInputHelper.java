@@ -18,6 +18,10 @@ public class ValidateInputHelper {
     @Autowired
     private Environment env;
 
+    public static boolean checkApiKeyMF(String apiKeyMF, String apiKeyParameter) {
+        return apiKeyMF != null && apiKeyParameter != null && apiKeyMF.equals(apiKeyParameter);
+    }
+
     // Validación del nombre del usuario - Obligatorio
     public String verifyName(String name) {
         if(DataHelper.isNull(name)) {
@@ -468,8 +472,8 @@ public class ValidateInputHelper {
             return env.getProperty("message.field.null");
         }
         final int INSURER_LENGTH = insurer.strip().length(); // Usamos strip() para quitar espacios al inicio y final
-        if (INSURER_LENGTH < 4) {
-            return env.getProperty("message.field.min.characters.4");
+        if (INSURER_LENGTH < 2) {
+            return env.getProperty("message.field.min.characters.2");
         }
         return "";
     }
@@ -482,6 +486,18 @@ public class ValidateInputHelper {
         final int PLAN_NAME_LENGTH = planName.strip().length(); // Usamos strip() para quitar espacios al inicio y final
         if (PLAN_NAME_LENGTH < 4) {
             return env.getProperty("message.field.min.characters.4");
+        }
+        return "";
+    }
+
+    // Validación de la descripción del deducible del plan - Obligatorio
+    public String verifyDeductibleDesc(String deductibleDesc) {
+        if(DataHelper.isNull(deductibleDesc)) {
+            return env.getProperty("message.field.null");
+        }
+        final int DEDUCTIBLE_DESC_LENGTH = deductibleDesc.strip().length(); // Usamos strip() para quitar espacios al inicio y final
+        if (DEDUCTIBLE_DESC_LENGTH < 2) {
+            return env.getProperty("message.field.min.characters.2");
         }
         return "";
     }
@@ -521,8 +537,11 @@ public class ValidateInputHelper {
     // Validación del número de departamento del comprador del plan en recopilación de datos del plan - Opcional
     public String verifyDepartment(String department) {
         if(!DataHelper.isNull(department)) {
+            final String DEPARTMENT_REGEX = "^[a-zA-Z0-9áéíóúñçýÁÉÍÓÚÑÇÝ.,_/#\\s\\-]+$";
             if(department.strip().length() > 20) { // Usamos strip() para quitar espacios al inicio y final - opcional
                 return env.getProperty("message.field.max.characters.20");
+            } else if(!department.matches(DEPARTMENT_REGEX)) {
+                return env.getProperty("message.field.non.allow.characters.address");
             }
         }
         return "";
@@ -540,8 +559,8 @@ public class ValidateInputHelper {
     }
 
     // Validación del los valores del plan que sean númericos mayor o igual a 0- Obligatorio
-    public String verifyNumberValue(double priceUf) {
-        if(priceUf < 0) {
+    public String verifyNumberValue(double number) {
+        if(number < 0) {
             return env.getProperty("message.field.negative-number");
         }
         return "";

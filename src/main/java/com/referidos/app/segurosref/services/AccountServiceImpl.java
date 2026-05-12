@@ -16,7 +16,7 @@ import com.referidos.app.segurosref.models.AccountModel;
 import com.referidos.app.segurosref.models.UserModel;
 import com.referidos.app.segurosref.repositories.UserRepository;
 import com.referidos.app.segurosref.requests.AccountRequest;
-import com.referidos.app.segurosref.responses.GeneralResponses;
+import com.referidos.app.segurosref.responses.GeneralResponse;
 import com.referidos.app.segurosref.validators.AccountValidator;
 
 @Service
@@ -31,7 +31,7 @@ public class AccountServiceImpl implements AccountService {
     // SERVICIOS RELACIONADOS CON EL MANEJO DE LAS CUENTAS BANCARIAS DEL USUARIO
     @Transactional
     @Override
-    public ResponseEntity<GeneralResponses> create(AccountRequest account, String emailAuth) {
+    public ResponseEntity<GeneralResponse> create(AccountRequest account, String emailAuth) {
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         List<AccountModel> accounts = userDB.getAccounts();
 
@@ -66,7 +66,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Transactional
     @Override
-    public ResponseEntity<GeneralResponses> update(AccountRequest account, String emailAuth) {
+    public ResponseEntity<GeneralResponse> update(AccountRequest account, String emailAuth) {
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         List<AccountModel> accounts = userDB.getAccounts();
         for(AccountModel accountDB : accounts) {
@@ -88,12 +88,12 @@ public class AccountServiceImpl implements AccountService {
                         DataHelper.buildUser(userDB));
             }
         }
-        return ResponseHelper.failedDependency("no se ha podido identificar el recurso", null);
+        return ResponseHelper.failedDependency("no se ha podido identificar el recurso", "failed dependency");
     }
 
     @Transactional
     @Override
-    public ResponseEntity<GeneralResponses> delete(String accountId, String emailAuth) {
+    public ResponseEntity<GeneralResponse> delete(String accountId, String emailAuth) {
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         List<AccountModel> accounts = userDB.getAccounts();
         for(int i=0; i<accounts.size(); i++) {
@@ -111,12 +111,12 @@ public class AccountServiceImpl implements AccountService {
                         DataHelper.buildUser(userDB));
             }
         }
-        return ResponseHelper.failedDependency("no se ha podido identificar el recurso", null);
+        return ResponseHelper.failedDependency("no se ha podido identificar el recurso", "failed dependency");
     }
 
     @Transactional
     @Override
-    public ResponseEntity<GeneralResponses> select(String accountId, String emailAuth) {
+    public ResponseEntity<GeneralResponse> select(String accountId, String emailAuth) {
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         List<AccountModel> accounts = userDB.getAccounts();
         LocalDateTime currentTime = LocalDateTime.now();
@@ -145,7 +145,7 @@ public class AccountServiceImpl implements AccountService {
                     DataHelper.buildUser(userDB));
         }
 
-        return ResponseHelper.failedDependency("no se ha podido identificar el recurso", null);
+        return ResponseHelper.failedDependency("no se ha podido identificar el recurso", "failed dependency");
     }
 
     // SERVICIO PARA VALDACION DE DATOS
