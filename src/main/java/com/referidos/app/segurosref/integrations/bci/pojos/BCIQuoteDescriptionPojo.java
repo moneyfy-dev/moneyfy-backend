@@ -1,8 +1,10 @@
 package com.referidos.app.segurosref.integrations.bci.pojos;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class BCIQuoteDescriptionPojo {
 
     private Integer IdDeducible;

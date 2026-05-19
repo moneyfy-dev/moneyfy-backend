@@ -2,10 +2,18 @@ package com.referidos.app.segurosref.responses.enums;
 
 public enum BusinessCodeEnum {
 
-    APP_INCORRECT_FORMAT(10, "El formato de los datos enviados no es válido o es incorrecto para procesar la solicitud"),
+    // Errores Generales de la Aplicación
+    APP_GENERAL_BAD_REQUEST(1, "Error al procesar la solicitud"),
+    APP_INCORRECT_FORMAT(2, "El formato de los datos enviados no es válido o es incorrecto para procesar la solicitud"),
+    
+    // Integración BCI (Códigos 40+)
+    BCI_TOKEN_CREATION_EXCEPTION(40, "Error de excepción al realizar petición para generar token en servicio externo (BCI)"),
+    BCI_TOKEN_CREATION_UNEXPECTED_RESPONSE(41, "Respuesta no esperada al realizar petición para generar token (BCI)"),
+
+    // Integración Proveedores Generales
     EXTERNAL_SERVICE_ERROR(50, "Error de conexión con el proveedor"),
-    INSUFFICIENT_FUNDS(51, "Saldo insuficiente para la operación"),
-    QUOTA_LIMIT_REACHED(60, "Has superado el límite de cotizaciones"),
+    
+    // Integración FDI (Códigos 70+)
     FDI_DEAL_EXCEPTION(70, "Error de excepción al intentar crear el deal en el servicio externo (FDI)"),
     FDI_DEAL_UNEXPECTED_RESPONSE(71, "Respuesta no esperada del servicio externo al procesar el deal"),
     FDI_DEAL_UPDATE_EXCEPTION(72, "Error de excepción al intentar actualizar el deal en el servicio externo (FDI)"),
@@ -33,7 +41,7 @@ public enum BusinessCodeEnum {
                 return b;
             }
         }
-        return EXTERNAL_SERVICE_ERROR; // Un default por si el código no existe
+        return APP_GENERAL_BAD_REQUEST; 
     }
 
 }

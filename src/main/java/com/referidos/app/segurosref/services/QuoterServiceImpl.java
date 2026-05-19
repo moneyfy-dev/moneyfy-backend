@@ -345,21 +345,24 @@ public class QuoterServiceImpl implements QuoterService {
                     break;
                 }
                 case "aseguradora4" -> { // ASEGURADORA 4 == BCI
-                    String[] brandAndModelId = bciQuotationClient.findBrandAndModelId(brandRepository, "BCI", brand, model);
-                    errorPlanFinder = brandAndModelId[0];
-                    errorMessage = brandAndModelId[1];
+                    Object[] brandAndModelId = bciQuotationClient.findBrandAndModelId(brandRepository, "BCI", brand, model);
+                    errorPlanFinder = (String) brandAndModelId[0];
+                    errorMessage = (String) brandAndModelId[1];
                     if(errorPlanFinder.equals("") && errorMessage.equals("")) {
                         // Se pudo encontrar el ids de la aseguradora tanto para consultar por marca y modelo
-                        String brandId = brandAndModelId[2];
-                        String modelId = brandAndModelId[3];
-                        Map<String, Object> searchPlanBCI = bciQuotationClient.quoteVehicle(purchaserId, brandId, modelId, Integer.parseInt(year));
-                        errorPlanFinder = (String) searchPlanBCI.get("errorPlanFinder");
-                        errorMessage = (String) searchPlanBCI.get("errorMessage");
-                        requestBody = (String) searchPlanBCI.get("requestBody");
-                        responseStr = (String) searchPlanBCI.get("responseStr");
-                        if(errorPlanFinder.equals("0")) {
-                            planList = (List<QuotationPlanDto>) searchPlanBCI.get("plans");
-                        }
+                        int brandId = (int) brandAndModelId[2];
+                        int modelId = (int) brandAndModelId[3];
+                        Object[] response = bciQuotationClient.quoteVehicle(brandId, modelId, Integer.parseInt(year));
+                        // errorPlanFinder = searchPlanBCI.get("errorPlanFinder");
+                        // errorMessage = searchPlanBCI.get("errorMessage");
+
+                        // // Lista de String
+                        // requestBody = searchPlanBCI.get("requestBody");
+                        // responseStr = searchPlanBCI.get("responseStr");
+
+                        // if(errorPlanFinder.equals("0")) {
+                        //     planList = (List<QuotationPlanDto>) searchPlanBCI.get("plans");
+                        // }
                     }
                     break;
                 }
