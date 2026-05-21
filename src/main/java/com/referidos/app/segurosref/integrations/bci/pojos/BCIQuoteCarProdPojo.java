@@ -7,10 +7,10 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class BCIQuoteProductPojo {
+public class BCIQuoteCarProdPojo {
 
-    private Long IdProducto;
+    private Integer IdProducto;
     private String NombreProducto;
-    private List<BCIQuoteDescriptionPojo> Tarifas;
+    private List<BCIQuoteCarProdDetailPojo> Tarifas;
 
 }

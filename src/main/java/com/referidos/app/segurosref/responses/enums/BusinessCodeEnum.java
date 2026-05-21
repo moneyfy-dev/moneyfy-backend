@@ -9,7 +9,11 @@ public enum BusinessCodeEnum {
     // Integración BCI (Códigos 40+)
     BCI_TOKEN_CREATION_EXCEPTION(40, "Error de excepción al realizar petición para generar token en servicio externo (BCI)"),
     BCI_TOKEN_CREATION_UNEXPECTED_RESPONSE(41, "Respuesta no esperada al realizar petición para generar token (BCI)"),
-
+    BCI_CAR_QUOTATION_EXCEPTION(42, "Error de excepción al realizar cotización en servicio externo (BCI)"),
+    BCI_CAR_QUOTATION_UNEXPECTED_RESPONSE(43, "Respuesta no esperada al realizar cotización en servicio externo (BCI)"),
+    BCI_QUOTATION_DTO_EMPTY_PLANS(44, "No se han encontrado planes al construir el dto de la cotización de BCI"),
+    BCI_QUOTATION_DTO_EXCEPTION(45, "Error de excepción al construir el dto de la cotización de BCI"),
+    
     // Integración Proveedores Generales
     EXTERNAL_SERVICE_ERROR(50, "Error de conexión con el proveedor"),
     

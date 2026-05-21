@@ -109,11 +109,11 @@ public class FDIQuotationClient {
                 return body;
             }
             LOGGER_MESSAGES.info("Respuesta no esperada del servicio externo al procesar el deal: " + response.getStatusCode().value());
+            return new FDIDealCreatePojo(71);
         } catch(Exception e) {
             LOGGER_MESSAGES.info("Error de excepción al intentar crear el deal en el servicio externo (FDI): " + e.getMessage());
             return new FDIDealCreatePojo(70);
         }
-        return new FDIDealCreatePojo(71);
     }
 
     // Endpoint para actualizar datos relevantes del deal
@@ -137,11 +137,11 @@ public class FDIQuotationClient {
                 return -1; // Éxito
             }
             LOGGER_MESSAGES.info("Respuesta inesperada en actualización: " + response.getStatusCode().value());
+            return 73;
         } catch(Exception e) {
             LOGGER_MESSAGES.info("Error de excepción en actualización del deal en el servicio externo (FDI): " + e.getMessage());
             return 72;
         }
-        return 73;
     }
 
     // Crear el item asegurable del deal
@@ -166,11 +166,11 @@ public class FDIQuotationClient {
                 return body;
             }
             LOGGER_MESSAGES.info("Respuesta inesperada al crear item asegurable: " + response.getStatusCode().value());
+            return new FDIItemCreatePojo(75);
         } catch (Exception e) {
             LOGGER_MESSAGES.info("Error de excepción al crear item asegurable: " + e.getMessage());
             return new FDIItemCreatePojo(74);
         }
-        return new FDIItemCreatePojo(75);
     }
 
     @SuppressWarnings("null")
@@ -191,11 +191,11 @@ public class FDIQuotationClient {
                 return body;
             }
             LOGGER_MESSAGES.info("Respuesta no esperada del servicio externo al procesar la cotización del deal: " + response.getStatusCode().value());
+            return new FDIQuoteDealPojo(77);
         } catch (Exception e) {
             LOGGER_MESSAGES.info("Error de excepción al intentar solicitar la cotización final del deal: " + e.getMessage());
             return new FDIQuoteDealPojo(76);
         }
-        return new FDIQuoteDealPojo(77);
     }
 
     private FDIQuotationDto buildFDIQuotationDto(String dealToken, FDIQuoteDealPojo quoteDealResponse) {
@@ -251,7 +251,7 @@ public class FDIQuotationClient {
             for(FDIQuotationPlanCoverDto coverageDtoFDI : planDtoFDI.getCoverages()) {
                 coveragesDto.add(new QuotationPlanCoverDto(coverageDtoFDI.getId(), coverageDtoFDI.getName(), coverageDtoFDI.getGeneralDescription(), coverageDtoFDI.getPolCad(), coverageDtoFDI.getValue()));
             }
-            plansDto.add(new QuotationPlanDto(planDtoFDI.getUniquePlan(), planDtoFDI.getPlanId(), "FDI", planDtoFDI.getPlanName(), planDtoFDI.getValueUF(), planDtoFDI.getGrossWrittenPremiumUF(), planDtoFDI.getTotalMonths(), planDtoFDI.getMonthlyPriceUF(), planDtoFDI.getMonthlyPrice(), planDtoFDI.getDeductibleUF(), planDtoFDI.getDeductibleDesc(), planDtoFDI.getDiscount(), "", "", String.valueOf(planDtoFDI.getLiabilityAmount()), planDtoFDI.getGarageType(), fdiQuotationDto.getDealToken(), fdiQuotationDto.getItemId(), planDtoFDI.getQuotationId(), planDtoFDI.getFIDId(), planDtoFDI.getExpiryDate(), planDtoFDI.getBrokerageUF(), planDtoFDI.getVehicleReplacement(), planDtoFDI.getInspectionRequired(), planDtoFDI.getMonthlyPremium(), planDtoFDI.getPaymentPlan(), planDtoFDI.getQuotationPeriod(), planDtoFDI.getPaymentWay(), coveragesDto, new HashSet<>()));
+            plansDto.add(new QuotationPlanDto(planDtoFDI.getUniquePlan(), planDtoFDI.getPlanId(), "FDI", planDtoFDI.getPlanName(), planDtoFDI.getValueUF(), planDtoFDI.getGrossWrittenPremiumUF(), planDtoFDI.getTotalMonths(), planDtoFDI.getMonthlyPriceUF(), planDtoFDI.getMonthlyPrice(), planDtoFDI.getDeductibleUF(), planDtoFDI.getDeductibleDesc(), planDtoFDI.getDiscount(), "", "", String.valueOf(planDtoFDI.getLiabilityAmount()), planDtoFDI.getGarageType(), null, "", "", null, fdiQuotationDto.getDealToken(), fdiQuotationDto.getItemId(), planDtoFDI.getQuotationId(), planDtoFDI.getFIDId(), planDtoFDI.getExpiryDate(), planDtoFDI.getBrokerageUF(), planDtoFDI.getVehicleReplacement(), planDtoFDI.getInspectionRequired(), planDtoFDI.getMonthlyPremium(), planDtoFDI.getPaymentPlan(), planDtoFDI.getQuotationPeriod(), planDtoFDI.getPaymentWay(), coveragesDto, new ArrayList<>()));
         }
         return new Object[] {-1, plansDto};
     }

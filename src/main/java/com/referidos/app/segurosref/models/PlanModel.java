@@ -1,7 +1,7 @@
 package com.referidos.app.segurosref.models;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -27,12 +27,12 @@ public class PlanModel {
     private String totalLoss;
     private String damageThirdParty;
     private String workshopType;
-    private Set<Object> details;
+    private List<String> details;
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
     
     // Métodos de lógica, propios de la clase
-    public Set<Object> addDetail(Object detail) {
+    public List<String> addDetail(String detail) {
         this.details.add(detail);
         return this.details;
     }

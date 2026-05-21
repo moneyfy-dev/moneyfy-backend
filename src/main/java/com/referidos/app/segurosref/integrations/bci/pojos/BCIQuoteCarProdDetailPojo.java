@@ -5,13 +5,13 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class BCIQuoteDescriptionPojo {
+public class BCIQuoteCarProdDetailPojo {
 
     private Integer IdDeducible;
     private String DescripcionDeducible;
     private Double PrimaAnualNeta;
     private Double PrimaAnualBruta;
     private Double Impuesto;
-    private Integer ValorCuotaPesos;
+    private Double ValorCuotaPesos;
 
 }

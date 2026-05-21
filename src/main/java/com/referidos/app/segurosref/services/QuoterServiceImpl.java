@@ -350,19 +350,24 @@ public class QuoterServiceImpl implements QuoterService {
                     errorMessage = (String) brandAndModelId[1];
                     if(errorPlanFinder.equals("") && errorMessage.equals("")) {
                         // Se pudo encontrar el ids de la aseguradora tanto para consultar por marca y modelo
+                        errorPlanFinder = "0";
+                        errorMessage = "Se encontro la aseguradora";
                         int brandId = (int) brandAndModelId[2];
                         int modelId = (int) brandAndModelId[3];
                         Object[] response = bciQuotationClient.quoteVehicle(brandId, modelId, Integer.parseInt(year));
-                        // errorPlanFinder = searchPlanBCI.get("errorPlanFinder");
-                        // errorMessage = searchPlanBCI.get("errorMessage");
-
-                        // // Lista de String
-                        // requestBody = searchPlanBCI.get("requestBody");
-                        // responseStr = searchPlanBCI.get("responseStr");
-
-                        // if(errorPlanFinder.equals("0")) {
-                        //     planList = (List<QuotationPlanDto>) searchPlanBCI.get("plans");
-                        // }
+                        int internalErrorCode = (int) response[0];
+                        if(internalErrorCode != -1) {
+                            // Hay error
+                            BusinessCodeEnum enumError = BusinessCodeEnum.fromCode(internalErrorCode);
+                            errorPlanFinder = String.valueOf(enumError.getErrorCode());
+                            errorMessage = enumError.getErrorDescription();
+                            Map<String, String> responseDetailError = (Map<String, String>) response[1];
+                            requestBody = responseDetailError.get("responseBody");
+                            responseStr = responseDetailError.get("responseOrError");
+                        } else {
+                            // No hay error
+                            planList = (List<QuotationPlanDto>) response[2];
+                        }
                     }
                     break;
                 }

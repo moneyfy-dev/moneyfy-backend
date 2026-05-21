@@ -1,24 +1,32 @@
 package com.referidos.app.segurosref.dtos.quotation;
 
-import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @AllArgsConstructor
-@JsonPropertyOrder(value = {"planId", "insurer", "planName", "valueUF", "grossPriceUF", "totalMonths", "monthlyPriceUF",
-        "monthlyPrice", "deductible", "deductibleDesc", "discount", "stolenVehicle", "totalLoss", "damageThirdParty", "workshopType",
-        "dealToken", "itemId", "quotationId", "FIDId", "expiryDate", "brokerageUF", "vehicleReplacement",
-        "inspectionRequired", "monthlyPremium", "paymentPlan", "quotationPeriod", "paymentWay", "coverages", "details"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@JsonPropertyOrder(value = {"uniquePlan", "planId", "insurer", "planName", "valueUF", "grossPriceUF",
+        "totalMonths", "monthlyPriceUF", "monthlyPrice", "deductible", "deductibleDesc", "discount",
+        "stolenVehicle", "totalLoss", "damageThirdParty", "workshopType", "quotationIdBCI",
+        "expiryDateBCI", "urlPathBCI", "paymentWayIdBCI", "dealTokenFDI", "itemIdFDI",
+        "quotationIdFDI", "FIDId", "expiryDateFDI", "brokerageUfFDI", "vehicleReplacementFDI",
+        "inspectionRequiredFDI", "monthlyPremiumFDI", "paymentPlanFDI", "quotationPeriodFDI",
+        "paymentWayFDI", "coverages", "details"})
 public class QuotationPlanDto {
 
+    @EqualsAndHashCode.Include
     private String uniquePlan;
+    @EqualsAndHashCode.Include
     private String planId;
     private String insurer;
+    @EqualsAndHashCode.Include
     private String planName;
     private Double valueUF;
     private Double grossPriceUF;
@@ -32,46 +40,30 @@ public class QuotationPlanDto {
     private String totalLoss;
     private String damageThirdParty;
     private String workshopType;
-    private String dealToken;
-    private Integer itemId;
-    private Integer quotationId;
-    private String FIDId;
-    private String expiryDate;
-    private Double brokerageUF;
-    private String vehicleReplacement;
-    private Integer inspectionRequired;
-    private Double monthlyPremium;
-    private String paymentPlan;
-    private String quotationPeriod;
-    private String paymentWay;
-    private Set<QuotationPlanCoverDto> coverages;
-    private Set<Object> details;
+    
+    private Integer quotationIdBCI;
+    private String expiryDateBCI;
+    private String urlPathBCI;
+    private Integer paymentWayIdBCI;
 
-    // Constructor personalizado
-    public QuotationPlanDto(String planId, String insurer, String planName, double valueUF, double grossPriceUF,
-            int totalMonths, double monthlyPriceUF, double monthlyPrice, int deductible, String deductibleDesc,
-            double discount, String stolenVehicle, String totalLoss, String damageThirdParty, String workshopType) {
-        this.coverages = new HashSet<>(); // Iniciamos la lista de detalles a vacío
-        this.details = new HashSet<>(); // Iniciamos la lista de detalles a vacío
-        this.planId = planId;
-        this.insurer = insurer;
-        this.planName = planName;
-        this.valueUF = valueUF;
-        this.grossPriceUF = grossPriceUF;
-        this.totalMonths = totalMonths;
-        this.monthlyPriceUF = monthlyPriceUF;
-        this.monthlyPrice = monthlyPrice;
-        this.deductible = deductible;
-        this.deductibleDesc = deductibleDesc;
-        this.discount = discount;
-        this.stolenVehicle = stolenVehicle;
-        this.totalLoss = totalLoss;
-        this.damageThirdParty = damageThirdParty;
-        this.workshopType = workshopType;
-    }
+    private String dealTokenFDI;
+    private Integer itemIdFDI;
+    private Integer quotationIdFDI;
+    private String FIDId;
+    private String expiryDateFDI;
+    private Double brokerageUfFDI;
+    private String vehicleReplacementFDI;
+    private Integer inspectionRequiredFDI;
+    private Double monthlyPremiumFDI;
+    private String paymentPlanFDI;
+    private String quotationPeriodFDI;
+    private String paymentWayFDI;
+
+    private Set<QuotationPlanCoverDto> coverages;
+    private List<String> details;
     
     // Métodos de lógica, propios de la clase
-    public Set<Object> addDetail(Object detail) {
+    public List<String> addDetail(String detail) {
         this.details.add(detail);
         return this.details;
     }
