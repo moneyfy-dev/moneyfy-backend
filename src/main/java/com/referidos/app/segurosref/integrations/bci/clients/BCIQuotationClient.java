@@ -1,7 +1,9 @@
 package com.referidos.app.segurosref.integrations.bci.clients;
 
+import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
+
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -10,18 +12,28 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.referidos.app.segurosref.integrations.bci.pojos.BCITokenCreatePojo;
+import com.referidos.app.segurosref.integrations.bci.requests.BCIQuoteCarProdDetailOwnerRequest;
+import com.referidos.app.segurosref.integrations.bci.requests.BCIQuoteCarProdDetailRequest;
+import com.referidos.app.segurosref.integrations.bci.requests.BCIQuoteCarProdRequest;
+import com.referidos.app.segurosref.integrations.bci.requests.BCIQuoteCarRequest;
+import com.referidos.app.segurosref.integrations.bci.requests.BCITokenCreateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.referidos.app.segurosref.integrations.bci.pojos.BCIQuotePojo;
-import com.referidos.app.segurosref.integrations.bci.pojos.BCIQuoteProductPojo;
 import com.referidos.app.segurosref.dtos.quotation.QuotationPlanDto;
-import com.referidos.app.segurosref.integrations.bci.pojos.BCIQuoteDescriptionPojo;
+import com.referidos.app.segurosref.helpers.DataHelper;
+import com.referidos.app.segurosref.integrations.bci.dtos.BCIQuotationDto;
+import com.referidos.app.segurosref.integrations.bci.dtos.BCIQuotationPlanDto;
+import com.referidos.app.segurosref.integrations.bci.pojos.BCIQuoteCarPojo;
+import com.referidos.app.segurosref.integrations.bci.pojos.BCIQuoteCarProdDetailPojo;
+import com.referidos.app.segurosref.integrations.bci.pojos.BCIQuoteCarProdPojo;
 import com.referidos.app.segurosref.models.BrandDataModel;
 import com.referidos.app.segurosref.models.BrandInsurerModel;
 import com.referidos.app.segurosref.models.BrandModel;
@@ -30,129 +42,237 @@ import com.referidos.app.segurosref.repositories.BrandRepository;
 @Component
 public class BCIQuotationClient {
 
-    @Value(value = "${bci.tarifacion.url}")
-    private String urlBCITarifacion;
+    @Value(value = "${bci.qa.base-url}")
+    private String bciBaseUrl;
 
-    @Value(value = "${bci.tarifacion.api-key}")
-    private String apiKeyBCITarifacion;
+    @Value(value = "${bci.qa.user}")
+    private String bciUser;
+
+    @Value(value = "${bci.qa.password}")
+    private String bciPassword;
 
     @Transactional
-    public Map<String, Object> quoteVehicle(String purchaserId, String brandIdBCI, String modelIdBCI, int year) {
-        String errorMessage = "";
-        int code = 0;
-        String requestBody = "";
-        String responseStr = "";
-        try {
-            // Obtemos el rut del comprador de la póliza sin puntos y sin dv ("12.345.678-9" => "12345678")
-            String purchaserIdFormatted = purchaserId.split("-")[0].replace(".", "");
-            String purchaserDigit = purchaserId.substring(purchaserId.length()-1);
-            RestTemplate restTemplate = new RestTemplate();
-            
-            // Configuración de encabezados
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Content-Type", "application/json");
-            headers.set("Key", apiKeyBCITarifacion);
-
-            // Utilizamos Object Mapper, para ingresar los datos del cuerpo de la solicitud
-            ObjectMapper mapper = new ObjectMapper();
-            // Elaboración de estructura para los productos para realizar la solicitud
-            Map<String, Object> product1 = this.createProductBCI(22000653);
-            Map<String, Object> product2 = this.createProductBCI(22000652);
-            List<Map<String, Object>> productoMultianual = new ArrayList<>();
-            productoMultianual.add(product1);
-            productoMultianual.add(product2);
-            Map<String, Object> lstProductos = new HashMap<>();
-            lstProductos.put("ProductoMultianual", productoMultianual);
-            // Elaboración del cuerpo de la solicitud
-            Map<String, Object> requestBodyMap = new HashMap<>();
-            requestBodyMap.put("RutCliente", purchaserIdFormatted);
-            requestBodyMap.put("DVRutCliente", purchaserDigit);
-            requestBodyMap.put("TipoVehiculo", 1); // (1 = Usado, 2 = Nuevo)
-            requestBodyMap.put("UsoVehiculo", 2); // (1 = Comercial, 2 = Particular)
-            requestBodyMap.put("Compania", "BCI");
-            requestBodyMap.put("LstProductos", lstProductos);
-            requestBodyMap.put("IdMarca", brandIdBCI);
-            requestBodyMap.put("IdModelo", modelIdBCI);
-            requestBodyMap.put("AnioVehiculo", year);
-            requestBodyMap.put("Edad", 30); // CONSULTAR VALOR POR DEFECTO PARA EDAD
-            requestBodyMap.put("Homologa", 1);
-            requestBodyMap.put("Usuario", "PRUEBA");
-            requestBodyMap.put("Clave", "TEST");
-            requestBodyMap.put("FormaPago", 2); // (1 = PAC, 2 = PAT, 3 = Contado, 4 = Aviso de Vencimiento, ejemplo: 2)
-            requestBodyMap.put("Descuento", 0); // CONSULTAR VALOR POR DEFECTO PARA DESCUENTO
-            requestBodyMap.put("LstIdCoberturasFlexibles", new ArrayList<>());
-            requestBodyMap.put("CorredorId", 1163);
-            requestBodyMap.put("RutCorredor", "78951950-1");
-            requestBodyMap.put("RutEjecutivo", "78951950");
-            requestBodyMap.put("NumeroPin", "1");
-            requestBodyMap.put("EmiteCotizacion", false);
-
-            // Creamos la solicitud con el cuerpo de la respuesta y los headers, y la realizamos
-            requestBody = mapper.writeValueAsString(requestBodyMap);
-            HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
-            @SuppressWarnings("null")
-            ResponseEntity<BCIQuotePojo> response = restTemplate.exchange(urlBCITarifacion, HttpMethod.POST, requestEntity, BCIQuotePojo.class);
-            
-            // Si el código de la respuesta es correcto seguimos con la lógica, si no, retornamos un error.
-            if(response.getStatusCode() == HttpStatus.OK) {
-                BCIQuotePojo quoteBci = mapper.convertValue(response.getBody(), BCIQuotePojo.class);
-                if(quoteBci == null) {
-                    return Map.of("errorPlanFinder", "10", "errorMessage", "El cuerpo de la respuesta es nulo", "requestBody", requestBody, "responseStr", responseStr); // Opción 9, error: objeto nulo
-                }
-                if(quoteBci.getError() != null) {
-                    errorMessage = "Existe error mapeada de API: " + quoteBci.getError();
-                    return Map.of("errorPlanFinder", "11", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr); // Opción 10, error: la cotización no se ha podido a llevar a cabo
-                }
-                // Obtenemos la data principal
-                List<QuotationPlanDto> plans = new ArrayList<>();
-                double valueUF = quoteBci.getTasaCambioUF();
-                double discount = quoteBci.getDescuento();
-                int totalMonths = quoteBci.getCantidadCuotas();
-                // Iteramos por cada producto
-                for(BCIQuoteProductPojo product : quoteBci.getProductos()) {
-                    String planName = product.getNombreProducto();
-                    // Iteramos por cada tarifa del plan, que varía por el deducible
-                    for(BCIQuoteDescriptionPojo rate : product.getTarifas()) {
-                        String deductibleId = String.valueOf(rate.getIdDeducible());
-                        String deductibleDesc = rate.getDescripcionDeducible();
-                        double grossPriceUF = rate.getPrimaAnualBruta();
-                        double monthlyPriceUF = grossPriceUF / totalMonths;
-                        double monthlyPrice = (double) rate.getValorCuotaPesos();
-                        // Ajustar deducible a String, como viene de la API
-                        int deductible = this.getDeductibleBCI(deductibleId); 
-                        deductible = (deductible == -1) ? this.getNoneDetectedDeductible(deductibleDesc) : deductible;
-                        // Creamos el id del plan único con el id del tipo de plan y id del deducible
-                        String planId = String.valueOf(product.getIdProducto()) + "_" + deductibleId;
-                        // FALTA AGREGAR LOS DETALLES DEPENDIENDO DEL PLAN ----
-                        QuotationPlanDto novaPlan = new QuotationPlanDto(planId, "BCI", planName, valueUF,
-                                grossPriceUF, totalMonths, monthlyPriceUF, monthlyPrice, deductible, deductibleDesc,
-                                discount, "", "", "", "");
-                        plans.add(novaPlan);
-                    }
-                }
-                errorMessage = "Se encontro la aseguradora con los planes";
-                return Map.of("errorPlanFinder", "0", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr, "plans", plans);
-            }
-            code = response.getStatusCode().value();
-        } catch(JsonProcessingException e) {
-            errorMessage = "No se pudo construir el cuerpo de la solicitud: " + e.getMessage() + "\n\n" + e.getCause().getMessage();
-            return Map.of("errorPlanFinder", "6", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr);
-        } catch(RestClientException e) {
-            errorMessage = "Error al construir objeto de solicitud: " + e.getMessage() + "\n\n" + e.getCause().getMessage();
-            return Map.of("errorPlanFinder", "7", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr);
-        } catch(Exception e) {
-            errorMessage = "No se pudo realizar la consulta: " + e.getMessage() + "\n\n" + e.getCause().getMessage();
-            return Map.of("errorPlanFinder", "8", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr);
+    public Object[] quoteVehicle(int brandIdBCI, int modelIdBCI, int year) {
+        // Crear token para realizar cotización y revisar respuesta
+        BCITokenCreatePojo tokenCreateResponse = this.createToken();
+        if(tokenCreateResponse.hasError()) {
+            return new Object[] {tokenCreateResponse.getInternalErrorCode(), Map.of("responseBody", tokenCreateResponse.getResponseBodyStr(), "responseOrError", tokenCreateResponse.getStatusOrErrorStr()), null};
         }
-        errorMessage = "El código de error no es correcto: " + code;
-        return Map.of("errorPlanFinder", "9", "errorMessage", errorMessage, "requestBody", requestBody, "responseStr", responseStr);
+        // Realizar cotización en base al vehículo con token obtenido y revisar respuesta
+        String token = tokenCreateResponse.getToken();
+        BCIQuoteCarPojo quoteCarResponse = this.quoteCar(token, brandIdBCI, modelIdBCI, year);
+        if(quoteCarResponse.hasError()) {
+            return new Object[] {quoteCarResponse.getInternalErrorCode(), Map.of("responseBody", quoteCarResponse.getResponseBodyStr(), "responseOrError", quoteCarResponse.getStatusOrErrorStr()), null};
+        }
+        // No hay error, se construye el DTO de servicio externo (BCI)
+        BCIQuotationDto bciQuotationDto = this.buildBCIQuotationDto(quoteCarResponse);
+        if(quoteCarResponse.hasError()) {
+            return new Object[] {quoteCarResponse.getInternalErrorCode(), Map.of("responseBody", "", "responseOrError", "No se han encontrado planes o ha ocurrido una excepción al construir el dto de la cotización."), null};
+        }
+        // No hay error se construye objeto final que entiende aplicación interna (es muy posible que se deba ajustar luego de coordinar con cambio de respuesta en estructura).
+        return this.buildResponseQuotationBCI(bciQuotationDto);
     }
 
-    public String[] findBrandAndModelId(BrandRepository brandRepository, String insurer, String brand, String model) {
+    // Endpoint para crear token y realizar otras peticiones (BCI)
+    @SuppressWarnings("null")
+    private BCITokenCreatePojo createToken() {
+        // Instanciamos el objeto que vamos a retornar al final del flujo
+        BCITokenCreatePojo bciPojoResult = new BCITokenCreatePojo();
+        ObjectMapper objectMapper = new ObjectMapper();
+        // Variables de respaldo por si el exchange falla
+        String responseJsonRaw = "";
+        HttpStatusCode statusResponse = null;
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+            String urlCreateToken = bciBaseUrl + "/GenerarToken";
+            // Construcción de cuerpo de solicitud, entidad y realización de petición
+            BCITokenCreateRequest requestCreateToken = new BCITokenCreateRequest(bciUser, bciPassword);
+            HttpEntity<BCITokenCreateRequest> entity = new HttpEntity<>(requestCreateToken, headers);
+            // Aseguramos la captura de la solicitud convirtiendo la solicitud a String
+            ResponseEntity<String> response = restTemplate.exchange(urlCreateToken, HttpMethod.POST, entity, String.class);
+            // Captura inmediata de datos reales del servidor
+            responseJsonRaw = response.getBody();
+            statusResponse = response.getStatusCode();
+            // Seteo inicial en el POJO de control
+            bciPojoResult.setResponseBodyStr(responseJsonRaw);
+            bciPojoResult.setStatusResponse(statusResponse);
+            bciPojoResult.setStatusOrErrorStr(statusResponse.toString());
+            if(statusResponse == HttpStatus.OK) {
+                if(responseJsonRaw != null) {
+                    // Se crea nueva instancia en BCITokenCreatePojo
+                    bciPojoResult = objectMapper.readValue(responseJsonRaw, BCITokenCreatePojo.class);
+                    bciPojoResult.setResponseBodyStr(responseJsonRaw);
+                    bciPojoResult.setStatusResponse(statusResponse);
+                    bciPojoResult.setStatusOrErrorStr(statusResponse.toString());
+                }
+                bciPojoResult.setInternalErrorCode(-1);
+                return bciPojoResult;
+            }
+            LOGGER_MESSAGES.info("Respuesta no esperada al realizar petición para generar token (BCI): " + statusResponse.value());
+            return new BCITokenCreatePojo(41, responseJsonRaw, statusResponse.toString(), statusResponse);
+        } catch (HttpStatusCodeException e) {
+            // Error HTTP (4xx o 5xx)
+            statusResponse = e.getStatusCode();
+            bciPojoResult.setResponseBodyStr(e.getResponseBodyAsString());
+            bciPojoResult.setStatusOrErrorStr("HTTP Error: " + statusResponse.value() + " - " + e.getStatusText());
+            bciPojoResult.setStatusResponse(statusResponse);
+            bciPojoResult.setInternalErrorCode(40);
+            LOGGER_MESSAGES.info("Error HTTP de BCI | JSON de error: " + bciPojoResult.getResponseBodyStr());
+            return bciPojoResult;
+        } catch (Exception e) {
+            // Error de Parseo o Red, es muy probable que se hayan recuperado datos de resouesta
+            bciPojoResult.setStatusOrErrorStr("Exception: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            bciPojoResult.setInternalErrorCode(40);
+            // Si la excepción ocurrió antes de obtener respuesta (ej. Timeout o Red), evitamos que quede en null
+            if(DataHelper.isNull(bciPojoResult.getResponseBodyStr())) {
+                bciPojoResult.setResponseBodyStr("No se alcanzó a obtener respuesta del servidor externo.");
+            }
+            LOGGER_MESSAGES.info("Excepción en flujo para generar token en servicio externo (BCI): " + bciPojoResult.getStatusOrErrorStr());
+            return bciPojoResult;
+        }
+    }
+
+    // Endpoint para cotizar vehículo (BCI)
+    @SuppressWarnings("null")
+    private BCIQuoteCarPojo quoteCar(String token, int brandId, int modelId, int year) {
+        // Instanciamos el objeto que vamos a retornar al final del flujo
+        BCIQuoteCarPojo bciPojoResult = new BCIQuoteCarPojo();
+        ObjectMapper objectMapper = new ObjectMapper();
+        // Variables de respaldo por si el exchange falla
+        String responseJsonRaw = "";
+        HttpStatusCode statusResponse = null;
+        try {
+            // Construcción de headers y url
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+            headers.set("Authorization", token);
+            String urlQuoteCar = bciBaseUrl + "/Tarificar";
+            // Construir cuerpo de solicitud, objeto de entidad http y realizar petición
+            BCIQuoteCarRequest requestQuoteCar = new BCIQuoteCarRequest(2, 10221656,
+                0, 12345678, "5", 10221656,
+                List.of(new BCIQuoteCarProdRequest(22000653, 11, 12,
+                    List.of(new BCIQuoteCarProdDetailRequest(brandId, modelId, year, 1, 2, 
+                        new BCIQuoteCarProdDetailOwnerRequest(12345678, "5", 35)
+                    )))));
+            HttpEntity<BCIQuoteCarRequest> entity = new HttpEntity<BCIQuoteCarRequest>(requestQuoteCar, headers);
+            ResponseEntity<String> response = restTemplate.exchange(urlQuoteCar, HttpMethod.POST, entity, String.class);
+            // Recuperamos los datos en crudo
+            responseJsonRaw = response.getBody();
+            statusResponse = response.getStatusCode();
+            bciPojoResult.setResponseBodyStr(responseJsonRaw);
+            bciPojoResult.setStatusOrErrorStr(statusResponse.toString());
+            bciPojoResult.setStatusResponse(statusResponse);
+            if(response.getStatusCode() == HttpStatus.OK) {
+                if(responseJsonRaw != null) {
+                    // Jackson actualiza el objeto existente inyectando los datos del JSON,
+                    // manteniendo los setters de auditoría que tenía antes.
+                    objectMapper.readerForUpdating(bciPojoResult).readValue(responseJsonRaw);
+                }
+                bciPojoResult.setInternalErrorCode(-1);
+                return bciPojoResult;
+            }
+            LOGGER_MESSAGES.info("Respuesta no esperada al realizar cotización en servicio externo (BCI): " + statusResponse.value());
+            return new BCIQuoteCarPojo(43, responseJsonRaw, statusResponse.toString(), statusResponse);
+        } catch(HttpStatusCodeException e) {
+            // Manejo de errores 4xx & 5xx
+            statusResponse = e.getStatusCode();
+            bciPojoResult.setResponseBodyStr(e.getResponseBodyAsString());
+            bciPojoResult.setStatusOrErrorStr("HTTP Error: " + statusResponse.value() + " - " + e.getStatusText());
+            bciPojoResult.setStatusResponse(statusResponse);
+            bciPojoResult.setInternalErrorCode(42);
+            LOGGER_MESSAGES.info("Error HTTP de BCI | JSON de error: " + bciPojoResult.getResponseBodyStr());
+            return bciPojoResult;
+        } catch(Exception e) {
+            // Error de Parseo o Red, es muy probable que se hayan recuperado datos de resouesta
+            bciPojoResult.setStatusOrErrorStr("Exception: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            bciPojoResult.setInternalErrorCode(42);
+            // Si la excepción ocurrió antes de obtener respuesta (ej. Timeout o Red), evitamos que quede en null
+            if(DataHelper.isNull(bciPojoResult.getResponseBodyStr())) {
+                bciPojoResult.setResponseBodyStr("No se alcanzó a obtener respuesta del servidor externo.");
+            }
+            LOGGER_MESSAGES.info("Excepción al realizar cotización en servicio externo (BCI): " + bciPojoResult.getStatusOrErrorStr());
+            return bciPojoResult;
+        }
+    }
+
+    // Construir DTO para respuesta de cotización de BCI
+    private BCIQuotationDto buildBCIQuotationDto(BCIQuoteCarPojo quoteCarResponse) {
+        try {
+            // Creamos la base del dto, y lo único pendiente es la actualización de los planes
+            BCIQuotationDto bciQuotationDto = new BCIQuotationDto(quoteCarResponse.getIdCotizacion(),
+                quoteCarResponse.getVigenciaCotizacion(), quoteCarResponse.getRutaDocumento(),
+                quoteCarResponse.getTasaCambioUF(), quoteCarResponse.getTasaInteresCuota(),
+                quoteCarResponse.getIVA(), quoteCarResponse.getRutCliente(), quoteCarResponse.getRutDV(),
+                quoteCarResponse.getIdFormaPago(), quoteCarResponse.getCantidadCuotas(),
+                quoteCarResponse.getDescuento(), quoteCarResponse.getTipoVehiculo(),
+                quoteCarResponse.getUsoVehiculo(), quoteCarResponse.getIdMarca(),
+                quoteCarResponse.getIdModelo(), quoteCarResponse.getAnioVehiculo(), null);
+            List<BCIQuotationPlanDto> plans = new ArrayList<>();
+            for(BCIQuoteCarProdPojo quoteCarProd : quoteCarResponse.getProductos()) {
+                Integer planId = quoteCarProd.getIdProducto();
+                String planName = quoteCarProd.getNombreProducto();
+                for(BCIQuoteCarProdDetailPojo quoteCarProdDetail : quoteCarProd.getTarifas()) {
+                    Integer deductibleId = quoteCarProdDetail.getIdDeducible();
+                    String uniqueValue = String.valueOf(planId) + "_" + String.valueOf(deductibleId);
+                    Integer deductibleValue = this.getDeductible(deductibleId);
+                    String deductibleDescription = quoteCarProdDetail.getDescripcionDeducible();
+                    Double netValueUF = quoteCarProdDetail.getPrimaAnualNeta();
+                    Double grossValueUF = quoteCarProdDetail.getPrimaAnualBruta();
+                    Double taxValueUF = quoteCarProdDetail.getImpuesto();
+                    Double monthlyValue = quoteCarProdDetail.getValorCuotaPesos();
+                    Double monthlyValueUF = (grossValueUF / bciQuotationDto.getCantidadCuotas());
+                    plans.add(new BCIQuotationPlanDto(uniqueValue, planId, planName, deductibleValue, deductibleDescription, netValueUF, grossValueUF, taxValueUF, monthlyValue, monthlyValueUF));
+                }
+            }
+            // Se revisa si se pudiero agregar planes
+            if(plans.size() <= 0) {
+                LOGGER_MESSAGES.info("No se han encontrado planes al construir el dto de la cotización de BCI");
+                return new BCIQuotationDto(44);
+            }
+            bciQuotationDto.setPlans(plans);
+            bciQuotationDto.setInternalErrorCode(-1);
+            return bciQuotationDto;
+        } catch (Exception e) {
+            LOGGER_MESSAGES.info("Error de excepción al construir el dto de la cotización de BCI: " + e.getMessage());
+            return new BCIQuotationDto(45);
+        }
+    }
+
+    private Object[] buildResponseQuotationBCI(BCIQuotationDto bciQuotationDto) {
+        List<QuotationPlanDto> plansDto = new ArrayList<>();
+        for(BCIQuotationPlanDto bciQuotationPlan : bciQuotationDto.getPlans()) {
+            plansDto.add(new QuotationPlanDto(bciQuotationPlan.getUniquePlan(), String.valueOf(bciQuotationPlan.getPlanId()),
+                "BCI", bciQuotationPlan.getPlanName(), bciQuotationDto.getTasaCambioUF(),
+                bciQuotationPlan.getGrossValueUF(), bciQuotationDto.getCantidadCuotas(), bciQuotationPlan.getMonthlyPriceUF(),
+                bciQuotationPlan.getMonthlyPrice(), bciQuotationPlan.getDeductible(), bciQuotationPlan.getDeductibleDesc(),
+                bciQuotationDto.getDescuento(), "Valor comercial", "Valor comercial",
+                "Hasta UF 500 entre daño emergente, moral y lucro cesante", "Multimarca",
+                bciQuotationDto.getIdCotizacion(), bciQuotationDto.getVigenciaCotizacion(), bciQuotationDto.getRutaDocumento(),
+                bciQuotationDto.getIdFormaPago(), "", null, null,
+                "", "", null, "", null, null, "", "", "",
+                new HashSet<>(), new ArrayList<>()));
+        }
+        return new Object[] {-1, null, plansDto};
+    }
+
+    private Integer getDeductible(Integer deductibleId) {
+        return (deductibleId == 1) ? 0
+            : (deductibleId == 2) ? 3
+            : (deductibleId == 3) ? 5
+            : (deductibleId == 4) ? 7
+            : (deductibleId == 5) ? 10
+            : -1;
+    }
+
+    // Flujo para realizar la búsqueda de id de modelo y id de marca de aseguradora (en este caso BCI), pero esta ajustado para que sea flexible, porque se envía nombre de aseguradora por parámetro.
+    public Object[] findBrandAndModelId(BrandRepository brandRepository, String insurer, String brand, String model) {
         List<BrandModel> brandsDB = brandRepository.findAll();
         String errorMessage = "";
-        String brandId = "0";
-        String modelId = "0";
+        int brandId = 0;
+        int modelId = 0;
         for(BrandModel brandDB : brandsDB) {
             String brandNameDB = brandDB.getBrand();
             // Primero buscamos para saber si existe la marca
@@ -164,7 +284,7 @@ public class BCIQuotationClient {
                     if(insurer.equals(insurerNameForBrandIdDB)) {
                         // Existe el id de la marca en la aseguradora
                         isInsurerBrandId = true;
-                        brandId = Integer.toString(insurerBrandId.getId());
+                        brandId = insurerBrandId.getId();
                         break;
                     }
                 }
@@ -179,72 +299,23 @@ public class BCIQuotationClient {
                                 String insurerNameForModelIdDB = insurerModelId.getName();
                                 if(insurer.equals(insurerNameForModelIdDB)) {
                                     // Existe el id del modelo en la aseguradora
-                                    modelId = Integer.toString(insurerModelId.getId());
-                                    return new String[] {"", "", brandId, modelId};
+                                    modelId = insurerModelId.getId();
+                                    return new Object[] {"", "", brandId, modelId};
                                 }
                             }
                             errorMessage = "Existe el modelo, pero no se encontro el id del modelo en la aseguradora: " + insurer;
-                            return new String[] {"5", errorMessage, "0", "0"};
+                            return new Object[] {"5", errorMessage, 0, 0};
                         }
                     }
                     errorMessage = "No existe el modelo consultado en la BD: " + model;
-                    return new String[] {"4", errorMessage, "0", "0"};
+                    return new Object[] {"4", errorMessage, 0, 0};
                 }
                 errorMessage = "Existe la marca, pero no se encontro el id de la marca en la aseguradora: " + insurer;
-                return new String[] {"3", errorMessage, "0", "0"};
+                return new Object[] {"3", errorMessage, 0, 0};
             }
         }
         errorMessage = "No existe la marca consulta en la BD: " + brand;
-        return new String[] {"2", errorMessage, "0", "0"};
-    }
-
-    // CREAR LA ESTRUCTURA PARA COTIZAR UN PRODUCTO/PLAN DE BCI
-    private Map<String, Object> createProductBCI(long idProduct) {
-        Map<String, Object> product = new HashMap<>();
-        product.put("PmaId", idProduct);
-        product.put("Ncuotas", 11);
-        product.put("Vigencia", 12);
-        return product;
-    }
-
-    private int getDeductibleBCI(String deductibleId) {
-        switch (deductibleId) {
-            case "1" -> {
-                return 0; // UF
-            }
-            case "2" -> {
-                return 3; // UF
-            }
-            case "3" -> {
-                return 5; // UF
-            }
-            case "4" -> {
-                return 7; // UF
-            }
-            case "5" -> {
-                return 10; // UF
-            }
-            case "6" -> {
-                return 20; // UF
-            }
-            case "7" -> {
-                return 15; // UF
-            }
-            case "497" -> {
-                return 25; // UF
-            }
-            default -> {
-                return -1; // UF
-            }
-        }
-    }
-
-    private int getNoneDetectedDeductible(String deductibleDesc) {
-        try {
-            return Integer.parseInt(deductibleDesc.substring(10, deductibleDesc.length() - 3).strip()); // Ejemplo: "Deducible X UF"
-        } catch(Exception e) {
-            return -1;
-        }
+        return new Object[] {"2", errorMessage, 0, 0};
     }
 
 }
