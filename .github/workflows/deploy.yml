@@ -52,6 +52,14 @@ jobs:
             rm -rf $TOMCAT_WEBAPPS/moneyfy $TOMCAT_WEBAPPS/moneyfy.war
             TOMCAT_SETENV="/opt/tomcat10/bin/setenv.sh"
             touch "$TOMCAT_SETENV"
+            if ! grep -q "^export MONEYFY_JWT_SECRET=" "$TOMCAT_SETENV"; then
+              if command -v openssl >/dev/null 2>&1; then
+                JWT_SECRET=$(openssl rand -base64 64)
+              else
+                JWT_SECRET=$(head -c 64 /dev/urandom | base64 | tr -d '\n')
+              fi
+              echo "export MONEYFY_JWT_SECRET=\"$JWT_SECRET\"" >> "$TOMCAT_SETENV"
+            fi
             if grep -q "^export MONEYFY_SEEDERS_AUTO_ENABLED=" "$TOMCAT_SETENV"; then
               sed -i 's/^export MONEYFY_SEEDERS_AUTO_ENABLED=.*/export MONEYFY_SEEDERS_AUTO_ENABLED=false/' "$TOMCAT_SETENV"
             else

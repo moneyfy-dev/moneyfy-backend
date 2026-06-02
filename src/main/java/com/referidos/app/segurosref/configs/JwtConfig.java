@@ -2,6 +2,7 @@ package com.referidos.app.segurosref.configs;
 
 import java.util.Collection;
 import java.util.Date;
+import java.nio.charset.StandardCharsets;
 
 import javax.crypto.SecretKey;
 
@@ -13,16 +14,32 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 
 public class JwtConfig {
 
-    public static final SecretKey SECRET_KEY = Jwts.SIG.HS256.key().build();
+    private static final String SECRET_ENV = "MONEYFY_JWT_SECRET";
+    private static final String SECRET_PROPERTY = "moneyfy.jwt.secret";
+    private static final String LOCAL_DEV_SECRET = "moneyfy-local-dev-secret-change-before-production-2026";
+
+    public static final SecretKey SECRET_KEY = buildSecretKey();
     public static final String HEADER_AUTHORIZATION = "Authorization";
     public static final String PREFIX_TOKEN = "Bearer ";
     public static final String CONTENT_TYPE = "application/json";
 
     public static final String REFRESH_SUBJECT = "r3f3r1d0s0pp";
     public static final String REFRESH_CLAIM = "3x1t0";
+
+    private static SecretKey buildSecretKey() {
+        String configuredSecret = System.getenv(SECRET_ENV);
+        if(configuredSecret == null || configuredSecret.isBlank()) {
+            configuredSecret = System.getProperty(SECRET_PROPERTY);
+        }
+        if(configuredSecret == null || configuredSecret.isBlank()) {
+            configuredSecret = LOCAL_DEV_SECRET;
+        }
+        return Keys.hmacShaKeyFor(configuredSecret.getBytes(StandardCharsets.UTF_8));
+    }
 
     public static String createSessionToken(String email, Collection<? extends GrantedAuthority> authorities) throws JsonProcessingException {
         Claims claims = Jwts.claims()

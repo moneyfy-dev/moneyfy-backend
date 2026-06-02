@@ -285,8 +285,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         return ResponseHelper.imUsed(responseMessage, null);
                     } else {
                         // Se ha encontrado un dispositivo relacionado al email del usuario, además de validar sus credenciales...
-                        // Se actualiza su token de session, el filtro maneja el token de refresco para actualizarlo
-                        userData.setSessionToken(JwtConfig.createSessionToken(email, Collections.singletonList(new SimpleGrantedAuthority(userData.getProfileRole()))));
+                        // Se actualizan ambos tokens para iniciar una sesion limpia despues de cada login.
+                        String sessionToken = JwtConfig.createSessionToken(email, Collections.singletonList(new SimpleGrantedAuthority(userData.getProfileRole())));
+                        String refreshToken = JwtConfig.createRefreshToken(email);
+                        DeviceModel deviceDB = optionalDevice.get();
+                        userData.setSessionToken(sessionToken);
+                        userData.setRefreshToken(refreshToken);
+                        deviceDB.setRefreshToken(refreshToken);
+                        deviceDB.setUpdatedDate(currentDateTime);
+                        deviceRepository.save(deviceDB);
                         userDB = userRepository.save(userDB);
                         return ResponseHelper.ok("se ha iniciado sesión exitosamente", DataHelper.buildUser(userDB));
                     }
