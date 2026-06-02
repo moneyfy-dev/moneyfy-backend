@@ -1,29 +1,58 @@
-<!DOCTYPE html>
-<html lang="es">
+﻿<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo referido Moneyfy</title>
     <style>
-        .logo {
-            color: rgb(31, 184, 20);
-        }
-        .close-paragraph {
-            margin: 4px 0px;
-        }
-        .close-paragraph--up {
-            margin-top: 4px;
+        @media only screen and (max-width: 640px) {
+            .mail-container { width: 100% !important; }
+            .mail-padding { padding: 28px 22px !important; }
+            .mail-title { font-size: 28px !important; line-height: 34px !important; }
+            .secure-cell { display: block !important; width: 100% !important; }
         }
     </style>
 </head>
-<body>
-    
-    <h1 class="logo" >Money Fy</h1>
-    <h4 th:if="${userACodeToRefer != null}">¡Se ha registrado un nuevo usuario con tu código de referidos <span th:text="${userACodeToRefer}"></span>!</h4>
-    <h4 th:unless="${userACodeToRefer != null}">¡Se ha registrado un nuevo usuario con tu código de referido!</h4>
-
-    <p th:if="${fullNameReferredUser != null}">El usuario <span th:text="${fullNameReferredUser}"></span>, acaba de registrarse con tu código de referidos, sigue así y refiere a muchos más, recuerda que entre más refieres más lucas!</p>
-    <p th:unless="${fullNameReferredUser != null}">Un usuario acaba de registrarse con tu código de referidos, sigue así y refiere a muchos más, recuerda que entre más refieres más lucas!</p>
-
-    <em>Este es un mensaje automático, por favor no lo responda.</em>
+<body style="margin:0; padding:0; background:#f3f6f4; color:#1f2933; font-family:Arial, Helvetica, sans-serif;">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="background:#f3f6f4;">
+    <tr>
+        <td align="center" style="padding:28px 12px;">
+            <table class="mail-container" width="640" border="0" cellspacing="0" cellpadding="0" style="width:640px; max-width:640px; background:#ffffff; border-radius:24px; overflow:hidden;">
+                <tr>
+                    <td class="mail-padding" style="background:#111111; padding:36px 42px;">
+                        <img src="cid:moneyfy-logo" alt="Moneyfy" width="168" style="display:block; border:0; outline:none; text-decoration:none; max-width:168px; height:auto;">
+                        <div style="height:20px;"></div>
+                        <div class="mail-title" style="font-size:34px; line-height:40px; font-weight:800; color:#ffffff;">Nuevo referido registrado</div>
+                        <div style="font-size:15px; line-height:24px; color:#b8c1bd; margin-top:10px;">Tu red sigue creciendo dentro de Moneyfy.</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mail-padding" style="padding:40px 42px;">
+                        <div style="background:#edfff4; border:1px solid #b7efc9; border-radius:18px; padding:24px;">
+                            <h2 style="margin:0 0 12px 0; color:#111111; font-size:22px; line-height:28px;" th:if="${userACodeToRefer != null}">Se registro un usuario con tu codigo <span style="color:#00a844;" th:text="${userACodeToRefer}"></span></h2>
+                            <h2 style="margin:0 0 12px 0; color:#111111; font-size:22px; line-height:28px;" th:unless="${userACodeToRefer != null}">Se registro un usuario con tu codigo de referido</h2>
+                            <p style="margin:0; color:#344054; font-size:16px; line-height:26px;" th:if="${fullNameReferredUser != null}">El usuario <strong th:text="${fullNameReferredUser}"></strong> acaba de registrarse con tu codigo de referidos. Sigue compartiendo Moneyfy para aumentar tus oportunidades de comision.</p>
+                            <p style="margin:0; color:#344054; font-size:16px; line-height:26px;" th:unless="${fullNameReferredUser != null}">Un usuario acaba de registrarse con tu codigo de referidos. Sigue compartiendo Moneyfy para aumentar tus oportunidades de comision.</p>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background:#f7faf8; padding:0 42px 34px 42px;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-top:1px solid #dfe7e2; padding-top:22px;">
+                            <tr>
+                                <td class="secure-cell" width="90" valign="top" style="font-size:38px; line-height:44px;">&#128274;</td>
+                                <td class="secure-cell" valign="top" style="font-size:12px; line-height:19px; color:#667085;">
+                                    <strong style="color:#111111;">Correo seguro Moneyfy.</strong><br>
+                                    Este aviso es informativo. Nunca solicitaremos claves, PIN ni codigos de verificacion para revisar tus referidos o comisiones.
+                                </td>
+                            </tr>
+                        </table>
+                        <p style="margin:22px 0 0 0; text-align:center; font-size:12px; line-height:18px; color:#98a2b3;">Este es un mensaje automatico, por favor no lo respondas. Soporte: soporte@moneyfy.cl</p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 </body>
 </html>

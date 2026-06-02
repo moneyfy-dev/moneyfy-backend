@@ -1,39 +1,68 @@
-<!DOCTYPE html>
-<html lang="es">
+﻿<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuenta desactivada Moneyfy</title>
     <style>
-        .logo {
-            color: rgb(31, 184, 20);
-        }
-        .close-paragraph {
-            margin: 4px 0px;
-        }
-        .close-paragraph--up {
-            margin-top: 4px;
+        @media only screen and (max-width: 640px) {
+            .mail-container { width: 100% !important; }
+            .mail-padding { padding: 28px 22px !important; }
+            .mail-title { font-size: 28px !important; line-height: 34px !important; }
+            .secure-cell { display: block !important; width: 100% !important; }
         }
     </style>
 </head>
-<body>
-    
-    <h1 class="logo" >Money Fy</h1>
-    <h4>Tu cuenta de usuario se ha desactivado exitosamente</h4>
-
-    <p>Se ha programado la eliminación de tu cuenta luego de transcurrido 30 días de inactividad. Si deseas volver ha activarla, solo necesitas registrarte con tus credenciales antes de completarse el tiempo estipulado. ¡Te esperaremos por si cambias de opinión!</p>
-    
-    <p class="close-paragraph" >Información de desactivación de la cuenta:</p>
-    <!-- Datos de desactivación de la cuenta -->
-    <p th:if="${userEmail != null}" class="close-paragraph">Usuario: <span th:text="${userEmail}"></span></p>
-    <p th:unless="${userEmail != null}" class="close-paragraph">Usuario: No informado</p>
-    <p th:if="${disableDate != null}" class="close-paragraph">Fecha de desactivación de cuenta: <span th:text="${disableDate}"></span></p>
-    <p th:unless="${disableDate != null}" class="close-paragraph">Fecha de desactivación de cuenta: No informado</p>
-    <p th:if="${deleteDate != null}" class="close-paragraph">Fecha para la eliminación programada: <span th:text="${deleteDate}"></span></p>
-    <p th:unless="${deleteDate != null}" class="close-paragraph">Fecha para la eliminación programada: No informado</p>
-
-    <p th:if="${support != null}" style="margin-bottom: 4px;">Si necesitas ayuda, puedes comunicarte con: <span th:text="${support}"></span></p>
-    <p th:unless="${support != null}" style="margin-bottom: 4px;">Si necesitas ayuda, puedes comunicarte con: soporte@moneyfy.cl</p>
-
-    <em>Este es un mensaje automático, por favor no lo responda.</em>
+<body style="margin:0; padding:0; background:#f3f6f4; color:#1f2933; font-family:Arial, Helvetica, sans-serif;">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="background:#f3f6f4;">
+    <tr>
+        <td align="center" style="padding:28px 12px;">
+            <table class="mail-container" width="640" border="0" cellspacing="0" cellpadding="0" style="width:640px; max-width:640px; background:#ffffff; border-radius:24px; overflow:hidden;">
+                <tr>
+                    <td class="mail-padding" style="background:#111111; padding:36px 42px;">
+                        <img src="cid:moneyfy-logo" alt="Moneyfy" width="168" style="display:block; border:0; outline:none; text-decoration:none; max-width:168px; height:auto;">
+                        <div style="height:20px;"></div>
+                        <div class="mail-title" style="font-size:34px; line-height:40px; font-weight:800; color:#ffffff;">Tu cuenta fue desactivada</div>
+                        <div style="font-size:15px; line-height:24px; color:#b8c1bd; margin-top:10px;">Se programo la eliminacion de tu cuenta segun el periodo informado.</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mail-padding" style="padding:40px 42px;">
+                        <p style="margin:0 0 22px 0; color:#344054; font-size:16px; line-height:26px;">Tu cuenta de usuario se desactivo exitosamente. Si deseas volver a activarla, puedes ingresar nuevamente con tus credenciales antes de completarse el periodo de eliminacion.</p>
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background:#fff8ed; border:1px solid #f4d6a0; border-radius:18px;">
+                            <tr>
+                                <td style="padding:22px;">
+                                    <h3 style="margin:0 0 14px 0; color:#111111; font-size:18px;">Informacion de desactivacion</h3>
+                                    <p style="margin:5px 0; color:#344054;" th:if="${userEmail != null}">Usuario: <strong th:text="${userEmail}"></strong></p>
+                                    <p style="margin:5px 0; color:#344054;" th:unless="${userEmail != null}">Usuario: <strong>No informado</strong></p>
+                                    <p style="margin:5px 0; color:#344054;" th:if="${disableDate != null}">Fecha de desactivacion: <span th:text="${disableDate}"></span></p>
+                                    <p style="margin:5px 0; color:#344054;" th:unless="${disableDate != null}">Fecha de desactivacion: No informada</p>
+                                    <p style="margin:5px 0; color:#344054;" th:if="${deleteDate != null}">Eliminacion programada: <span th:text="${deleteDate}"></span></p>
+                                    <p style="margin:5px 0; color:#344054;" th:unless="${deleteDate != null}">Eliminacion programada: No informada</p>
+                                </td>
+                            </tr>
+                        </table>
+                        <p style="margin:24px 0 0 0; color:#344054; font-size:15px; line-height:24px;" th:if="${support != null}">Si necesitas ayuda, puedes comunicarte con: <strong th:text="${support}"></strong></p>
+                        <p style="margin:24px 0 0 0; color:#344054; font-size:15px; line-height:24px;" th:unless="${support != null}">Si necesitas ayuda, puedes comunicarte con: <strong>soporte@moneyfy.cl</strong></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background:#f7faf8; padding:0 42px 34px 42px;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-top:1px solid #dfe7e2; padding-top:22px;">
+                            <tr>
+                                <td class="secure-cell" width="90" valign="top" style="font-size:38px; line-height:44px;">&#128274;</td>
+                                <td class="secure-cell" valign="top" style="font-size:12px; line-height:19px; color:#667085;">
+                                    <strong style="color:#111111;">Correo seguro Moneyfy.</strong><br>
+                                    Si no solicitaste la desactivacion de tu cuenta, contacta a soporte de inmediato. Moneyfy nunca pedira tus claves o codigos de seguridad para revertir este proceso.
+                                </td>
+                            </tr>
+                        </table>
+                        <p style="margin:22px 0 0 0; text-align:center; font-size:12px; line-height:18px; color:#98a2b3;">Este es un mensaje automatico, por favor no lo respondas. Soporte: soporte@moneyfy.cl</p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 </body>
 </html>

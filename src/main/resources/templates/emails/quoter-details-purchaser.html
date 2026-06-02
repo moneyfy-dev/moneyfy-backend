@@ -1,68 +1,126 @@
-<!DOCTYPE html>
-<html lang="es">
+﻿<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de cotizacion Moneyfy</title>
     <style>
-        .logo {
-            color: rgb(31, 184, 20);
-        }
-        .close-paragraph {
-            margin: 4px 0px;
-        }
-        .close-paragraph--up {
-            margin-top: 4px;
+        @media only screen and (max-width: 640px) {
+            .mail-container { width: 100% !important; }
+            .mail-padding { padding: 28px 22px !important; }
+            .mail-title { font-size: 28px !important; line-height: 34px !important; }
+            .detail-cell { display: block !important; width: 100% !important; }
+            .secure-cell { display: block !important; width: 100% !important; }
         }
     </style>
 </head>
-<body>
-    
-    <h1 class="logo" >Money Fy</h1>
+<body style="margin:0; padding:0; background:#f3f6f4; color:#1f2933; font-family:Arial, Helvetica, sans-serif;">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="background:#f3f6f4;">
+    <tr>
+        <td align="center" style="padding:28px 12px;">
+            <table class="mail-container" width="680" border="0" cellspacing="0" cellpadding="0" style="width:680px; max-width:680px; background:#ffffff; border-radius:24px; overflow:hidden;">
+                <tr>
+                    <td class="mail-padding" style="background:#111111; padding:36px 42px;">
+                        <img src="cid:moneyfy-logo" alt="Moneyfy" width="168" style="display:block; border:0; outline:none; text-decoration:none; max-width:168px; height:auto;">
+                        <div style="height:20px;"></div>
+                        <div class="mail-title" style="font-size:34px; line-height:40px; font-weight:800; color:#ffffff;">Tu cotizacion esta en proceso</div>
+                        <div style="font-size:15px; line-height:24px; color:#b8c1bd; margin-top:10px;">Te compartimos el resumen de la solicitud realizada en Moneyfy.</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mail-padding" style="padding:40px 42px;">
+                        <p style="margin:0 0 12px 0; color:#344054; font-size:16px; line-height:26px;" th:if="${purchaserFullName != null}">Hola <strong th:text="${purchaserFullName}"></strong>,</p>
+                        <p style="margin:0 0 22px 0; color:#344054; font-size:16px; line-height:26px;">Gracias por solicitar tu cotizacion a traves de nuestra aplicacion. La solicitud esta siendo procesada por la aseguradora y, si se requiere informacion adicional, nos pondremos en contacto contigo.</p>
+                        <p style="margin:0 0 26px 0; color:#344054; font-size:16px; line-height:26px;" th:if="${quoterId != null}">Cotizacion N&deg; <strong th:text="${quoterId}"></strong></p>
+                        <p style="margin:0 0 26px 0; color:#344054; font-size:16px; line-height:26px;" th:unless="${quoterId != null}">Detalle de cotizacion:</p>
 
-    <p th:if="${purchaserFullName != null}" class="close-paragraph">Hola <span th:text="${purchaserFullName}"></span>,</p>
-    <p>Gracias por solicitar tu cotización a través de nuestra aplicación. Queremos informarte que la solicitud está siendo procesada por la aseguradora. En caso de requerir información adicional, nos pondremos en contacto contigo.</p> 
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:18px;">
+                            <tr>
+                                <td style="background:#f8fbf9; border:1px solid #dfe7e2; border-radius:18px; padding:22px;">
+                                    <h3 style="margin:0 0 14px 0; color:#111111; font-size:18px;">Vehiculo cotizado</h3>
+                                    <div th:if="${quoterCar != null and ownerFullName != null}">
+                                        <p style="margin:5px 0; color:#344054;">Propietario: <strong th:text="${ownerFullName}"></strong></p>
+                                        <p style="margin:5px 0; color:#344054;">Patente: <strong th:text="${quoterCar.getPpu()}"></strong></p>
+                                        <p style="margin:5px 0; color:#344054;">Marca: <span th:text="${quoterCar.getBrand()}"></span></p>
+                                        <p style="margin:5px 0; color:#344054;">Modelo: <span th:text="${quoterCar.getModel()}"></span></p>
+                                        <p style="margin:5px 0; color:#344054;">Ano: <span th:text="${quoterCar.getYear()}"></span></p>
+                                    </div>
+                                    <p th:unless="${quoterCar != null and ownerFullName != null}" style="margin:0; color:#667085;">Informacion del vehiculo sin especificar.</p>
+                                </td>
+                            </tr>
+                        </table>
 
-    <p th:if="${quoterId != null}">A continuación, te compartimos los detalles de la cotización N°<span th:text="${quoterId}"></span></p>
-    <p th:unless="${quoterId != null}">A continuación, te compartimos los detalles de la cotización:</p>
-    
-    <h4>Vehículo Cotizado</h4>
-    <div th:if="${quoterCar != null and ownerFullName != null}">
-        <p class="close-paragraph">Propietario: <span th:text="${ownerFullName}"></span></p>
-        <p class="close-paragraph">Patente: <span th:text="${quoterCar.getPpu()}"></span></p>
-        <p class="close-paragraph">Marca: <span th:text="${quoterCar.getBrand()}"></span></p>
-        <p class="close-paragraph">Modelo: <span th:text="${quoterCar.getModel()}"></span></p>
-        <p class="close-paragraph">Año: <span th:text="${quoterCar.getYear()}"></span></p>
-    </div>
-    <p th:unless="${quoterCar != null or ownerFullName != null}" class="close-paragraph">Información del vehículo sin especificar</p>
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:18px;">
+                            <tr>
+                                <td style="background:#edfff4; border:1px solid #b7efc9; border-radius:18px; padding:22px;">
+                                    <h3 style="margin:0 0 14px 0; color:#111111; font-size:18px;">Plan seleccionado</h3>
+                                    <div th:if="${quoterPlan != null}">
+                                        <p style="margin:5px 0; color:#344054;">Aseguradora: <strong th:text="${quoterPlan.getInsurer()}"></strong></p>
+                                        <p style="margin:5px 0; color:#344054;">Nombre del plan: <span th:text="${quoterPlan.getPlanName()}"></span></p>
+                                        <p style="margin:5px 0; color:#344054;">Valor total: <strong><span th:text="${quoterPlan.getGrossPriceUF()}"></span> UF</strong></p>
+                                        <p style="margin:5px 0; color:#344054;">Valor mensual: <strong><span th:text="${quoterPlan.getMonthlyPriceUF()}"></span> UF</strong></p>
+                                        <p style="margin:5px 0; color:#344054;">Cuotas: <span th:text="${quoterPlan.getTotalMonths()}"></span></p>
+                                        <p style="margin:5px 0; color:#344054;">Deducible: <span th:text="${quoterPlan.getDeductibleDesc()}"></span></p>
+                                    </div>
+                                    <p th:unless="${quoterPlan != null}" style="margin:0; color:#667085;">Informacion del plan sin especificar.</p>
+                                </td>
+                            </tr>
+                        </table>
 
-    <h4>Plan Seleccionado</h4>
-    <div th:if="${quoterPlan != null}">
-        <p class="close-paragraph">Aseguradora: <span th:text="${quoterPlan.getInsurer()}"></span></p>
-        <p class="close-paragraph">Nombre del plan: <span th:text="${quoterPlan.getPlanName()}"></span></p>
-        <p class="close-paragraph">Valor total: <span th:text="${quoterPlan.getGrossPriceUF()}"></span> UF</p>
-        <p class="close-paragraph">Valor mensual: <span th:text="${quoterPlan.getMonthlyPriceUF()}"></span> UF</p>
-        <p class="close-paragraph">Cuotas: <span th:text="${quoterPlan.getTotalMonths()}"></span></p>
-        <p class="close-paragraph">Deducible: <span th:text="${quoterPlan.getDeductibleDesc()}"></span></p>
-    </div>
-    <p th:unless="${quoterPlan != null}" class="close-paragraph">Información del plan sin especificar</p>
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td class="detail-cell" width="50%" valign="top" style="padding-right:9px;">
+                                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                        <tr>
+                                            <td style="background:#f8fbf9; border:1px solid #dfe7e2; border-radius:18px; padding:22px;">
+                                                <h3 style="margin:0 0 14px 0; color:#111111; font-size:18px;">Comprador</h3>
+                                                <div th:if="${purchaserId != null and purchaserFullName != null}">
+                                                    <p style="margin:5px 0; color:#344054;">Rut: <span th:text="${purchaserId}"></span></p>
+                                                    <p style="margin:5px 0; color:#344054;">Nombre: <span th:text="${purchaserFullName}"></span></p>
+                                                </div>
+                                                <p th:unless="${purchaserId != null and purchaserFullName != null}" style="margin:0; color:#667085;">Informacion del comprador sin especificar.</p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td class="detail-cell" width="50%" valign="top" style="padding-left:9px;">
+                                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                        <tr>
+                                            <td style="background:#f8fbf9; border:1px solid #dfe7e2; border-radius:18px; padding:22px;">
+                                                <h3 style="margin:0 0 14px 0; color:#111111; font-size:18px;">Direccion de inspeccion</h3>
+                                                <div th:if="${addressDetail != null}">
+                                                    <p style="margin:5px 0; color:#344054;">Calle: <span th:text="${addressDetail}"></span></p>
+                                                    <p style="margin:5px 0; color:#344054;">Departamento: <span th:text="${departmentDetail}"></span></p>
+                                                </div>
+                                                <p th:unless="${addressDetail != null}" style="margin:0; color:#667085;">Direccion para inspeccion sin especificar.</p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
 
-    <h4>Comprador</h4>
-    <div th:if="${purchaserId != null and purchaserFullName != null}">
-        <p class="close-paragraph">Rut: <span th:text="${purchaserId}"></span></p>
-        <p class="close-paragraph">Nombre: <span th:text="${purchaserFullName}"></span></p>
-    </div>
-    <p th:unless="${purchaserId != null or purchaserFullName != null}" class="close-paragraph">Información del comprador sin especificar</p>
-
-    <h4>Dirección de Inspección</h4>
-    <div th:if="${addressDetail != null}">
-        <p class="close-paragraph">Calle: <span th:text="${addressDetail}"></span></p>
-        <p class="close-paragraph">Departamento (opcional): <span th:text="${departmentDetail}"></span></p>
-    </div>
-    <p th:unless="${addressDetail != null}" class="close-paragraph">Información del dirección para inspección sin especificar</p>
-
-    <p th:if="${support != null}" style="margin-bottom: 4px;">Si necesitas ayuda, puedes comunicarte con: <span th:text="${support}"></span></p>
-    <p th:unless="${support != null}" style="margin-bottom: 4px;">Si necesitas ayuda, puedes comunicarte con: soporte@moneyfy.cl</p>
-
-    <em>Este es un mensaje automático, por favor no lo responda.</em>
+                        <p style="margin:26px 0 0 0; color:#344054; font-size:15px; line-height:24px;" th:if="${support != null}">Si necesitas ayuda, puedes comunicarte con: <strong th:text="${support}"></strong></p>
+                        <p style="margin:26px 0 0 0; color:#344054; font-size:15px; line-height:24px;" th:unless="${support != null}">Si necesitas ayuda, puedes comunicarte con: <strong>soporte@moneyfy.cl</strong></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background:#f7faf8; padding:0 42px 34px 42px;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-top:1px solid #dfe7e2; padding-top:22px;">
+                            <tr>
+                                <td class="secure-cell" width="90" valign="top" style="font-size:38px; line-height:44px;">&#128274;</td>
+                                <td class="secure-cell" valign="top" style="font-size:12px; line-height:19px; color:#667085;">
+                                    <strong style="color:#111111;">Correo seguro Moneyfy.</strong><br>
+                                    Este correo contiene informacion de una cotizacion. No compartas codigos, claves ni datos sensibles fuera de la app oficial. Si no reconoces esta solicitud, contacta a soporte.
+                                </td>
+                            </tr>
+                        </table>
+                        <p style="margin:22px 0 0 0; text-align:center; font-size:12px; line-height:18px; color:#98a2b3;">Este es un mensaje automatico, por favor no lo respondas. Soporte: soporte@moneyfy.cl</p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 </body>
 </html>

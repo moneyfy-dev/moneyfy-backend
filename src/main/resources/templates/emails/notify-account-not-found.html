@@ -1,28 +1,60 @@
-<!DOCTYPE html>
-<html lang="es">
+﻿<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuenta bancaria no identificada</title>
     <style>
-        .logo {
-            color: rgb(31, 184, 20);
-        }
-        .close-paragraph {
-            margin: 4px 0px;
-        }
-        .close-paragraph--up {
-            margin-top: 4px;
+        @media only screen and (max-width: 640px) {
+            .mail-container { width: 100% !important; }
+            .mail-padding { padding: 28px 22px !important; }
+            .mail-title { font-size: 28px !important; line-height: 34px !important; }
+            .secure-cell { display: block !important; width: 100% !important; }
         }
     </style>
 </head>
-<body>
-    
-    <h1 class="logo" >Money Fy</h1>
-    <h4>¡Se están procesando tus comisiones y no hemos podido identificar tu cuenta para el recibo!</h4>
-
-    <p class="close-paragraph">Verifica tu cuenta bancaria predeterminada para el recibo de comisiones en la aplicación.</p>
-    <p class="close-paragraph--up">Si tu cuenta no puede ser identificada, tus pagos de comisiones serán programadas para el próximo mes.</p>
-
-    <em>Este es un mensaje automático, por favor no lo responda.</em>
+<body style="margin:0; padding:0; background:#f3f6f4; color:#1f2933; font-family:Arial, Helvetica, sans-serif;">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="background:#f3f6f4;">
+    <tr>
+        <td align="center" style="padding:28px 12px;">
+            <table class="mail-container" width="640" border="0" cellspacing="0" cellpadding="0" style="width:640px; max-width:640px; background:#ffffff; border-radius:24px; overflow:hidden;">
+                <tr>
+                    <td class="mail-padding" style="background:#111111; padding:36px 42px;">
+                        <img src="cid:moneyfy-logo" alt="Moneyfy" width="168" style="display:block; border:0; outline:none; text-decoration:none; max-width:168px; height:auto;">
+                        <div style="height:20px;"></div>
+                        <div class="mail-title" style="font-size:34px; line-height:40px; font-weight:800; color:#ffffff;">Necesitamos validar tu cuenta bancaria</div>
+                        <div style="font-size:15px; line-height:24px; color:#b8c1bd; margin-top:10px;">Tus comisiones estan en proceso, pero no pudimos identificar correctamente la cuenta para el pago.</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mail-padding" style="padding:40px 42px;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background:#edfff4; border-left:4px solid #00c853; border-radius:16px;">
+                            <tr>
+                                <td style="padding:22px 24px;">
+                                    <p style="margin:0 0 12px 0; font-size:16px; line-height:26px; color:#344054;">Verifica tu cuenta bancaria predeterminada para el recibo de comisiones en la aplicacion.</p>
+                                    <p style="margin:0; font-size:16px; line-height:26px; color:#344054;">Si la cuenta no puede ser identificada, tus pagos de comisiones seran programados para el proximo mes.</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background:#f7faf8; padding:0 42px 34px 42px;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-top:1px solid #dfe7e2; padding-top:22px;">
+                            <tr>
+                                <td class="secure-cell" width="90" valign="top" style="font-size:38px; line-height:44px;">&#128274;</td>
+                                <td class="secure-cell" valign="top" style="font-size:12px; line-height:19px; color:#667085;">
+                                    <strong style="color:#111111;">Correo seguro Moneyfy.</strong><br>
+                                    Moneyfy nunca solicitara tus claves, PIN o codigos de verificacion para corregir una cuenta bancaria. Actualiza tus datos solo desde la app oficial.
+                                </td>
+                            </tr>
+                        </table>
+                        <p style="margin:22px 0 0 0; text-align:center; font-size:12px; line-height:18px; color:#98a2b3;">Este es un mensaje automatico, por favor no lo respondas. Soporte: soporte@moneyfy.cl</p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 </body>
 </html>

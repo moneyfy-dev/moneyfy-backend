@@ -1,28 +1,63 @@
-<!DOCTYPE html>
-<html lang="es">
+﻿<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codigo de confirmacion Moneyfy</title>
     <style>
-        .logo {
-            color: rgb(31, 184, 20);
-        }
-        .close-paragraph {
-            margin: 4px 0px;
-        }
-        .close-paragraph--up {
-            margin-top: 4px;
+        @media only screen and (max-width: 640px) {
+            .mail-container { width: 100% !important; }
+            .mail-padding { padding: 28px 22px !important; }
+            .mail-title { font-size: 28px !important; line-height: 34px !important; }
+            .secure-cell { display: block !important; width: 100% !important; }
         }
     </style>
 </head>
-<body>
-    <h1 class="logo" >Money Fy</h1>
-    <h4>Su código de confirmación es: <span th:text="${code}"></span></h4>
-    
-    <p th:if="${info1 != null}"><span th:text="${info1}"></span></p>
-    <p th:unless="${info1 != null}">Te ayudará a finalizar procesos que necesitan confirmación, mantenlo seguro y no lo compartas con nadie.</p>
-    <p th:if="${info2 != null and (not info2.isBlank())}" class="close-paragraph"><span th:text="${info2}"></span></p>
-    
-    <em>Este es un mensaje automático, por favor no lo responda.</em>
+<body style="margin:0; padding:0; background:#f3f6f4; color:#1f2933; font-family:Arial, Helvetica, sans-serif;">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="background:#f3f6f4;">
+    <tr>
+        <td align="center" style="padding:28px 12px;">
+            <table class="mail-container" width="640" border="0" cellspacing="0" cellpadding="0" style="width:640px; max-width:640px; background:#ffffff; border-radius:24px; overflow:hidden;">
+                <tr>
+                    <td class="mail-padding" style="background:#111111; padding:36px 42px; text-align:left;">
+                        <img src="cid:moneyfy-logo" alt="Moneyfy" width="168" style="display:block; border:0; outline:none; text-decoration:none; max-width:168px; height:auto;">
+                        <div style="height:20px;"></div>
+                        <div class="mail-title" style="font-size:34px; line-height:40px; font-weight:800; color:#ffffff;">Codigo de confirmacion</div>
+                        <div style="font-size:15px; line-height:24px; color:#b8c1bd; margin-top:10px;">Usa este codigo para continuar tu proceso de forma segura.</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mail-padding" style="padding:40px 42px;">
+                        <p style="margin:0 0 18px 0; font-size:16px; line-height:26px; color:#344054;" th:if="${info1 != null}"><span th:text="${info1}"></span></p>
+                        <p style="margin:0 0 18px 0; font-size:16px; line-height:26px; color:#344054;" th:unless="${info1 != null}">Te ayudara a finalizar procesos que necesitan confirmacion. Mantenlo seguro y no lo compartas con nadie.</p>
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin:24px 0;">
+                            <tr>
+                                <td align="center" style="background:#edfff4; border:1px solid #b7efc9; border-radius:18px; padding:24px;">
+                                    <div style="font-size:13px; line-height:18px; color:#0b7a35; font-weight:700; text-transform:uppercase; letter-spacing:.8px;">Tu codigo</div>
+                                    <div style="font-size:40px; line-height:48px; color:#111111; font-weight:800; letter-spacing:6px; margin-top:6px;"><span th:text="${code}"></span></div>
+                                </td>
+                            </tr>
+                        </table>
+                        <p style="margin:0; font-size:15px; line-height:24px; color:#667085;" th:if="${info2 != null and (not info2.isBlank())}"><span th:text="${info2}"></span></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background:#f7faf8; padding:0 42px 34px 42px;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-top:1px solid #dfe7e2; padding-top:22px;">
+                            <tr>
+                                <td class="secure-cell" width="90" valign="top" style="font-size:38px; line-height:44px;">&#128274;</td>
+                                <td class="secure-cell" valign="top" style="font-size:12px; line-height:19px; color:#667085;">
+                                    <strong style="color:#111111;">Correo seguro Moneyfy.</strong><br>
+                                    Nunca solicitaremos tu clave, PIN, datos bancarios completos ni codigos de verificacion por telefono, correo o mensajeria. Ingresa siempre desde la app oficial y evita abrir enlaces o archivos de remitentes desconocidos.
+                                </td>
+                            </tr>
+                        </table>
+                        <p style="margin:22px 0 0 0; text-align:center; font-size:12px; line-height:18px; color:#98a2b3;">Este es un mensaje automatico, por favor no lo respondas. Soporte: soporte@moneyfy.cl</p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 </body>
 </html>

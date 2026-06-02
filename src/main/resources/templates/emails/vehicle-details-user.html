@@ -1,41 +1,72 @@
-<!DOCTYPE html>
-<html lang="es">
+﻿<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva cotizacion vinculada</title>
     <style>
-        .logo {
-            color: rgb(31, 184, 20);
-        }
-        .close-paragraph {
-            margin: 4px 0px;
-        }
-        .close-paragraph--up {
-            margin-top: 4px;
+        @media only screen and (max-width: 640px) {
+            .mail-container { width: 100% !important; }
+            .mail-padding { padding: 28px 22px !important; }
+            .mail-title { font-size: 28px !important; line-height: 34px !important; }
+            .secure-cell { display: block !important; width: 100% !important; }
         }
     </style>
 </head>
-<body>
-    <h1 class="logo" >Money Fy</h1>
-
-    <p th:if="${userFullName != null}" class="close-paragraph">Hola <span th:text="${userFullName}"></span>,</p>
-    <p th:if="${quoterId != null}">Queremos informarte que se ha iniciado el proceso de una nueva cotización con el N°<span th:text="${quoterId}"></span> vinculada a tu cuenta.</p> 
-    <p th:unless="${quoterId != null}">Queremos informarte que se ha iniciado el proceso de una nueva cotización vinculada a tu cuenta.</p> 
-    
-    <h4>Vehículo Cotizado</h4>
-    <div th:if="${quoterCar != null}">
-        <p class="close-paragraph">Patente: <span th:text="${quoterCar.getPpu()}"></span></p>
-        <p class="close-paragraph">Marca: <span th:text="${quoterCar.getBrand()}"></span></p>
-        <p class="close-paragraph">Modelo: <span th:text="${quoterCar.getModel()}"></span></p>
-        <p class="close-paragraph">Año: <span th:text="${quoterCar.getYear()}"></span></p>
-    </div>
-    <p th:unless="${quoterCar != null}" class="close-paragraph">Información del vehículo sin especificar</p>
-
-    <p>Te mantendremos al tanto en caso de cualquier novedad. ¡Gracias por confiar en nosotros!</p>
-
-    <p th:if="${support != null}" style="margin-bottom: 4px;">Si necesitas ayuda, puedes comunicarte con: <span th:text="${support}"></span></p>
-    <p th:unless="${support != null}" style="margin-bottom: 4px;">Si necesitas ayuda, puedes comunicarte con: soporte@moneyfy.cl</p>
-
-    <em>Este es un mensaje automático, por favor no lo responda.</em>
+<body style="margin:0; padding:0; background:#f3f6f4; color:#1f2933; font-family:Arial, Helvetica, sans-serif;">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="background:#f3f6f4;">
+    <tr>
+        <td align="center" style="padding:28px 12px;">
+            <table class="mail-container" width="640" border="0" cellspacing="0" cellpadding="0" style="width:640px; max-width:640px; background:#ffffff; border-radius:24px; overflow:hidden;">
+                <tr>
+                    <td class="mail-padding" style="background:#111111; padding:36px 42px;">
+                        <img src="cid:moneyfy-logo" alt="Moneyfy" width="168" style="display:block; border:0; outline:none; text-decoration:none; max-width:168px; height:auto;">
+                        <div style="height:20px;"></div>
+                        <div class="mail-title" style="font-size:34px; line-height:40px; font-weight:800; color:#ffffff;">Nueva cotizacion vinculada</div>
+                        <div style="font-size:15px; line-height:24px; color:#b8c1bd; margin-top:10px;">Se inicio un proceso de cotizacion asociado a tu cuenta.</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mail-padding" style="padding:40px 42px;">
+                        <p style="margin:0 0 12px 0; color:#344054; font-size:16px; line-height:26px;" th:if="${userFullName != null}">Hola <strong th:text="${userFullName}"></strong>,</p>
+                        <p style="margin:0 0 22px 0; color:#344054; font-size:16px; line-height:26px;" th:if="${quoterId != null}">Queremos informarte que se ha iniciado el proceso de una nueva cotizacion N&deg; <strong th:text="${quoterId}"></strong> vinculada a tu cuenta.</p>
+                        <p style="margin:0 0 22px 0; color:#344054; font-size:16px; line-height:26px;" th:unless="${quoterId != null}">Queremos informarte que se ha iniciado el proceso de una nueva cotizacion vinculada a tu cuenta.</p>
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td style="background:#f8fbf9; border:1px solid #dfe7e2; border-radius:18px; padding:22px;">
+                                    <h3 style="margin:0 0 14px 0; color:#111111; font-size:18px;">Vehiculo cotizado</h3>
+                                    <div th:if="${quoterCar != null}">
+                                        <p style="margin:5px 0; color:#344054;">Patente: <strong th:text="${quoterCar.getPpu()}"></strong></p>
+                                        <p style="margin:5px 0; color:#344054;">Marca: <span th:text="${quoterCar.getBrand()}"></span></p>
+                                        <p style="margin:5px 0; color:#344054;">Modelo: <span th:text="${quoterCar.getModel()}"></span></p>
+                                        <p style="margin:5px 0; color:#344054;">Ano: <span th:text="${quoterCar.getYear()}"></span></p>
+                                    </div>
+                                    <p th:unless="${quoterCar != null}" style="margin:0; color:#667085;">Informacion del vehiculo sin especificar.</p>
+                                </td>
+                            </tr>
+                        </table>
+                        <p style="margin:24px 0 0 0; color:#344054; font-size:16px; line-height:26px;">Te mantendremos al tanto si existe cualquier novedad. Gracias por confiar en Moneyfy.</p>
+                        <p style="margin:18px 0 0 0; color:#344054; font-size:15px; line-height:24px;" th:if="${support != null}">Si necesitas ayuda, puedes comunicarte con: <strong th:text="${support}"></strong></p>
+                        <p style="margin:18px 0 0 0; color:#344054; font-size:15px; line-height:24px;" th:unless="${support != null}">Si necesitas ayuda, puedes comunicarte con: <strong>soporte@moneyfy.cl</strong></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background:#f7faf8; padding:0 42px 34px 42px;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-top:1px solid #dfe7e2; padding-top:22px;">
+                            <tr>
+                                <td class="secure-cell" width="90" valign="top" style="font-size:38px; line-height:44px;">&#128274;</td>
+                                <td class="secure-cell" valign="top" style="font-size:12px; line-height:19px; color:#667085;">
+                                    <strong style="color:#111111;">Correo seguro Moneyfy.</strong><br>
+                                    Si no reconoces esta cotizacion, contacta a soporte. Nunca entregues claves, PIN ni codigos de verificacion fuera de la app oficial.
+                                </td>
+                            </tr>
+                        </table>
+                        <p style="margin:22px 0 0 0; text-align:center; font-size:12px; line-height:18px; color:#98a2b3;">Este es un mensaje automatico, por favor no lo respondas. Soporte: soporte@moneyfy.cl</p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 </body>
 </html>

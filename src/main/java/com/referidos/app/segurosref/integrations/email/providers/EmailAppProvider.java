@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
@@ -30,6 +31,9 @@ import jakarta.mail.internet.MimeMessage;
 
 @Component
 public class EmailAppProvider {
+
+    private static final String MONEYFY_LOGO_CID = "moneyfy-logo";
+    private static final String MONEYFY_LOGO_PATH = "static/email/moneyfy-logo.png";
 
     @Autowired
     private EmailDefaultClient emailClient;
@@ -277,6 +281,7 @@ public class EmailAppProvider {
         String htmlContent = templateEngine.process(htmlTemplate, context);
 
         helper.setText(htmlContent, true);
+        helper.addInline(MONEYFY_LOGO_CID, new ClassPathResource(MONEYFY_LOGO_PATH), "image/png");
         emailClient.send(message);
     }
 
