@@ -58,9 +58,7 @@ jobs:
               echo "export MONEYFY_SEEDERS_AUTO_ENABLED=false" >> "$TOMCAT_SETENV"
             fi
             if grep -q "^export MONEYFY_CLEANUP_INVALID_USERS_ENABLED=" "$TOMCAT_SETENV"; then
-              sed -i 's/^export MONEYFY_CLEANUP_INVALID_USERS_ENABLED=.*/export MONEYFY_CLEANUP_INVALID_USERS_ENABLED=true/' "$TOMCAT_SETENV"
-            else
-              echo "export MONEYFY_CLEANUP_INVALID_USERS_ENABLED=true" >> "$TOMCAT_SETENV"
+              sed -i 's/^export MONEYFY_CLEANUP_INVALID_USERS_ENABLED=.*/export MONEYFY_CLEANUP_INVALID_USERS_ENABLED=false/' "$TOMCAT_SETENV"
             fi
             chown tomcat:tomcat "$TOMCAT_SETENV" || true
             mv "$WAR_FILE" $TOMCAT_WEBAPPS/moneyfy.war
