@@ -220,11 +220,12 @@ public class FDIQuotationClient {
                         for(FDIQuotePlanParamRangeValuePojo valueDeducPojo : parameterPojo.getRanges().get(0).getValues()) {
                             Integer deductibleUF = (Integer) valueDeducPojo.getValue();
                             String deductibleDesc = "Deducible " + String.valueOf(deductibleUF) + " UF";
-                            String uniquePlan = quotationPojo.getPlanId() + "_" + String.valueOf(deductibleUF);
+                            String sourcePlanId = resolveFDIPlanId(quotationPojo);
+                            String uniquePlan = sourcePlanId + "_" + String.valueOf(deductibleUF);
                             Integer totalMonths = 11;
                             Double monthlyPriceUF = (quotationPojo.getGrossWrittenPremium() + quotationPojo.getBrokerage()) / totalMonths;
                             Double monthlyPrice = monthlyPriceUF * quotationPojo.getValueUf();
-                            plansDto.add(new FDIQuotationPlanDto(uniquePlan, planDetailPojo.getName(), quotationPojo.getPlanId(), quotationPojo.getId(), quotationPojo.getFIDId(), quotationPojo.getExpiryDate(), quotationPojo.getPolicyInceptionDate(), quotationPojo.getPolicyExpiryDate(), quotationPojo.getPolicyPeriodVigency(), quotationPojo.getNetPremium(), quotationPojo.getGrossWrittenPremium(), quotationPojo.getBrokerage(), quotationPojo.getLiabilityAmount(), quotationPojo.getGarageType(), quotationPojo.getVehicleReplacement(), quotationPojo.getInspectionRequired(), quotationPojo.getMonthlyPremium(), monthlyPriceUF, monthlyPrice, quotationPojo.getValueUf(), totalMonths, deductibleUF, deductibleDesc, 0.0, planDetailPojo.getPaymentPlan(), planDetailPojo.getPaymentPipeline(), planDetailPojo.getQuotationPeriod(), planDetailPojo.getPaymentWay(), coversDto));
+                            plansDto.add(new FDIQuotationPlanDto(uniquePlan, planDetailPojo.getName(), uniquePlan, quotationPojo.getId(), quotationPojo.getFIDId(), quotationPojo.getExpiryDate(), quotationPojo.getPolicyInceptionDate(), quotationPojo.getPolicyExpiryDate(), quotationPojo.getPolicyPeriodVigency(), quotationPojo.getNetPremium(), quotationPojo.getGrossWrittenPremium(), quotationPojo.getBrokerage(), quotationPojo.getLiabilityAmount(), quotationPojo.getGarageType(), quotationPojo.getVehicleReplacement(), quotationPojo.getInspectionRequired(), quotationPojo.getMonthlyPremium(), monthlyPriceUF, monthlyPrice, quotationPojo.getValueUf(), totalMonths, deductibleUF, deductibleDesc, 0.0, planDetailPojo.getPaymentPlan(), planDetailPojo.getPaymentPipeline(), planDetailPojo.getQuotationPeriod(), planDetailPojo.getPaymentWay(), coversDto));
                         }
                         break; // Ya se crearon todos los planes por deducible de la cotización, se sigue con la otra
                     }
@@ -241,6 +242,17 @@ public class FDIQuotationClient {
             LOGGER_MESSAGES.info("Error de excepción al construir el dto de la cotización de FDI: " + e.getMessage());
             return new FDIQuotationDto(79);
         }
+    }
+
+    private String resolveFDIPlanId(FDIQuoteDetailPojo quotationPojo) {
+        String planId = quotationPojo.getPlanId();
+        if(planId != null && !planId.isBlank() && planId.length() >= 4) {
+            return planId;
+        }
+        if(quotationPojo.getFIDId() != null && !quotationPojo.getFIDId().isBlank()) {
+            return "FDI-" + quotationPojo.getFIDId();
+        }
+        return "FDI-" + String.valueOf(quotationPojo.getId());
     }
 
     private Object[] buildResponseQuotationFDI(FDIQuotationDto fdiQuotationDto) {
