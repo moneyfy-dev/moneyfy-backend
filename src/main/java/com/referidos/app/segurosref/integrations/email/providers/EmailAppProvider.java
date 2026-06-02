@@ -270,7 +270,7 @@ public class EmailAppProvider {
     @SuppressWarnings("null")
     private void sendEmail(String[] toUsers, String subject, Map<String, Object> templateData, String htmlTemplate) throws Exception {
         MimeMessage message = emailClient.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
         helper.setTo(toUsers);
         helper.setSubject(subject);
         helper.setFrom(sender, senderAlias);
@@ -315,7 +315,7 @@ public class EmailAppProvider {
     private void testEmail(String[] toUsers, String subject, String message) {
         try {
             MimeMessage mimeMessage = emailClient.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
             // Establecer el remitente con nombre personalizado
             helper.setFrom(sender, senderAlias);
