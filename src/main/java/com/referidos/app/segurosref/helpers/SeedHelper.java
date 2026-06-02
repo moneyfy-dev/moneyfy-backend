@@ -264,7 +264,7 @@ public class SeedHelper {
 
     // Eliminar registros dependicientes para los usuarios de prueba o usuarios por defecto
     @SuppressWarnings("null")
-    private void deleteUserAndDependencies(UserModel userDB, UserRepository userRepository, ReferredRepository referredRepository,
+    public void deleteUserAndDependencies(UserModel userDB, UserRepository userRepository, ReferredRepository referredRepository,
             DeviceRepository deviceRepository, TransactionRepository transactionRepository,
             LogRepository logRepository) {
         String userEmail = userDB.getPersonalData().getEmail();

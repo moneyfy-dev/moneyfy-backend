@@ -3,6 +3,7 @@ package com.referidos.app.segurosref.seeders;
 import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ import com.referidos.app.segurosref.repositories.UserRepository;
 
 // Clase que se comporta como servicio, al levantarse la aplicación para inyectar la data por defecto
 @Component
+@ConditionalOnProperty(name = "moneyfy.seeders.auto-enabled", havingValue = "true")
 public class RunUserSeeder implements CommandLineRunner {
 
     @Autowired
@@ -42,7 +44,7 @@ public class RunUserSeeder implements CommandLineRunner {
     // PROCESO QUE SE EJECUTA AL LEVANTARSE LA APLICACIÓN
     @Override
     public void run(String... args) throws Exception {
-        Object[] objTestUsers = seedHelper.updateTestUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, pwdEncoder, true);
+        Object[] objTestUsers = seedHelper.updateTestUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, pwdEncoder, false);
         String messageTestUsers = (String) objTestUsers[0];
         Object[] objDefaultUsers = seedHelper.updateDefaultUsers(userRepository, referredRepository, deviceRepository, transactionRepository, logRepository, pwdEncoder, false);
         String messageDefaultUsers = (String) objDefaultUsers[0];
