@@ -10,10 +10,10 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class BCITokenCreatePojo extends BaseIntegrationResponse {
 
-    // Campos únicos de clase (AJUSTAR ESTRUCTURA DESCONOCIDA DEPENDIENDO DE RESPUESTA Y AJUSTAR EQUALSANDHASHCODE)
+    @EqualsAndHashCode.Include
     private String token;
     private String responseBodyStr;
     private String statusOrErrorStr;

@@ -305,7 +305,7 @@ public class QuoterServiceImpl implements QuoterService {
         }
         // Ahora entregaremos los planes, dependiendo de la aseguradora, enviando los datos del vehículo verificado.
         List<QuotationPlanDto> planList = new ArrayList<>();
-        InsurerModel returnInsurerDB = new InsurerModel("", "", "", "", "");
+        InsurerModel returnInsurerDB = new InsurerModel(null, "", "");
         returnInsurerDB.setInsurerId(new ObjectId());
         Optional<InsurerModel> insurerOptional = insurerRepository.findByAlias(insurerAlias);
         String errorPlanFinder = "1"; // Error no se encontró una aseguradora para la búsqueda de planes

@@ -50,18 +50,6 @@ import com.referidos.app.segurosref.repositories.UserRepository;
 @Component
 public class SeedHelper {
 
-    private static String INSURER_DARK_TEMPLATE =
-            "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 120 40\">"
-            + "<rect width=\"120\" height=\"40\" rx=\"8\" fill=\"#111827\"/>"
-            + "<text x=\"60\" y=\"25\" font-size=\"12\" text-anchor=\"middle\" fill=\"#ffffff\">%s</text>"
-            + "</svg>";
-
-    private static String INSURER_LIGHT_TEMPLATE =
-            "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 120 40\">"
-            + "<rect width=\"120\" height=\"40\" rx=\"8\" fill=\"#f3f4f6\" stroke=\"#d1d5db\"/>"
-            + "<text x=\"60\" y=\"25\" font-size=\"12\" text-anchor=\"middle\" fill=\"#111827\">%s</text>"
-            + "</svg>";
-
     // Actualizar las ciudades de la base de datos
     public Object[] updateCities(CityRepository cityRepository, boolean refreshData) {
         List<CityModel> cities = this.buildCities();
@@ -651,11 +639,11 @@ public class SeedHelper {
     // Construimos las aseguradoras de la app
     private List<InsurerModel> buildInsurers() {
         List<InsurerModel> insurers = new ArrayList<>();
-        insurers.add(new InsurerModel("Tractor Seguros Automotriz", "aseguradora1", "", String.format(INSURER_DARK_TEMPLATE, "TRACTOR"), String.format(INSURER_LIGHT_TEMPLATE,"TRACTOR")));
-        insurers.add(new InsurerModel("Seguros Alameda", "aseguradora2", "", String.format(INSURER_DARK_TEMPLATE, "ALAMEDA"), String.format(INSURER_LIGHT_TEMPLATE,"ALAMEDA")));
-        insurers.add(new InsurerModel("Los Alamos Seguros Automotriz", "aseguradora3", "", String.format(INSURER_DARK_TEMPLATE, "ALAMOS"), String.format(INSURER_LIGHT_TEMPLATE,"ALAMOS")));
-        insurers.add(new InsurerModel("BCI", "aseguradora4", "", String.format(INSURER_DARK_TEMPLATE, "BCI"), String.format(INSURER_LIGHT_TEMPLATE,"BCI")));
-        insurers.add(new InsurerModel("FDI Seguros", "aseguradora5", "", String.format(INSURER_DARK_TEMPLATE, "FDI"), String.format(INSURER_LIGHT_TEMPLATE,"FDI")));
+        insurers.add(new InsurerModel(null, "Tractor Seguros Automotriz", "aseguradora1"));
+        insurers.add(new InsurerModel(null, "Seguros Alameda", "aseguradora2"));
+        insurers.add(new InsurerModel(null, "Los Alamos Seguros Automotriz", "aseguradora3"));
+        insurers.add(new InsurerModel(null, "BCI", "aseguradora4"));
+        insurers.add(new InsurerModel(null, "FDI Seguros", "aseguradora5"));
         return insurers;
     }
 
