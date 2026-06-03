@@ -27,6 +27,7 @@ import com.referidos.app.segurosref.integrations.bci.requests.BCIQuoteCarProdReq
 import com.referidos.app.segurosref.integrations.bci.requests.BCIQuoteCarRequest;
 import com.referidos.app.segurosref.integrations.bci.requests.BCITokenCreateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.referidos.app.segurosref.configs.JwtConfig;
 import com.referidos.app.segurosref.dtos.quotation.QuotationPlanDto;
 import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.integrations.bci.dtos.BCIQuotationDto;
@@ -141,7 +142,7 @@ public class BCIQuotationClient {
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-            headers.set("Authorization", token);
+            headers.set(JwtConfig.HEADER_AUTHORIZATION, JwtConfig.PREFIX_TOKEN + token);
             String urlQuoteCar = bciBaseUrl + "/Tarificar";
             // Construir cuerpo de solicitud, objeto de entidad http y realizar petición
             BCIQuoteCarRequest requestQuoteCar = new BCIQuoteCarRequest(2, 10221656,
