@@ -78,9 +78,8 @@ public class BCIQuotationClient {
     private BCITokenCreatePojo createToken() {
         // Instanciamos el objeto que vamos a retornar al final del flujo
         BCITokenCreatePojo bciPojoResult = new BCITokenCreatePojo();
-        ObjectMapper objectMapper = new ObjectMapper();
         // Variables de respaldo por si el exchange falla
-        String responseJsonRaw = "";
+        String tokenInBody = "";
         HttpStatusCode statusResponse = null;
         try {
             RestTemplate restTemplate = new RestTemplate();
@@ -93,25 +92,19 @@ public class BCIQuotationClient {
             // Aseguramos la captura de la solicitud convirtiendo la solicitud a String
             ResponseEntity<String> response = restTemplate.exchange(urlCreateToken, HttpMethod.POST, entity, String.class);
             // Captura inmediata de datos reales del servidor
-            responseJsonRaw = response.getBody();
+            tokenInBody = response.getBody();
             statusResponse = response.getStatusCode();
             // Seteo inicial en el POJO de control
-            bciPojoResult.setResponseBodyStr(responseJsonRaw);
+            bciPojoResult.setResponseBodyStr(tokenInBody);
             bciPojoResult.setStatusResponse(statusResponse);
             bciPojoResult.setStatusOrErrorStr(statusResponse.toString());
             if(statusResponse == HttpStatus.OK) {
-                if(responseJsonRaw != null) {
-                    // Se crea nueva instancia en BCITokenCreatePojo
-                    bciPojoResult = objectMapper.readValue(responseJsonRaw, BCITokenCreatePojo.class);
-                    bciPojoResult.setResponseBodyStr(responseJsonRaw);
-                    bciPojoResult.setStatusResponse(statusResponse);
-                    bciPojoResult.setStatusOrErrorStr(statusResponse.toString());
-                }
+                bciPojoResult.setToken(tokenInBody);
                 bciPojoResult.setInternalErrorCode(-1);
                 return bciPojoResult;
             }
             LOGGER_MESSAGES.info("Respuesta no esperada al realizar petición para generar token (BCI): " + statusResponse.value());
-            return new BCITokenCreatePojo(41, responseJsonRaw, statusResponse.toString(), statusResponse);
+            return new BCITokenCreatePojo(41, tokenInBody, statusResponse.toString(), statusResponse);
         } catch (HttpStatusCodeException e) {
             // Error HTTP (4xx o 5xx)
             statusResponse = e.getStatusCode();
