@@ -119,8 +119,8 @@ public class QuoterController {
             )
         }
     )
-    public ResponseEntity<?> searchInsurers(Authentication auth, HttpServletRequest request) {
-        return quoterService.searchInsurers(auth.getPrincipal().toString(), auth.getCredentials().toString(), request.getHeader("User-Agent"));
+    public ResponseEntity<?> searchInsurers(Authentication auth) {
+        return quoterService.searchInsurers(auth.getPrincipal().toString());
     }
 
     @PostMapping(value = "/search/vehicle")

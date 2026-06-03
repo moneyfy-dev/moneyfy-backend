@@ -38,7 +38,6 @@ import com.referidos.app.segurosref.integrations.email.providers.EmailAppProvide
 import com.referidos.app.segurosref.integrations.fdi.clients.FDIQuotationClient;
 import com.referidos.app.segurosref.models.InsurerModel;
 import com.referidos.app.segurosref.models.PaymentModel;
-import com.referidos.app.segurosref.models.DeviceModel;
 import com.referidos.app.segurosref.models.PlanModel;
 import com.referidos.app.segurosref.models.QuoterAddressModel;
 import com.referidos.app.segurosref.models.QuoterCarModel;
@@ -57,7 +56,6 @@ import com.referidos.app.segurosref.models.BrandModel;
 import com.referidos.app.segurosref.models.WalletModel;
 import com.referidos.app.segurosref.repositories.InsurerRepository;
 import com.referidos.app.segurosref.repositories.PaymentRepository;
-import com.referidos.app.segurosref.repositories.DeviceRepository;
 import com.referidos.app.segurosref.repositories.PlanRepository;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.TransactionRepository;
@@ -99,9 +97,6 @@ public class QuoterServiceImpl implements QuoterService {
 
     @Autowired
     private BrandRepository brandRepository;
-
-    @Autowired
-    private DeviceRepository deviceRepository;
 
     @Autowired
     private PlanRepository planRepository;
@@ -153,19 +148,12 @@ public class QuoterServiceImpl implements QuoterService {
 
     @Transactional
     @Override
-    public ResponseEntity<?> searchInsurers(String emailAuth, String updateCredential, String device) {
+    public ResponseEntity<?> searchInsurers(String emailAuth) {
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         List<String> insurers = new ArrayList<>();
         insurerRepository.findAll().forEach(insurerDB -> {
             insurers.add(insurerDB.getAlias());
         });
-        // Endpoint que se utiliza para actualizar token de refresco, si es necesario
-        if(updateCredential.equals("Dated")) {
-            Optional<DeviceModel> deviceOptional = deviceRepository.findByUserAndDevice(emailAuth, device);
-            if(deviceOptional.isPresent()) {
-                UserHelper.updateRefreshToken(userRepository, userDB, deviceOptional.get(), deviceRepository);
-            }
-        }
         return ResponseHelper.ok("se ha traido la lista de aseguradoras disponibles", DataHelper.buildUser(userDB, "insurers", insurers));
     }
 
