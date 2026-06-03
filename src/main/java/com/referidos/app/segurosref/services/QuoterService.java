@@ -19,7 +19,7 @@ public interface QuoterService {
     // Servicio para buscar marcas/modelos registrados
     ResponseEntity<?> searchVehicleBrands(String emailAuth);
     // Servicio para buscar aseguradoras registrados
-    ResponseEntity<?> searchInsurers(String emailAuth, String updateCredential, String device);
+    ResponseEntity<?> searchInsurers(String emailAuth);
     // Servicios que forman parte del flujo completo de la cotización
     ResponseEntity<?> searchVehicle(SearchVehicleRequest searchVehicle, String emailAuth);
     ResponseEntity<?> searchPlan(SearchPlanRequest vehicleQuote, String emailAuth);
