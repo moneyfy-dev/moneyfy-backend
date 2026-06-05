@@ -214,10 +214,12 @@ public class BCIQuotationClient {
                 if (tv.getLstTarifa() == null)
                     continue;
 
+                String planIdStr = "BCI_" + planId;
+
                 for (BCIQuoteCarPojo.Tarifa t : tv.getLstTarifa()) {
                     Integer deductibleId = t.getIntIdDeducible();
-                    String uniqueValue = String.valueOf(planId) + "_" + String.valueOf(deductibleId);
                     Integer deductibleValue = this.getDeductible(deductibleId);
+                    String uniqueValue = planIdStr + "_" + deductibleValue;
                     String deductibleDescription = t.getStrDeducible();
                     Double netValueUF = t.getDecValorNetoUfConInteres();
                     Double grossValueUF = t.getDecValorBrutoUfConInteres();
@@ -225,7 +227,7 @@ public class BCIQuotationClient {
                     Double monthlyValue = t.getIntValorCuotaPesos();
                     Double monthlyValueUF = t.getIntValorCuotaUf();
 
-                    plans.add(new BCIQuotationPlanDto(uniqueValue, planId, planName, deductibleValue,
+                    plans.add(new BCIQuotationPlanDto(uniqueValue, planIdStr, planName, deductibleValue,
                             deductibleDescription, netValueUF, grossValueUF, taxValueUF, monthlyValue, monthlyValueUF,
                             new java.util.HashSet<>()));
                 }
@@ -261,7 +263,7 @@ public class BCIQuotationClient {
             }
             plansDto.add(new QuotationPlanDto(
                     bciQuotationPlan.getUniquePlan(),
-                    String.valueOf(bciQuotationPlan.getPlanId()),
+                    bciQuotationPlan.getPlanId(),
                     "BCI",
                     bciQuotationPlan.getPlanName(),
                     bciQuotationDto.getTasaCambioUF(),

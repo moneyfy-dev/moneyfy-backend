@@ -49,7 +49,6 @@ public class QuoterValidator implements Validator {
         String model = this.validateInput.verifyModel(searchPlan.model());
         String year = this.validateInput.verifyYear(searchPlan.year());
         String insurerAlias = this.validateInput.verifyInsurerAlias(searchPlan.insurerAlias());
-        String requestType = this.validateInput.verifyRequestTypeForSearchPlan(searchPlan.requestType());
         String purchaserId = this.validateInput.verifyPersonalId(searchPlan.purchaserId());
         String purchaserName = this.validateInput.verifyName(searchPlan.purchaserName());
         String purchaserPaternalSur = this.validateInput.verifySurname(searchPlan.purchaserPaternalSur());
@@ -58,7 +57,7 @@ public class QuoterValidator implements Validator {
         String purchaserPhone = this.validateInput.verifyPhoneOptional(searchPlan.purchaserPhone());
         String ownerRelationOption = this.validateInput.verifyOwnerOption(searchPlan.ownerRelationOption());
         
-        this.verifyPlanFinderData(quoterId, ppu, brand, model, year, insurerAlias, requestType, purchaserId, purchaserName,
+        this.verifyPlanFinderData(quoterId, ppu, brand, model, year, insurerAlias, purchaserId, purchaserName,
                 purchaserPaternalSur, purchaserMaternalSur, purchaserEmail, purchaserPhone, ownerRelationOption, bindingResult);
     }
 
@@ -92,7 +91,7 @@ public class QuoterValidator implements Validator {
     // Verificar si existen errores en caso de haberlos, se asignan al objeto vinculante
     @SuppressWarnings("null")
     private void verifyPlanFinderData(String quoterId, String ppu, String brand, String model, String year, String insurerAlias,
-            String requestType, String purchaserId, String purchaserName, String purchaserPaternalSur,
+            String purchaserId, String purchaserName, String purchaserPaternalSur,
             String purchaserMaternalSur, String purchaserEmail, String purchaserPhone, String ownerRelationOption,
             Errors errors) {
         if(!quoterId.equals("")) {
@@ -112,9 +111,6 @@ public class QuoterValidator implements Validator {
         }
         if(!insurerAlias.equals("")) {
             errors.rejectValue("insurerAlias", null, insurerAlias);
-        }
-        if(!requestType.equals("")) {
-            errors.rejectValue("requestType", null, requestType);
         }
         if(!purchaserId.equals("")) {
             errors.rejectValue("purchaserId", null, purchaserId);

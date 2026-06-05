@@ -592,7 +592,7 @@ public class SeedHelper {
         QuoterOwnerModel ownerData = new QuoterOwnerModel("11.111.111-1", "Propietario", "Default", "HD");
         QuoterCarModel carData = new QuoterCarModel("JKLW99", "OPEL", "CORSA", "2023", "HATCHBACK", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis");
         QuoterPurchaserModel purchaserData = new QuoterPurchaserModel("55.555.555-5", "Comprador", "Default", "HD", "comprador.default.hd314@gmail.com", "+56912345678", "2");
-        QuoterPlanModel planData = new QuoterPlanModel("22000653_5", "BCI", "SOLUCION MOVIL 2.0", 38367.06, 45.98, 11, 4.18, 160374.0, "Deducible 5 UF", 0.0);
+        QuoterPlanModel planData = new QuoterPlanModel("22000653_5", "BCI", "SOLUCION MOVIL 2.0", 38367.06, 45.98, 11, 4.18, 160374.0, "Deducible 5 UF", 0.0, "aseguradora4", "22000653", DataHelper.deprecatedDate(), "", 0);
         QuoterAddressModel addressData = new QuoterAddressModel("Calle Default", "55#A", "");
         QuoterPaymentModel paymentData = new QuoterPaymentModel("", "", "", "");
         return new QuoterModel(objectId, transactionStatus, ownerData, carData, purchaserData, planData, addressData, paymentData, currentTime, currentTime);
