@@ -1,5 +1,7 @@
 package com.referidos.app.segurosref.integrations.bci.dtos;
 
+import java.util.Set;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -22,5 +24,6 @@ public class BCIQuotationPlanDto {
     private Double taxValueUF;
     private Double monthlyPrice;
     private Double monthlyPriceUF;
+    private Set<BCIQuotationPlanCoverDto> coverages;
 
 }

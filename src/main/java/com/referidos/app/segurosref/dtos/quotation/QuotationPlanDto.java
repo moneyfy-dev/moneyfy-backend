@@ -15,7 +15,7 @@ import lombok.EqualsAndHashCode;
 @JsonPropertyOrder(value = {"uniquePlan", "planId", "insurer", "planName", "valueUF", "grossPriceUF",
         "totalMonths", "monthlyPriceUF", "monthlyPrice", "deductible", "deductibleDesc", "discount",
         "stolenVehicle", "totalLoss", "damageThirdParty", "workshopType", "quotationIdBCI",
-        "expiryDateBCI", "urlPathBCI", "paymentWayIdBCI", "dealTokenFDI", "itemIdFDI",
+        "expiryDateBCI", "dealTokenFDI", "itemIdFDI",
         "quotationIdFDI", "FIDId", "expiryDateFDI", "brokerageUfFDI", "vehicleReplacementFDI",
         "inspectionRequiredFDI", "monthlyPremiumFDI", "paymentPlanFDI", "quotationPeriodFDI",
         "paymentWayFDI", "coverages", "details"})
@@ -43,8 +43,6 @@ public class QuotationPlanDto {
     
     private Integer quotationIdBCI;
     private String expiryDateBCI;
-    private String urlPathBCI;
-    private Integer paymentWayIdBCI;
 
     private String dealTokenFDI;
     private Integer itemIdFDI;
