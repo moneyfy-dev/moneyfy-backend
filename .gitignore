@@ -48,6 +48,9 @@ Thumbs.db
 *.mov
 *.wmv
 
-
 # Local Properties
 src/main/resources/application.properties
+
+# Agent Context
+agent.md
+agent/*

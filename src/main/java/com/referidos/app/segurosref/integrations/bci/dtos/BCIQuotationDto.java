@@ -15,28 +15,22 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class BCIQuotationDto extends BaseIntegrationResponse {
 
-    // Datos entregables
     @EqualsAndHashCode.Include
-    private Integer IdCotizacion;
-    private String VigenciaCotizacion;
-    private String RutaDocumento;
-    private Double TasaCambioUF;
-    private Double TasaInteresCuota;
-    private Double IVA;
-    private Integer RutCliente;
-    private String RutDV;
-    private Integer IdFormaPago;
-    private Integer CantidadCuotas;
-    private Double Descuento;
-    private Integer TipoVehiculo;
-    private Integer UsoVehiculo;
-    private Integer IdMarca;
-    private Integer IdModelo;
-    private Integer AnioVehiculo;
+    private Integer idCotizacion;
+    private String nroCotizacion;
+    private String vigenciaCotizacion;
+    private Double tasaCambioUF;
+    private Double iva;
+    private Integer rutCliente;
+    private String rutDV;
+    private Integer idMarca;
+    private Integer idModelo;
+    private Integer anioVehiculo;
+    private Integer cantidadCuotas;
+    private Double tasaInteresCuota;
     private List<BCIQuotationPlanDto> plans;
 
     public BCIQuotationDto(Integer internalErrorCode) {
         super(internalErrorCode);
     }
-
 }
