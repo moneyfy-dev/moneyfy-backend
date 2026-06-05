@@ -24,6 +24,9 @@ import org.springframework.validation.BindingResult;
 
 import com.referidos.app.segurosref.dtos.VehicleBrandDto;
 import com.referidos.app.segurosref.dtos.VehicleModelDto;
+import com.referidos.app.segurosref.dtos.VehicleDto;
+import com.referidos.app.segurosref.integrations.bci.clients.BCIVehicleClient;
+import com.referidos.app.segurosref.integrations.bci.pojos.BCIVehicleResponsePojo;
 import com.referidos.app.segurosref.dtos.quotation.QuotationDto;
 import com.referidos.app.segurosref.dtos.quotation.QuotationPlanDto;
 import com.referidos.app.segurosref.dtos.report.ReportAccountDto;
@@ -117,6 +120,9 @@ public class QuoterServiceImpl implements QuoterService {
     private BCIQuotationClient bciQuotationClient;
 
     @Autowired
+    private BCIVehicleClient bciVehicleClient;
+
+    @Autowired
     private FDIQuotationClient fdiQuotationClient;
 
     @Autowired
@@ -174,23 +180,46 @@ public class QuoterServiceImpl implements QuoterService {
         }
         String ppu = searchVehicle.ppu().toUpperCase(); // Patente del vehículo a mayúsculas
         String ownerId = searchVehicle.ownerId().toUpperCase(); // Rut de propietario a mayúsculas por la 'k'
-        // Búsqueda temporal 'simulada' con lista de vehículos de prueba, ya que, luego
-        // se debería buscar vehículo por patente o rut del propietario
-        List<QuoterCarModel> testVehicles = quoterHelper.vehicleList();
-        QuoterCarModel vehicleFound = null;
-        for (QuoterCarModel testVehicle : testVehicles) {
-            if (testVehicle.getPpu().equals(ppu)) {
-                vehicleFound = testVehicle;
-                break;
-            }
+        
+        // Consultar cliente externo BCI para datos del vehículo
+        BCIVehicleResponsePojo vehicleResponse = bciVehicleClient.searchVehicle(ppu);
+        
+        QuoterCarModel vehicleFound;
+        VehicleDto vehicleDto;
+        
+        if (vehicleResponse.hasError()) {
+            // Error en la API externa o no encontrado: se dejan los campos vacíos
+            vehicleFound = new QuoterCarModel(ppu, "", "", "", "", "", "", "", "");
+            vehicleDto = new VehicleDto(ppu, "", "", "", "", "", "", "", "", false);
+        } else {
+            // Búsqueda exitosa
+            BCIVehicleResponsePojo.Resultado resultado = vehicleResponse.getResultado();
+            vehicleFound = new QuoterCarModel(
+                ppu,
+                resultado.getStrMarca(),
+                resultado.getStrModelo(),
+                String.valueOf(resultado.getIntAnioFabricacion()),
+                resultado.getStrTipoVehiculo(),
+                resultado.getStrColor(),
+                resultado.getStrNumeroMotor(),
+                resultado.getStrNumeroChasis(),
+                "BCI"
+            );
+            vehicleDto = new VehicleDto(
+                ppu,
+                resultado.getStrMarca(),
+                resultado.getStrModelo(),
+                String.valueOf(resultado.getIntAnioFabricacion()),
+                resultado.getStrTipoVehiculo(),
+                resultado.getStrColor(),
+                resultado.getStrNumeroMotor(),
+                resultado.getStrNumeroChasis(),
+                "BCI",
+                true // isFound = true
+            );
         }
-        // Si no se encontro vehículo de prueba por ppu (patente), se asigna uno por
-        // defecto
-        if (vehicleFound == null) {
-            vehicleFound = quoterHelper.buildDefaultVehicle(false, ppu, "", "", "");
-        }
-        // Buscamos si existe ya existe el registro para volver a cargarlo y no crear
-        // duplicidad
+        
+        // Buscamos si existe ya existe el registro para volver a cargarlo y no crear duplicidad
         List<QuoterModel> quoters = userDB.getQuoters();
         QuoterModel userQuoter = null;
         String pointOfCurrentStatus = "Iniciando";
@@ -215,8 +244,17 @@ public class QuoterServiceImpl implements QuoterService {
             userDB.addQuoter(userQuoter);
             userDB = userRepository.save(userDB);
         }
+        
+        Map<String, Object> dataResponse = new java.util.HashMap<>();
+        dataResponse.put("vehicle", vehicleDto);
+        dataResponse.put("quoterId", userQuoter.getQuoterId());
+        if (vehicleResponse.hasError()) {
+            dataResponse.put("internalErrorCode", vehicleResponse.getInternalErrorCode());
+            dataResponse.put("internalErrorMessage", com.referidos.app.segurosref.responses.enums.BusinessCodeEnum.fromCode(vehicleResponse.getInternalErrorCode()).getErrorDescription());
+        }
+        
         return ResponseHelper.created("se ha realizado la cotización exitosamente",
-                DataHelper.buildUser(userDB, "vehicle", vehicleFound, "quoterId", userQuoter.getQuoterId()));
+                DataHelper.buildUser(userDB, dataResponse));
     }
 
     @SuppressWarnings("unchecked")
@@ -263,7 +301,7 @@ public class QuoterServiceImpl implements QuoterService {
                     // aseguradoras existan
                     if (quoterDB.getQuoterStatus().equals("Iniciando")) {
                         // Se actualiza la data del vehículo del cotizador
-                        quoterDB.setQuoterCarData(quoterHelper.buildDefaultVehicle(true, ppu, brand, model, year));
+                        quoterDB.setQuoterCarData(new QuoterCarModel(ppu, brand, model, year, "", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis"));
                         // Se actualiza la data del comprador de la cotización
                         QuoterPurchaserModel quoterPurchaserDB = quoterDB.getQuoterPurchaserData();
                         quoterPurchaserDB.setPersonalId(purchaserId);
@@ -306,7 +344,7 @@ public class QuoterServiceImpl implements QuoterService {
             // crea porque definitivamente no existe
             if (!isQuoter) {
                 QuoterOwnerModel quoterOwner = new QuoterOwnerModel("", "", "", "");
-                QuoterCarModel quoterCar = quoterHelper.buildDefaultVehicle(true, ppu, brand, model, year);
+                QuoterCarModel quoterCar = new QuoterCarModel(ppu, brand, model, year, "", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis");
                 QuoterPurchaserModel quoterPurchaser = new QuoterPurchaserModel(purchaserId, purchaserName,
                         purchaserPaternalSur, purchaserMaternalSur, purchaserEmail, purchaserPhone,
                         ownerRelationOption);

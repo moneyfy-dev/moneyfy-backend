@@ -13,6 +13,8 @@ public enum BusinessCodeEnum {
     BCI_CAR_QUOTATION_UNEXPECTED_RESPONSE(43, "Respuesta no esperada al realizar cotización en servicio externo (BCI)"),
     BCI_QUOTATION_DTO_EMPTY_PLANS(44, "No se han encontrado planes al construir el dto de la cotización de BCI"),
     BCI_QUOTATION_DTO_EXCEPTION(45, "Error de excepción al construir el dto de la cotización de BCI"),
+    BCI_VEHICLE_LOOKUP_EXCEPTION(46, "Error de excepción al buscar los datos del vehículo en servicio externo (BCI)"),
+    BCI_VEHICLE_LOOKUP_UNEXPECTED_RESPONSE(47, "Respuesta no esperada al buscar los datos del vehículo en servicio externo (BCI)"),
     
     // Integración Proveedores Generales
     EXTERNAL_SERVICE_ERROR(50, "Error de conexión con el proveedor"),
