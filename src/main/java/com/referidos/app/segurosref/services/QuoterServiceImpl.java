@@ -350,9 +350,27 @@ public class QuoterServiceImpl implements QuoterService {
             // Si la cotización no se encontró con los datos actuales de la solicitud, se
             // crea porque definitivamente no existe
             if (!isQuoter) {
+                String vehicleType = "";
+                String vehicleColor = "";
+                String vehicleMotor = "";
+                String vehicleChassis = "";
+
+                try {
+                    BCIVehicleResponsePojo vehicleResponse = bciVehicleClient.searchVehicle(ppu);
+                    if (vehicleResponse.getInternalErrorCode() == -1 && vehicleResponse.getResultado() != null) {
+                        BCIVehicleResponsePojo.Resultado res = vehicleResponse.getResultado();
+                        vehicleType = res.getStrTipoVehiculo() != null ? res.getStrTipoVehiculo() : "";
+                        vehicleColor = res.getStrColor() != null ? res.getStrColor() : "";
+                        vehicleMotor = res.getStrNumeroMotor() != null ? res.getStrNumeroMotor() : "";
+                        vehicleChassis = res.getStrNumeroChasis() != null ? res.getStrNumeroChasis() : "";
+                    }
+                } catch (Exception e) {
+                    LOGGER_MESSAGES.info("Excepción al intentar autocompletar datos del vehículo BCI: " + e.getMessage());
+                }
+
                 QuoterOwnerModel quoterOwner = new QuoterOwnerModel("", "", "", "");
-                QuoterCarModel quoterCar = new QuoterCarModel(ppu, brand, model, year, "", "", "",
-                        "", "");
+                QuoterCarModel quoterCar = new QuoterCarModel(ppu, brand, model, year, vehicleType, vehicleColor, vehicleMotor,
+                        vehicleChassis, "");
                 QuoterPurchaserModel quoterPurchaser = new QuoterPurchaserModel(purchaserId, purchaserName,
                         purchaserPaternalSur, purchaserMaternalSur, purchaserEmail, purchaserPhone,
                         ownerRelationOption);
