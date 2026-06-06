@@ -34,7 +34,6 @@ import com.referidos.app.segurosref.dtos.report.ReportUserDto;
 import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.QuoterHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
-import com.referidos.app.segurosref.helpers.UserHelper;
 import com.referidos.app.segurosref.helpers.ValidateInputHelper;
 import com.referidos.app.segurosref.integrations.bci.clients.BCIQuotationClient;
 import com.referidos.app.segurosref.integrations.email.providers.EmailAppProvider;
@@ -365,11 +364,13 @@ public class QuoterServiceImpl implements QuoterService {
                         vehicleChassis = res.getStrNumeroChasis() != null ? res.getStrNumeroChasis() : "";
                     }
                 } catch (Exception e) {
-                    LOGGER_MESSAGES.info("Excepción al intentar autocompletar datos del vehículo BCI: " + e.getMessage());
+                    LOGGER_MESSAGES
+                            .info("Excepción al intentar autocompletar datos del vehículo BCI: " + e.getMessage());
                 }
 
                 QuoterOwnerModel quoterOwner = new QuoterOwnerModel("", "", "", "");
-                QuoterCarModel quoterCar = new QuoterCarModel(ppu, brand, model, year, vehicleType, vehicleColor, vehicleMotor,
+                QuoterCarModel quoterCar = new QuoterCarModel(ppu, brand, model, year, vehicleType, vehicleColor,
+                        vehicleMotor,
                         vehicleChassis, "");
                 QuoterPurchaserModel quoterPurchaser = new QuoterPurchaserModel(purchaserId, purchaserName,
                         purchaserPaternalSur, purchaserMaternalSur, purchaserEmail, purchaserPhone,
