@@ -265,12 +265,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             // Manejamos los diferentes escenarios de los estados del usuario
             switch(statusUserDB) {
                 case "Activado" -> {
-                     // Antes verificamos que no sea un usuario de prueba o un usuario por defecto
-                    if(UserHelper.isTestUser(email) || UserHelper.isDefaulUser(email)) {
-                        // Actualizamos/generamos el dispositivo del usuario "seeder", e iniciamos sesión
-                        userHelper.updateUserDevice(deviceRepository, email, userData.getRefreshToken(), device, deviceIp, currentDateTime);
-                        return ResponseHelper.ok("se ha iniciado sesión exitosamente con usuario de prueba", DataHelper.buildUser(userDB));
-                    }
+
                     // No es un usuario de prueba y se tiene que verificar que el usuario este relacionado al dispositivo que está haciendo la consulta
                     Optional<DeviceModel> optionalDevice = deviceRepository.findByUserAndDevice(email, device);
                     if(optionalDevice.isEmpty()) {
@@ -346,11 +341,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     // SERVICIOS PARA EL FLUJO DE RESTABLECIMIENTO DE LA CONTRASEÑA DEL USUARIO DE LA APLICACIÓN
     @Transactional
     public ResponseEntity<GeneralResponse> restorePassword(String email) {
-        // Verificamos primero si es un usuario de prueba
         String userEmail = email.toLowerCase();
-        if(UserHelper.isTestUser(userEmail)) {
-            return ResponseHelper.failedDependency("el usuario de prueba, no puede reestablecer su contraseña", "failed dependency");
-        }
         // No es un usuario 'seeder', se puede seguir con la lógica
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
         UserDataModel userData = userDB.getPersonalData();
@@ -390,10 +381,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Transactional
     public ResponseEntity<GeneralResponse> confirmPasswordReset(PasswordResetRequest passwordReset, HttpServletRequest request) {
         String userEmail = passwordReset.email().toLowerCase();
-        // Verificamos primero si es un usuario de prueba
-        if(UserHelper.isTestUser(userEmail)) {
-            return ResponseHelper.failedDependency("el usuario de prueba, no puede reestablecer su contraseña", "failed dependency");
-        }
+
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
         UserDataModel userData = userDB.getPersonalData();
         LocalDateTime currentDateTime = LocalDateTime.now();
@@ -442,11 +430,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     // SERVICIO PARA REENVIAR CÓDIGO DE CONFIRMACIÓN EN FLUJO ACTIVO, YA SEA DE: REGISTRAR USUARIO, CAMBIO DE DISPOSITIVO O REESTABLECIMIENTO DE LA CONTRASEÑA
     @Transactional
     public ResponseEntity<GeneralResponse> resendUserCode(String email, String type) {
-        // Verificamos primero si es un usuario de prueba
         String userEmail = email.toLowerCase();
-        if(UserHelper.isTestUser(userEmail)) {
-            return ResponseHelper.failedDependency("el usuario de prueba, no puede obtener códigos de confirmación", "failed dependency");
-        }
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
         UserDataModel userData = userDB.getPersonalData();
         String userStatusDB = userData.getStatus();
@@ -498,10 +482,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @SuppressWarnings("null")
     @Transactional
     public ResponseEntity<GeneralResponse> disableAccount(String emailAuth) {
-        // Verificamos primero si es un usuario de prueba
-        if(UserHelper.isTestUser(emailAuth)) {
-            return ResponseHelper.failedDependency("el usuario de prueba, no puede desactivarse", "failed dependency");
-        }
+
         // No se puede deshabilitar/eliminar, si el usuario tiene transacciones pendientes o tiene dinero disponible en su wallet
         UserModel userB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         if(userB.getWallet().getTotalBalance() > 0) {

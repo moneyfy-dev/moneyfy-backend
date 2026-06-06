@@ -94,13 +94,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             // Buscamos usuario "Activado" y dispositivo relacionado al usuario que encontramos en el session token
             Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(userEmail);
             if(userOptional.isPresent() && userOptional.get().getPersonalData().getStatus().equals("Activado")) {
-                if(UserHelper.isTestUser(userEmail) || UserHelper.isDefaulUser(userEmail)) {
-                    // Es un usuario de prueba o por defecto, lo autenticamos
-                    String userRole = userOptional.get().getPersonalData().getProfileRole();
-                    Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, "Updated", Collections.singletonList(new SimpleGrantedAuthority(userRole)));
-                    this.authContextForUser(request, response, chain, authForUser);
-                    return;
-                }
+
                 // No es un usuario de prueba, se debe confirmar que tiene un dispositivo relacionado
                 Optional<DeviceModel> deviceOptional = deviceRepository.findByUserAndDevice(userEmail, device);
                 if(deviceOptional.isPresent()) {
@@ -147,12 +141,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
                 return;
             }
 
-            // Verificamos si es un usuario de prueba o por defecto, para autenticarlo rápidamente
-            if(UserHelper.isTestUser(user) || UserHelper.isDefaulUser(user)) {
-                Authentication authForUser = new UsernamePasswordAuthenticationToken(user, "Updated", Collections.singletonList(new SimpleGrantedAuthority(userRole)));
-                this.authContextForUser(request, response, chain, authForUser);
-                return;
-            }
+
 
             // Actualizar ips si es el caso
             DeviceModel deviceDB = deviceRepository.findByUserAndDevice(user, device).orElseThrow();
@@ -182,17 +171,6 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
                 Optional<DeviceModel> deviceUserOptional = deviceRepository.findByRefreshToken(refreshToken);
                 if(deviceUserOptional.isPresent()) {
                     String userEmail = deviceUserOptional.get().getUser();
-                    if(UserHelper.isTestUser(userEmail) || UserHelper.isDefaulUser(userEmail)) {
-                        Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(userEmail);
-                        if(userOptional.isPresent() && userOptional.get().getPersonalData().getStatus().equals("Activado")) {
-                            // Es un usuario de prueba o por defecto, se autoriza
-                            String userRole = userOptional.get().getPersonalData().getProfileRole();
-                            Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, "Updated", Collections.singletonList(new SimpleGrantedAuthority(userRole)));
-                            this.authContextForUser(request, response, chain, authForUser);
-                            return;
-                        }
-                    }
-
                 }
             }
             ResponseHelper.invalidJWT(response, "no es posible continuar con la solicitud", null);
@@ -218,17 +196,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
                 ResponseHelper.invalidJWT(response, "datos anticuados", null);
                 return;
             }
-            // Verificamos rápidamente si es un usuario de prueba o por defecto
-            if(UserHelper.isTestUser(userEmail) || UserHelper.isDefaulUser(userEmail)) {
-                // Es un usuario de prueba o por defecto, por lo tanto, se autoriza y se le actualiza el token de sesión
-                Collection<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(userData.getProfileRole()));
-                Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, "Updated", authorities);
-                this.authContextForUser(request, response, chain, authForUser);
-                this.updateSessionToken(userEmail,
-                    authorities,
-                    userDB);
-                return;
-            }
+
             // No es un usuario de prueba, por lo que hay que validar con un usuario relacionado a un dispositivo
             DeviceModel deviceDB = deviceRepository.findByUserAndDevice(userEmail, device).orElseThrow();
             // Actualizar ips si es el caso
@@ -266,21 +234,6 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
                 Optional<DeviceModel> deviceOptionalForUser = deviceRepository.findByRefreshToken(refreshToken);
                 if(deviceOptionalForUser.isPresent()) {
                     String userEmail = deviceOptionalForUser.get().getUser();
-                    // Verificamos si es un usuario de prueba o por defecto
-                    if(UserHelper.isTestUser(userEmail) || UserHelper.isDefaulUser(userEmail)) {
-                        Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(userEmail);
-                        if(userOptional.isPresent() && userOptional.get().getPersonalData().getStatus().equals("Activado")) {
-                            // Es un usuario de prueba, se actualiza el sessión token y se autoriza
-                            UserModel userDB = userOptional.get();
-                            UserDataModel userData = userDB.getPersonalData();
-                            Collection<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(userData.getProfileRole()));
-                            Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, "Dated", authorities);
-                            this.authContextForUser(request, response, chain, authForUser);
-                            this.updateSessionToken(userEmail, authorities, userDB);
-                            return;
-                        }
-                    }
-
                 }
             }
             ResponseHelper.invalidJWT(response, "no es posible continuar con la solicitud", null);

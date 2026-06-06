@@ -948,12 +948,7 @@ public class QuoterServiceImpl implements QuoterService {
                 UserModel userDB = userRepository.findById(new ObjectId(userApproved.getUserId())).orElseThrow();
                 UserDataModel userData = userDB.getPersonalData();
                 String email = userData.getEmail();
-                if (UserHelper.isTestUser(email) || UserHelper.isDefaulUser(email)) {
-                    // No se contabiliza usuario porque es el usuario de la aplicación
-                    quoterHelper.addUserProblem(usersProblem, userApproved, "Usuario de prueba de la aplicación");
-                    usersToDelete.add(userApproved);
-                    continue;
-                }
+
                 userApproved.setName(userData.getName() + " " + userData.getSurname());
                 userApproved.setEmail(email);
                 AccountModel userAccount = quoterHelper.checkUserAccount(userDB);
