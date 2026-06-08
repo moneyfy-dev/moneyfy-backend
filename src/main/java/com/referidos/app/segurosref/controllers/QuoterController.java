@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
-import com.referidos.app.segurosref.requests.CommissionPaymentRequest;
-import com.referidos.app.segurosref.requests.CommissionReportRequest;
 import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
 import com.referidos.app.segurosref.requests.GenerateTransactionRequest;
 import com.referidos.app.segurosref.requests.SelectPlanRequest;
@@ -361,90 +359,6 @@ public class QuoterController {
     )
     public ResponseEntity<?> finalizeQuote(@RequestBody FinalizeQuoteRequest finalizeQuote, Authentication auth, HttpServletRequest request) {
         return quoterService.finalizeQuote(finalizeQuote, auth.getPrincipal().toString(), request.getRequestURI());
-    }
-
-    // Endpoint que genera reporte de pago pendiente de comisiones, con fecha de recolección de comisiones hasta los días 5 del mes y que se pagan los días 10 del mes
-    @PostMapping(value = "/commission/report")
-    @PreAuthorize(value = "permitAll()")
-    @Operation(
-        summary = "Generate the commission report",
-        description = "Generate the commission report for the users that have available money",
-        tags = {"Quoter Controller"},
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Provide the data to authorize the commission report",
-            required = true,
-            content = @Content(
-                mediaType = CONTENT_TYPE,
-                schema = @Schema(implementation = CommissionReportRequest.class)
-            )
-        ),
-        parameters = {
-            @Parameter(
-                name = "Api-Key-MoneyFy",
-                in = ParameterIn.HEADER,
-                description = "Security parameter for some public endpoints",
-                required = true
-            )
-        },
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The commission report was generated successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        }
-    )
-    public ResponseEntity<?> commissionReport(@RequestBody CommissionReportRequest commissionReportRequest, HttpServletRequest request) {
-        return quoterService.commissionReport(commissionReportRequest, request);
-    }
-
-    // Endpoint para actualizar las comisiones que fueron pagadas
-    @PostMapping(value = "/commission/payments")
-    @PreAuthorize(value = "permitAll()")
-    @Operation(
-        summary = "Update the commissions that were paid",
-        description = "Update the commissions that were paid",
-        tags = {"Quoter Controller"},
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Provide the data to update the commissions that were paid",
-            required = true,
-            content = @Content(
-                mediaType = CONTENT_TYPE,
-                schema = @Schema(implementation = CommissionPaymentRequest.class)
-            )
-        ),
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The commissions were updated successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        }
-    )
-    public ResponseEntity<?> commissionPayments(@RequestBody CommissionPaymentRequest commissionPaymentRequest, HttpServletRequest request) {
-        return quoterService.commissionPayments(commissionPaymentRequest, request);
     }
 
 }

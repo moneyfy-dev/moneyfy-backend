@@ -4,11 +4,8 @@ import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGE
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -29,17 +26,13 @@ import com.referidos.app.segurosref.integrations.bci.clients.BCIVehicleClient;
 import com.referidos.app.segurosref.integrations.bci.pojos.BCIVehicleResponsePojo;
 import com.referidos.app.segurosref.dtos.quotation.QuotationDto;
 import com.referidos.app.segurosref.dtos.quotation.QuotationPlanDto;
-import com.referidos.app.segurosref.dtos.report.ReportAccountDto;
-import com.referidos.app.segurosref.dtos.report.ReportUserDto;
 import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.QuoterHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
-import com.referidos.app.segurosref.helpers.ValidateInputHelper;
 import com.referidos.app.segurosref.integrations.bci.clients.BCIQuotationClient;
 import com.referidos.app.segurosref.integrations.email.providers.EmailAppProvider;
 import com.referidos.app.segurosref.integrations.fdi.clients.FDIQuotationClient;
 import com.referidos.app.segurosref.models.InsurerModel;
-import com.referidos.app.segurosref.models.PaymentModel;
 import com.referidos.app.segurosref.models.PlanModel;
 import com.referidos.app.segurosref.models.QuoterAddressModel;
 import com.referidos.app.segurosref.models.QuoterCarModel;
@@ -50,21 +43,16 @@ import com.referidos.app.segurosref.models.QuoterPurchaserModel;
 import com.referidos.app.segurosref.models.ReferredModel;
 import com.referidos.app.segurosref.models.TransactionComissionModel;
 import com.referidos.app.segurosref.models.TransactionModel;
-import com.referidos.app.segurosref.models.UserDataModel;
 import com.referidos.app.segurosref.models.UserModel;
-import com.referidos.app.segurosref.models.AccountModel;
 import com.referidos.app.segurosref.models.BrandDataModel;
 import com.referidos.app.segurosref.models.BrandModel;
 import com.referidos.app.segurosref.models.WalletModel;
 import com.referidos.app.segurosref.repositories.InsurerRepository;
-import com.referidos.app.segurosref.repositories.PaymentRepository;
 import com.referidos.app.segurosref.repositories.PlanRepository;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.TransactionRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
 import com.referidos.app.segurosref.repositories.BrandRepository;
-import com.referidos.app.segurosref.requests.CommissionPaymentRequest;
-import com.referidos.app.segurosref.requests.CommissionReportRequest;
 import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
 import com.referidos.app.segurosref.requests.GenerateTransactionRequest;
 import com.referidos.app.segurosref.requests.SelectPlanRequest;
@@ -72,8 +60,6 @@ import com.referidos.app.segurosref.responses.enums.BusinessCodeEnum;
 import com.referidos.app.segurosref.requests.SearchVehicleRequest;
 import com.referidos.app.segurosref.requests.SearchPlanRequest;
 import com.referidos.app.segurosref.validators.QuoterValidator;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class QuoterServiceImpl implements QuoterService {
@@ -108,9 +94,6 @@ public class QuoterServiceImpl implements QuoterService {
 
     @Autowired
     private ReferredRepository referredRepository;
-
-    @Autowired
-    private PaymentRepository paymentRepository;
 
     @Autowired
     private QuoterValidator quoterValidator;
@@ -881,172 +864,6 @@ public class QuoterServiceImpl implements QuoterService {
         }
         String errorMessage = "no es posible encontrar la cotización N°" + quoterId + ", del usuario: " + emailAuth;
         return ResponseHelper.failedDependency(errorMessage, "failed dependency");
-    }
-
-    // Servicio que genera reporte de pago pendiente de comisiones, con fecha de
-    // recolección de comisiones hasta los días 5 del mes y que se pagan los días 10
-    // del mes
-    @Override
-    @Transactional
-    public ResponseEntity<?> commissionReport(CommissionReportRequest commissionReportRequest,
-            HttpServletRequest request) {
-        if (!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
-            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
-        }
-        // Obtenemos la fecha de corte y la fecha de pago
-        // DateTimeFormatter formatterDate = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate pointOfCurrentDate = LocalDate.now();
-        LocalDate currentDateProccess = pointOfCurrentDate;
-        int minusMonth = (commissionReportRequest.minusMonth() != null) ? commissionReportRequest.minusMonth() : 0;
-        if (minusMonth > 0 && minusMonth < 7) { // Se puede crear un reporte hasta con 6 meses de antiguedad de
-                                                // comisiones
-            currentDateProccess = pointOfCurrentDate.minusMonths(minusMonth).with(TemporalAdjusters.lastDayOfMonth());
-        }
-        // Revisar que el día de corte del mes (5), haya pasado para seguir con la
-        // consulta
-        if (currentDateProccess.getDayOfMonth() <= commissionCutoffDate) {
-            return ResponseHelper.failedDependency(
-                    "no es posible continuar con la solicitud, ya que, aún se pueden recolectar comisiones hasta la fecha de corte (día 5 del mes)",
-                    Map.of("currentDate", pointOfCurrentDate));
-        }
-        // Ya paso el día de corte del mes para la recolección de las comisiones, se
-        // puede seguir con la validación
-        LocalDate pointOfCommissionCollectionDate = currentDateProccess.withDayOfMonth(commissionCutoffDate);
-        LocalDate pointOfPaymentDate = currentDateProccess.withDayOfMonth(commissionPaymentDate);
-        LocalDateTime limitDateTime = pointOfCommissionCollectionDate.atTime(LocalTime.MAX); // // Esto crea un
-                                                                                             // LocalDateTime:
-                                                                                             // yyyy-MM-ddT23:59:59.999999999
-        List<TransactionModel> transactionsFromCutoffDate = transactionRepository
-                .findAllByApprovalDateBeforeAndStatusApproved(limitDateTime);
-        // Empezamos a revisar todas las transacciones aprobadas hasta el día de corte y
-        // guardar los ids de los usuarios sin repetirlos para luego construir respuesta
-        List<ReportUserDto> usersApproved = new ArrayList<>();
-        List<ReportUserDto> usersProblem = new ArrayList<>();
-        for (TransactionModel transactionFromCutoffDate : transactionsFromCutoffDate) {
-            // Tenemos que asegurarnos que por la transacción que estemos pasando, no exista
-            // problema de referidos
-            String transactionId = transactionFromCutoffDate.getTransactionId();
-            String transactionUserId = transactionFromCutoffDate.getUserId();
-            Boolean isUserReferringFound = transactionFromCutoffDate.getUserReferringFound();
-            if (isUserReferringFound == null || !isUserReferringFound) {
-                quoterHelper.checkReportUsersProblem(usersProblem, transactionUserId, "", "", transactionId, 0,
-                        "Existe problema de referidos");
-                continue;
-            }
-            for (TransactionComissionModel transactionCommission : transactionFromCutoffDate.getCommissions()) {
-                String commissionUserId = transactionCommission.getUserId();
-                int commissionOfUser = transactionCommission.getUserCommission();
-                quoterHelper.checkReportUsersApproved(usersApproved, commissionUserId, "", "", null, transactionId,
-                        commissionOfUser, String.format("Nueva comisión $%s", commissionOfUser));
-            }
-        }
-        // Ya agregamos a todas las transacciones aprobadas y el id del usuario
-        // respectivo más su comisión, ahora buscamos al
-        // usuario si es posible para actualizar sus datos (en ambos arreglos)
-        List<ReportUserDto> usersToDelete = new ArrayList<>();
-        for (ReportUserDto userApproved : usersApproved) {
-            try {
-                UserModel userDB = userRepository.findById(new ObjectId(userApproved.getUserId())).orElseThrow();
-                UserDataModel userData = userDB.getPersonalData();
-                String email = userData.getEmail();
-
-                userApproved.setName(userData.getName() + " " + userData.getSurname());
-                userApproved.setEmail(email);
-                AccountModel userAccount = quoterHelper.checkUserAccount(userDB);
-                if (userAccount != null) {
-                    userApproved.setAccount(new ReportAccountDto(userAccount.getAccountId(),
-                            userAccount.getHolderName(), userAccount.getEmail(), userAccount.getBank(),
-                            userAccount.getAccountType(), userAccount.getAccountNumber()));
-                } else {
-                    quoterHelper.addUserProblem(usersProblem, userApproved,
-                            "No es posible encontrar una cuenta bancaria activa del usuario");
-                    usersToDelete.add(userApproved);
-                }
-            } catch (IllegalArgumentException e) {
-                // El ObjectId no es correcto
-                quoterHelper.addUserProblem(usersProblem, userApproved, "No es posible encontrar al usuario por su Id");
-                usersToDelete.add(userApproved);
-            } catch (NoSuchElementException e) {
-                // No se encontró el registro
-                quoterHelper.addUserProblem(usersProblem, userApproved, "No es posible encontrar al usuario por su Id");
-                usersToDelete.add(userApproved);
-            }
-        }
-        if (usersToDelete.size() > 0) {
-            usersApproved.removeAll(usersToDelete);
-        }
-        // Arreglo con usuarios con problemas
-        for (ReportUserDto userProblem : usersProblem) {
-            try {
-                UserModel userDB = userRepository.findById(new ObjectId(userProblem.getUserId())).orElseThrow();
-                UserDataModel userData = userDB.getPersonalData();
-                userProblem.setName(userData.getName() + " " + userData.getSurname());
-                userProblem.setEmail(userData.getEmail());
-            } catch (IllegalArgumentException e) {
-                // El ObjectId no es correcto
-                userProblem.setName("El ObjectId del usuario no es correcto");
-                userProblem.setEmail("El ObjectId del usuario no es correcto");
-            } catch (NoSuchElementException e) {
-                // No se encontró el registro
-                userProblem.setName("El registro del usuario no pudo ser encontrado");
-                userProblem.setEmail("El registro del usuario no pudo ser encontrado");
-            }
-        }
-        // Construcción para data de respuesta
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("pointOfCurrentDate", pointOfCurrentDate);
-        data.put("pointOfCommissionCollectionDate", pointOfCommissionCollectionDate);
-        data.put("pointOfPaymentDate", pointOfPaymentDate);
-        data.put("usersApproved", usersApproved);
-        data.put("usersProblem", usersProblem);
-        return ResponseHelper.ok("se ha generado el reporte", data);
-    }
-
-    // Servicio para actualizar las comisiones que fueron pagadas
-    @Override
-    @Transactional
-    public ResponseEntity<?> commissionPayments(CommissionPaymentRequest commissionPaymentRequest,
-            HttpServletRequest request) {
-        if (!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
-            return ResponseHelper.failedDependency("No es posible continuar con la solicitud", "failed dependency");
-        }
-        // Obtención de usuarios actualizados de la solicitud y creación de objetos para
-        // el flujo
-        List<ReportUserDto> usersRequest = commissionPaymentRequest.updateUsers();
-        List<TransactionModel> updateTransactionsInDB = new ArrayList<>();
-        List<UserModel> updateUsersInDB = new ArrayList<>();
-        List<PaymentModel> updatePaymentsInDB = new ArrayList<>();
-        LocalDateTime currentTime = LocalDateTime.now();
-        String message = "";
-        // Buscamos las transacciones para actualizar sus comisiones
-        message = quoterHelper.manageTransactionsForCommission(usersRequest, updateTransactionsInDB,
-                transactionRepository, currentTime);
-        if (!message.equals("")) {
-            return ResponseHelper.failedDependency("No es posible continuar con la solicitud", message);
-        }
-        // Actualizamos la wallet de los usuarios y creamos los pagos relacionados a los
-        // usuarios
-        message = quoterHelper.manageUsersAndPaymentsForCommission(usersRequest, updateUsersInDB, updatePaymentsInDB,
-                userRepository, currentTime);
-        if (!message.equals("")) {
-            return ResponseHelper.failedDependency("No es posible continuar con la solicitud", message);
-        }
-        if (updateTransactionsInDB.size() <= 0 || updateUsersInDB.size() <= 0 || updatePaymentsInDB.size() <= 0) {
-            message = "No se han encontrado registros para ser actualizados dentro del flujo";
-            return ResponseHelper.failedDependency("No es posible continuar con la solicitud", message);
-        }
-        // Solamente si no existen errores, se persiten los cambios
-        updateTransactionsInDB = transactionRepository.saveAll(updateTransactionsInDB);
-        updateUsersInDB = userRepository.saveAll(updateUsersInDB);
-        updatePaymentsInDB = paymentRepository.saveAll(updatePaymentsInDB);
-        Map<String, Object> data = new LinkedHashMap<>();
-        message = "Se ha posido recuperar y actualizar la data correctamente";
-        data.put("message", message);
-        data.put("transactions", updateTransactionsInDB);
-        data.put("users", updateUsersInDB);
-        data.put("payments", updatePaymentsInDB);
-        return ResponseHelper.ok("Se han generado los pagos de los usuarios y se ha actualizado la data relacionada",
-                data);
     }
 
     // SERVICIOS DE VALIDACIONES DE DATOS
