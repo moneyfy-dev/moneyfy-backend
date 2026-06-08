@@ -15,7 +15,7 @@ public class BCIQuotationPlanDto {
 
     @EqualsAndHashCode.Include
     private String uniquePlan;
-    private Integer planId;
+    private String planId;
     private String planName;
     private Integer deductible;
     private String deductibleDesc;

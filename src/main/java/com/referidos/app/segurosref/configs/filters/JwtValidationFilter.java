@@ -26,7 +26,6 @@ import com.referidos.app.segurosref.configs.SimpleGrantedAuthorityJsonCreator;
 import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.FilterHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
-import com.referidos.app.segurosref.helpers.UserHelper;
 import com.referidos.app.segurosref.models.DeviceModel;
 import com.referidos.app.segurosref.models.UserDataModel;
 import com.referidos.app.segurosref.models.UserModel;
@@ -49,7 +48,8 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
 
     private DeviceRepository deviceRepository;
 
-    // En los filtros de autenticación debemos entregar el objeto AuthenticationManager
+    // En los filtros de autenticación debemos entregar el objeto
+    // AuthenticationManager
     public JwtValidationFilter(AuthenticationManager authenticationManager, UserRepository userRepository,
             DeviceRepository deviceRepository) {
         super(authenticationManager);
@@ -68,42 +68,41 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             chain.doFilter(request, response);
             return;
         }
-        
-        // "Updated" en objeto de autorización se utiliza para confirmar que el usuario tiene el token de refresco actualizado
+
+        // "Updated" en objeto de autorización se utiliza para confirmar que el usuario
+        // tiene el token de refresco actualizado
         String refreshToken = request.getHeader("Refresh-Token");
         String device = request.getHeader("User-Agent");
 
-        // Revisar si es el endpoint de cotización de planes / para autorizar sin actualizar credenciales
-        if(request.getRequestURI().contains("/quoter/search/plan")) {
+        // Revisar si es el endpoint de cotización de planes / para autorizar sin
+        // actualizar credenciales
+        if (request.getRequestURI().contains("/quoter/search/plan")) {
             this.validatePlanFinder(request, response, chain, device, refreshToken);
             return;
         }
 
         // Obtener token para autorizar
         String tokenHeader = request.getHeader(HEADER_AUTHORIZATION);
-        if(tokenHeader == null || !tokenHeader.startsWith(PREFIX_TOKEN) || DataHelper.isNull(refreshToken)) {
+        if (tokenHeader == null || !tokenHeader.startsWith(PREFIX_TOKEN) || DataHelper.isNull(refreshToken)) {
             ResponseHelper.invalidJWT(response, "no es posible continuar con la solicitud", null);
             return;
         }
         String sessionToken = tokenHeader.replace(PREFIX_TOKEN, "");
 
         try {
-            // Luego de tener el token, obtenemos los claims/payload del token, para validar info
+            // Luego de tener el token, obtenemos los claims/payload del token, para validar
+            // info
             Claims claims = JwtConfig.obtainClaims(sessionToken);
             String userEmail = JwtConfig.getSubject(claims);
-            // Buscamos usuario "Activado" y dispositivo relacionado al usuario que encontramos en el session token
+            // Buscamos usuario "Activado" y dispositivo relacionado al usuario que
+            // encontramos en el session token
             Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(userEmail);
-            if(userOptional.isPresent() && userOptional.get().getPersonalData().getStatus().equals("Activado")) {
-                if(UserHelper.isTestUser(userEmail) || UserHelper.isDefaulUser(userEmail)) {
-                    // Es un usuario de prueba o por defecto, lo autenticamos
-                    String userRole = userOptional.get().getPersonalData().getProfileRole();
-                    Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, "Updated", Collections.singletonList(new SimpleGrantedAuthority(userRole)));
-                    this.authContextForUser(request, response, chain, authForUser);
-                    return;
-                }
-                // No es un usuario de prueba, se debe confirmar que tiene un dispositivo relacionado
+            if (userOptional.isPresent() && userOptional.get().getPersonalData().getStatus().equals("Activado")) {
+
+                // No es un usuario de prueba, se debe confirmar que tiene un dispositivo
+                // relacionado
                 Optional<DeviceModel> deviceOptional = deviceRepository.findByUserAndDevice(userEmail, device);
-                if(deviceOptional.isPresent()) {
+                if (deviceOptional.isPresent()) {
                     // Actualizar ips si es el caso
                     DeviceModel deviceDB = deviceOptional.get();
                     String ipAddress = !DataHelper.isNull(request.getRemoteAddr()) ? request.getRemoteAddr() : null;
@@ -113,18 +112,19 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
                     Collection<? extends GrantedAuthority> authorities = Arrays.asList(new ObjectMapper()
                             .addMixIn(SimpleGrantedAuthority.class, SimpleGrantedAuthorityJsonCreator.class)
                             .readValue(strAuthorities.getBytes(), SimpleGrantedAuthority[].class));
-                    Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, "Updated", authorities);
+                    Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, "Updated",
+                            authorities);
                     this.authContextForUser(request, response, chain, authForUser);
                     return;
-                }   
+                }
             }
             ResponseHelper.invalidJWT(response, "no es posible continuar con la solicitud", null);
-        } catch(SignatureException | ExpiredJwtException e) {
+        } catch (SignatureException | ExpiredJwtException e) {
             // Actualizar token de refresco si es el caso
             this.checkRefreshToken(request, response, chain, device, refreshToken);
-        } catch(JwtException e) {
+        } catch (JwtException e) {
             ResponseHelper.invalidJWT(response, "no es posible continuar con la solicitud", e.getMessage());
-        } catch(Exception e) {
+        } catch (Exception e) {
             ResponseHelper.invalidJWT(response, "no es posible continuar con la solicitud", e.getMessage());
         }
     }
@@ -142,15 +142,8 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             UserModel userDB = userRepository.findByPersonalData_Email(user).orElseThrow();
             UserDataModel userData = userDB.getPersonalData();
             String userRole = userData.getProfileRole();
-            if(!userData.getStatus().equals("Activado")) {
+            if (!userData.getStatus().equals("Activado")) {
                 ResponseHelper.invalidJWT(response, "datos anticuados", null);
-                return;
-            }
-
-            // Verificamos si es un usuario de prueba o por defecto, para autenticarlo rápidamente
-            if(UserHelper.isTestUser(user) || UserHelper.isDefaulUser(user)) {
-                Authentication authForUser = new UsernamePasswordAuthenticationToken(user, "Updated", Collections.singletonList(new SimpleGrantedAuthority(userRole)));
-                this.authContextForUser(request, response, chain, authForUser);
                 return;
             }
 
@@ -158,52 +151,40 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             DeviceModel deviceDB = deviceRepository.findByUserAndDevice(user, device).orElseThrow();
             this.refreshIpAddress(ipAddress, deviceDB);
 
-            // Generamos objeto de autorización por el usuario verificado (credenciales actualizadas).
-            Authentication authForUser = new UsernamePasswordAuthenticationToken(user, "Updated", Collections.singletonList(new SimpleGrantedAuthority(userRole)));
+            // Generamos objeto de autorización por el usuario verificado (credenciales
+            // actualizadas).
+            Authentication authForUser = new UsernamePasswordAuthenticationToken(user, "Updated",
+                    Collections.singletonList(new SimpleGrantedAuthority(userRole)));
             this.authContextForUser(request, response, chain, authForUser);
-        } catch(SignatureException | ExpiredJwtException e) {
-            // Buscamos dispositivo relacionado al refreshToken del usuario y un usuario "Activado".
+        } catch (SignatureException | ExpiredJwtException e) {
+            // Buscamos dispositivo relacionado al refreshToken del usuario y un usuario
+            // "Activado".
             Optional<DeviceModel> deviceOptional = deviceRepository.findByDeviceAndRefreshToken(device, refreshToken);
-            if(deviceOptional.isPresent()) {
+            if (deviceOptional.isPresent()) {
                 DeviceModel deviceDB = deviceOptional.get();
                 String userEmail = deviceDB.getUser();
                 Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(userEmail);
-                if(userOptional.isPresent() && userOptional.get().getPersonalData().getStatus().equals("Activado")) {
+                if (userOptional.isPresent() && userOptional.get().getPersonalData().getStatus().equals("Activado")) {
                     // Actualizar ips si es el caso
                     this.refreshIpAddress(ipAddress, deviceDB);
                     // Generamos objeto de autenticación
                     String userRole = userOptional.get().getPersonalData().getProfileRole();
-                    Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, "Updated", Collections.singletonList(new SimpleGrantedAuthority(userRole)));
+                    Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, "Updated",
+                            Collections.singletonList(new SimpleGrantedAuthority(userRole)));
                     this.authContextForUser(request, response, chain, authForUser);
                     return;
                 }
-            } else {
-                // Puede que sea un usuario de prueba o por defecto
-                Optional<DeviceModel> deviceUserOptional = deviceRepository.findByRefreshToken(refreshToken);
-                if(deviceUserOptional.isPresent()) {
-                    String userEmail = deviceUserOptional.get().getUser();
-                    if(UserHelper.isTestUser(userEmail) || UserHelper.isDefaulUser(userEmail)) {
-                        Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(userEmail);
-                        if(userOptional.isPresent() && userOptional.get().getPersonalData().getStatus().equals("Activado")) {
-                            // Es un usuario de prueba o por defecto, se autoriza
-                            String userRole = userOptional.get().getPersonalData().getProfileRole();
-                            Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, "Updated", Collections.singletonList(new SimpleGrantedAuthority(userRole)));
-                            this.authContextForUser(request, response, chain, authForUser);
-                            return;
-                        }
-                    }
-
-                }
             }
             ResponseHelper.invalidJWT(response, "no es posible continuar con la solicitud", null);
-        } catch(JwtException e) {
+        } catch (JwtException e) {
             ResponseHelper.invalidJWT(response, "no es posible continuar con la solicitud", null);
-        } catch(Exception e) {
+        } catch (Exception e) {
             ResponseHelper.invalidJWT(response, "no es posible continuar con la solicitud", e.getMessage());
         }
     }
 
-    // Verificar token de refresco si es correcto para actualizar el token de expiración
+    // Verificar token de refresco si es correcto para actualizar el token de
+    // expiración
     @Transactional
     private void checkRefreshToken(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
             String device, String refreshToken) throws IOException, ServletException {
@@ -214,77 +195,52 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             // Verificamos un usuario que este "Activado"
             UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
             UserDataModel userData = userDB.getPersonalData();
-            if(!userData.getStatus().equals("Activado")) {
+            if (!userData.getStatus().equals("Activado")) {
                 ResponseHelper.invalidJWT(response, "datos anticuados", null);
                 return;
             }
-            // Verificamos rápidamente si es un usuario de prueba o por defecto
-            if(UserHelper.isTestUser(userEmail) || UserHelper.isDefaulUser(userEmail)) {
-                // Es un usuario de prueba o por defecto, por lo tanto, se autoriza y se le actualiza el token de sesión
-                Collection<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(userData.getProfileRole()));
-                Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, "Updated", authorities);
-                this.authContextForUser(request, response, chain, authForUser);
-                this.updateSessionToken(userEmail,
-                    authorities,
-                    userDB);
-                return;
-            }
-            // No es un usuario de prueba, por lo que hay que validar con un usuario relacionado a un dispositivo
+
+            // No es un usuario de prueba, por lo que hay que validar con un usuario
+            // relacionado a un dispositivo
             DeviceModel deviceDB = deviceRepository.findByUserAndDevice(userEmail, device).orElseThrow();
             // Actualizar ips si es el caso
             this.refreshIpAddress(ipAddress, deviceDB);
             // Se actualiza token de sessión y se autoriza
-            Collection<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(userData.getProfileRole()));
+            Collection<GrantedAuthority> authorities = Collections
+                    .singletonList(new SimpleGrantedAuthority(userData.getProfileRole()));
             Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, "Updated", authorities);
             this.authContextForUser(request, response, chain, authForUser);
             this.updateSessionToken(userEmail,
-                authorities,
-                userDB);
-        } catch(SignatureException | ExpiredJwtException e) {
-            // Buscamos dispositivo relacionado al refreshToken del usuario y un usuario "Activado".
+                    authorities,
+                    userDB);
+        } catch (SignatureException | ExpiredJwtException e) {
+            // Buscamos dispositivo relacionado al refreshToken del usuario y un usuario
+            // "Activado".
             Optional<DeviceModel> deviceOptional = deviceRepository.findByDeviceAndRefreshToken(device, refreshToken);
-            if(deviceOptional.isPresent()) {
+            if (deviceOptional.isPresent()) {
                 DeviceModel deviceDB = deviceOptional.get();
                 String userEmail = deviceDB.getUser();
                 Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(userEmail);
-                if(userOptional.isPresent() && userOptional.get().getPersonalData().getStatus().equals("Activado")) {
+                if (userOptional.isPresent() && userOptional.get().getPersonalData().getStatus().equals("Activado")) {
                     // Actualizar ips si es el caso
                     this.refreshIpAddress(ipAddress, deviceDB);
-                    // Se autoriza y se actualiza el sesión token, y el refresh token solo se actualiza si la
+                    // Se autoriza y se actualiza el sesión token, y el refresh token solo se
+                    // actualiza si la
                     // solicitud es completada en su totalidad.
                     UserModel userDB = userOptional.get();
                     UserDataModel userData = userDB.getPersonalData();
-                    Collection<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(userData.getProfileRole()));
+                    Collection<GrantedAuthority> authorities = Collections
+                            .singletonList(new SimpleGrantedAuthority(userData.getProfileRole()));
                     // El "Dated", es porque se tiene que actualizar el token de refresco.
-                    Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, "Dated", authorities);
+                    Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, "Dated",
+                            authorities);
                     this.authContextForUser(request, response, chain, authForUser);
                     this.updateSessionToken(userEmail, authorities, userDB);
                     return;
                 }
-            } else {
-                // Puede que sea un usuario de prueba o un usuario por defecto
-                Optional<DeviceModel> deviceOptionalForUser = deviceRepository.findByRefreshToken(refreshToken);
-                if(deviceOptionalForUser.isPresent()) {
-                    String userEmail = deviceOptionalForUser.get().getUser();
-                    // Verificamos si es un usuario de prueba o por defecto
-                    if(UserHelper.isTestUser(userEmail) || UserHelper.isDefaulUser(userEmail)) {
-                        Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(userEmail);
-                        if(userOptional.isPresent() && userOptional.get().getPersonalData().getStatus().equals("Activado")) {
-                            // Es un usuario de prueba, se actualiza el sessión token y se autoriza
-                            UserModel userDB = userOptional.get();
-                            UserDataModel userData = userDB.getPersonalData();
-                            Collection<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(userData.getProfileRole()));
-                            Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, "Dated", authorities);
-                            this.authContextForUser(request, response, chain, authForUser);
-                            this.updateSessionToken(userEmail, authorities, userDB);
-                            return;
-                        }
-                    }
-
-                }
             }
             ResponseHelper.invalidJWT(response, "no es posible continuar con la solicitud", null);
-        } catch(Exception e) {
+        } catch (Exception e) {
             ResponseHelper.invalidJWT(response, "no es posible continuar con la solicitud", e.getMessage());
         }
     }
@@ -297,14 +253,15 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
     }
 
     private void refreshIpAddress(String ipAddress, DeviceModel deviceDB) {
-        if(!DataHelper.isNull(ipAddress) && !deviceDB.getIps().contains(ipAddress)) {
+        if (!DataHelper.isNull(ipAddress) && !deviceDB.getIps().contains(ipAddress)) {
             deviceDB.addIp(ipAddress);
             deviceDB.setUpdatedDate(LocalDateTime.now());
             deviceRepository.save(deviceDB);
         }
     }
 
-    private void updateSessionToken(String email, Collection<GrantedAuthority> authorities, UserModel userDB) throws JsonProcessingException {
+    private void updateSessionToken(String email, Collection<GrantedAuthority> authorities, UserModel userDB)
+            throws JsonProcessingException {
         userDB.getPersonalData().setSessionToken(JwtConfig.createSessionToken(email, authorities));
         userRepository.save(userDB);
     }

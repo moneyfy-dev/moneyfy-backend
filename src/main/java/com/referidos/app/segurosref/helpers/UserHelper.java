@@ -26,38 +26,7 @@ import jakarta.servlet.http.HttpServletRequest;
 @Component
 public class UserHelper {
 
-    // Lista de los usuarios de prueba
-    public static List<String> testUsers() {
-        return List.of("nuser.random01@gmail.com");
-    }
-    // Verificar usuario de pruba
-    public static boolean isTestUser(String emailAuth) {
-        List<String> testUsers = testUsers();
-        for(String testUser : testUsers) {
-            if(testUser.equals(emailAuth)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
-    // Lista de los usuarios por defecto
-    public static List<String> defaultUsers() {
-        return List.of("nuser.random@gmail.com",
-            "gottafindshape@gmail.com",
-            "eliu.martineez@gmail.com"
-        );
-    }
-    // Verificar usuario por defecto
-    public static boolean isDefaulUser(String emailAuth) {
-        List<String> defaultUsers = defaultUsers();
-        for(String defaultUser : defaultUsers) {
-            if(defaultUser.equals(emailAuth)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     // Actualizar token de refresco
     @Transactional

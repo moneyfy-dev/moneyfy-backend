@@ -1,5 +1,7 @@
 package com.referidos.app.segurosref.models;
 
+import java.time.LocalDate;
+
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import lombok.AllArgsConstructor;
@@ -7,19 +9,26 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-@JsonPropertyOrder(value = {"quoterPlanId", "insurer", "planName", "valueUF", "grossPriceUF", "totalMonths",
-        "monthlyPriceUF", "monthlyPrice", "deductibleDesc", "discount"})
+@JsonPropertyOrder(value = { "quoterPlanId", "insurer", "planName", "valueUF", "grossPriceUF", "totalMonths",
+        "monthlyPriceUF", "monthlyPrice", "deductibleDesc", "discount", "insurerAlias", "externalQuotationId",
+        "expiryDate", "dealTokenFDI", "itemIdFDI" })
 public class QuoterPlanModel {
 
     private String quoterPlanId;
     private String insurer;
     private String planName;
-    private double valueUF; // Este campo varía según el valor del UF del día / COMO ACTUALIZARLO
-    private double grossPriceUF; // Este campo debería ser fijo
-    private int totalMonths; // Este campo debería ser fijo
-    private double monthlyPriceUF; // Este campo debería ser fijo
-    private double monthlyPrice; // Este campo varía según el valor del UF del día / COMO ACTUALIZARLO
+    private double valueUF;
+    private double grossPriceUF;
+    private int totalMonths;
+    private double monthlyPriceUF;
+    private double monthlyPrice;
     private String deductibleDesc;
     private double discount;
+
+    private String insurerAlias;
+    private String externalQuotationId;
+    private LocalDate expiryDate;
+    private String dealTokenFDI;
+    private Integer itemIdFDI;
 
 }

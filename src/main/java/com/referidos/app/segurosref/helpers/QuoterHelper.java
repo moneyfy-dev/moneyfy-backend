@@ -157,7 +157,7 @@ public class QuoterHelper {
     public QuoterModel createQuoteStructure(QuoterOwnerModel quoterOwner, QuoterCarModel quoterCar,
             QuoterPurchaserModel quoterPurchaser, String quoterStatus, LocalDateTime currentDateTime) {
         // Estructura de los otros objetos del cotizador (vacíos por el momento)
-        QuoterPlanModel quoterPlan = new QuoterPlanModel("", "", "", 0.0, 0.0, 0, 0.0, 0.0, "", 0.0);
+        QuoterPlanModel quoterPlan = new QuoterPlanModel("", "", "", 0.0, 0.0, 0, 0.0, 0.0, "", 0.0, "", "", DataHelper.deprecatedDate(), "", 0);
         QuoterAddressModel quoterAddress = new QuoterAddressModel("", "", "");
         QuoterPaymentModel quoterPayment = new QuoterPaymentModel("", "", "", "");
         return new QuoterModel(new ObjectId(), quoterStatus, quoterOwner, quoterCar, quoterPurchaser, quoterPlan,

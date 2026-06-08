@@ -105,10 +105,6 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public ResponseEntity<?> changePassword(ChangePwdRequest changePwd, String emailAuth) {
-        // Verificamos primero si es un usuario de prueba
-        if(UserHelper.isTestUser(emailAuth)) {
-            return ResponseHelper.failedDependency("el usuario de prueba, no puede cambiar su contraseña", "failed dependency");
-        }
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         UserDataModel userData = userDB.getPersonalData();
         if(passwordEncoder.matches(changePwd.oldPwd(), userData.getPwd())) {

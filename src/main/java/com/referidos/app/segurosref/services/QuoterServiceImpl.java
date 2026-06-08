@@ -34,7 +34,6 @@ import com.referidos.app.segurosref.dtos.report.ReportUserDto;
 import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.QuoterHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
-import com.referidos.app.segurosref.helpers.UserHelper;
 import com.referidos.app.segurosref.helpers.ValidateInputHelper;
 import com.referidos.app.segurosref.integrations.bci.clients.BCIQuotationClient;
 import com.referidos.app.segurosref.integrations.email.providers.EmailAppProvider;
@@ -180,13 +179,13 @@ public class QuoterServiceImpl implements QuoterService {
         }
         String ppu = searchVehicle.ppu().toUpperCase(); // Patente del vehículo a mayúsculas
         String ownerId = searchVehicle.ownerId().toUpperCase(); // Rut de propietario a mayúsculas por la 'k'
-        
+
         // Consultar cliente externo BCI para datos del vehículo
         BCIVehicleResponsePojo vehicleResponse = bciVehicleClient.searchVehicle(ppu);
-        
+
         QuoterCarModel vehicleFound;
         VehicleDto vehicleDto;
-        
+
         if (vehicleResponse.hasError()) {
             // Error en la API externa o no encontrado: se dejan los campos vacíos
             vehicleFound = new QuoterCarModel(ppu, "", "", "", "", "", "", "", "");
@@ -195,31 +194,31 @@ public class QuoterServiceImpl implements QuoterService {
             // Búsqueda exitosa
             BCIVehicleResponsePojo.Resultado resultado = vehicleResponse.getResultado();
             vehicleFound = new QuoterCarModel(
-                ppu,
-                resultado.getStrMarca(),
-                resultado.getStrModelo(),
-                String.valueOf(resultado.getIntAnioFabricacion()),
-                resultado.getStrTipoVehiculo(),
-                resultado.getStrColor(),
-                resultado.getStrNumeroMotor(),
-                resultado.getStrNumeroChasis(),
-                "BCI"
-            );
+                    ppu,
+                    resultado.getStrMarca(),
+                    resultado.getStrModelo(),
+                    String.valueOf(resultado.getIntAnioFabricacion()),
+                    resultado.getStrTipoVehiculo(),
+                    resultado.getStrColor(),
+                    resultado.getStrNumeroMotor(),
+                    resultado.getStrNumeroChasis(),
+                    "BCI");
             vehicleDto = new VehicleDto(
-                ppu,
-                resultado.getStrMarca(),
-                resultado.getStrModelo(),
-                String.valueOf(resultado.getIntAnioFabricacion()),
-                resultado.getStrTipoVehiculo(),
-                resultado.getStrColor(),
-                resultado.getStrNumeroMotor(),
-                resultado.getStrNumeroChasis(),
-                "BCI",
-                true // isFound = true
+                    ppu,
+                    resultado.getStrMarca(),
+                    resultado.getStrModelo(),
+                    String.valueOf(resultado.getIntAnioFabricacion()),
+                    resultado.getStrTipoVehiculo(),
+                    resultado.getStrColor(),
+                    resultado.getStrNumeroMotor(),
+                    resultado.getStrNumeroChasis(),
+                    "BCI",
+                    true // isFound = true
             );
         }
-        
-        // Buscamos si existe ya existe el registro para volver a cargarlo y no crear duplicidad
+
+        // Buscamos si existe ya existe el registro para volver a cargarlo y no crear
+        // duplicidad
         List<QuoterModel> quoters = userDB.getQuoters();
         QuoterModel userQuoter = null;
         String pointOfCurrentStatus = "Iniciando";
@@ -244,15 +243,16 @@ public class QuoterServiceImpl implements QuoterService {
             userDB.addQuoter(userQuoter);
             userDB = userRepository.save(userDB);
         }
-        
+
         Map<String, Object> dataResponse = new java.util.HashMap<>();
         dataResponse.put("vehicle", vehicleDto);
         dataResponse.put("quoterId", userQuoter.getQuoterId());
         if (vehicleResponse.hasError()) {
             dataResponse.put("internalErrorCode", vehicleResponse.getInternalErrorCode());
-            dataResponse.put("internalErrorMessage", com.referidos.app.segurosref.responses.enums.BusinessCodeEnum.fromCode(vehicleResponse.getInternalErrorCode()).getErrorDescription());
+            dataResponse.put("internalErrorMessage", com.referidos.app.segurosref.responses.enums.BusinessCodeEnum
+                    .fromCode(vehicleResponse.getInternalErrorCode()).getErrorDescription());
         }
-        
+
         return ResponseHelper.created("se ha realizado la cotización exitosamente",
                 DataHelper.buildUser(userDB, dataResponse));
     }
@@ -270,11 +270,7 @@ public class QuoterServiceImpl implements QuoterService {
         String brand = searchPlan.brand().toUpperCase();
         String model = searchPlan.model().toUpperCase();
         String year = searchPlan.year();
-        String insurerAlias = searchPlan.insurerAlias().strip(); // Usamos strip() para quitar espacios al inicio y
-                                                                 // final
-        // Hay 2 tipos de busqueda para el vehículo 'Manual' o 'Auto', pero por ahora se
-        // simula la búsqueda del auto solamente
-        // String requestType = searchPlan.requestType();
+        String insurerAlias = searchPlan.insurerAlias().strip();
         String purchaserId = searchPlan.purchaserId();
         String purchaserName = searchPlan.purchaserName().strip();
         String purchaserPaternalSur = searchPlan.purchaserPaternalSur().strip();
@@ -298,25 +294,35 @@ public class QuoterServiceImpl implements QuoterService {
                     }
                     // En caso de que sea una cotización que venga del proceso anterior actualizamos
                     // los datos, recordar que este es un endpoint que se puede repetir como tantas
-                    // aseguradoras existan
-                    if (quoterDB.getQuoterStatus().equals("Iniciando")) {
-                        // Se actualiza la data del vehículo del cotizador
-                        quoterDB.setQuoterCarData(new QuoterCarModel(ppu, brand, model, year, "", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis"));
-                        // Se actualiza la data del comprador de la cotización
-                        QuoterPurchaserModel quoterPurchaserDB = quoterDB.getQuoterPurchaserData();
-                        quoterPurchaserDB.setPersonalId(purchaserId);
-                        quoterPurchaserDB.setName(purchaserName);
-                        quoterPurchaserDB.setPaternalSurname(purchaserPaternalSur);
-                        quoterPurchaserDB.setMaternalSurname(purchaserMaternalSur);
-                        quoterPurchaserDB.setEmail(purchaserEmail);
-                        quoterPurchaserDB.setPhone(purchaserPhone);
-                        quoterPurchaserDB.setOwnerRelationOption(ownerRelationOption);
-                        // Se actualiza el estado actual de la cotización y el usuario para que
-                        // persistan los cambios
-                        quoterDB.setQuoterStatus(pointOfQuoterCurrentStatus);
-                        quoterDB.setUpdatedDate(currentDateTime);
-                        userDB = userRepository.save(userDB);
+                    // aseguradoras existan. Se debe actualizar los datos del vehículo, porque puede
+                    // que el ingreso se haya realizado manual, pero solo los datos que vengan en la
+                    // solicitud, los otros datos que no vienen, deben mantenerse con el valor que
+                    // tienen.
+                    QuoterCarModel quoterCarDB = quoterDB.getQuoterCarData();
+                    if (quoterCarDB != null) {
+                        quoterCarDB.setPpu(ppu);
+                        quoterCarDB.setBrand(brand);
+                        quoterCarDB.setModel(model);
+                        quoterCarDB.setYear(year);
+                    } else {
+                        quoterCarDB = new QuoterCarModel(ppu, brand, model, year, "", "", "", "", "");
+                        quoterDB.setQuoterCarData(quoterCarDB);
                     }
+                    // Se actualiza la data del comprador de la cotización
+                    QuoterPurchaserModel quoterPurchaserDB = quoterDB.getQuoterPurchaserData();
+                    quoterPurchaserDB.setPersonalId(purchaserId);
+                    quoterPurchaserDB.setName(purchaserName);
+                    quoterPurchaserDB.setPaternalSurname(purchaserPaternalSur);
+                    quoterPurchaserDB.setMaternalSurname(purchaserMaternalSur);
+                    quoterPurchaserDB.setEmail(purchaserEmail);
+                    quoterPurchaserDB.setPhone(purchaserPhone);
+                    quoterPurchaserDB.setOwnerRelationOption(ownerRelationOption);
+                    // Se actualiza el estado actual de la cotización y el usuario para que
+                    // persistan los cambios
+                    quoterDB.setQuoterStatus(pointOfQuoterCurrentStatus);
+                    quoterDB.setUpdatedDate(currentDateTime);
+                    userDB = userRepository.save(userDB);
+
                     userQuoter = quoterDB;
                     break;
                 }
@@ -343,8 +349,29 @@ public class QuoterServiceImpl implements QuoterService {
             // Si la cotización no se encontró con los datos actuales de la solicitud, se
             // crea porque definitivamente no existe
             if (!isQuoter) {
+                String vehicleType = "";
+                String vehicleColor = "";
+                String vehicleMotor = "";
+                String vehicleChassis = "";
+
+                try {
+                    BCIVehicleResponsePojo vehicleResponse = bciVehicleClient.searchVehicle(ppu);
+                    if (vehicleResponse.getInternalErrorCode() == -1 && vehicleResponse.getResultado() != null) {
+                        BCIVehicleResponsePojo.Resultado res = vehicleResponse.getResultado();
+                        vehicleType = res.getStrTipoVehiculo() != null ? res.getStrTipoVehiculo() : "";
+                        vehicleColor = res.getStrColor() != null ? res.getStrColor() : "";
+                        vehicleMotor = res.getStrNumeroMotor() != null ? res.getStrNumeroMotor() : "";
+                        vehicleChassis = res.getStrNumeroChasis() != null ? res.getStrNumeroChasis() : "";
+                    }
+                } catch (Exception e) {
+                    LOGGER_MESSAGES
+                            .info("Excepción al intentar autocompletar datos del vehículo BCI: " + e.getMessage());
+                }
+
                 QuoterOwnerModel quoterOwner = new QuoterOwnerModel("", "", "", "");
-                QuoterCarModel quoterCar = new QuoterCarModel(ppu, brand, model, year, "", "Negro", "N0V0T3STT4RB0", "N0V0T3STT3ST3R", "Stellantis");
+                QuoterCarModel quoterCar = new QuoterCarModel(ppu, brand, model, year, vehicleType, vehicleColor,
+                        vehicleMotor,
+                        vehicleChassis, "");
                 QuoterPurchaserModel quoterPurchaser = new QuoterPurchaserModel(purchaserId, purchaserName,
                         purchaserPaternalSur, purchaserMaternalSur, purchaserEmail, purchaserPhone,
                         ownerRelationOption);
@@ -444,9 +471,6 @@ public class QuoterServiceImpl implements QuoterService {
             }
         }
 
-        // Crear la cotización DTO en los planes y aquí consultar si tuvo error o no
-        // para registrar planes históricos
-
         // Guardar planes en BD en caso de no existir
         for (QuotationPlanDto insurerPlan : planList) {
             String insurerPlanId = insurerPlan.getPlanId();
@@ -461,8 +485,46 @@ public class QuoterServiceImpl implements QuoterService {
             }
         }
 
-        @SuppressWarnings("null") // Se validaron todos los escenarios y siempre se crea una cotización, por lo
-                                  // tanto, existe id
+        // Actualizar QuoterPlanModel con metadata compartida
+        if (planList != null && !planList.isEmpty()) {
+            @SuppressWarnings("null")
+            QuoterPlanModel quoterPlan = userQuoter.getQuoterPlanData();
+            if ("aseguradora4".equals(insurerAlias)) { // BCI
+                QuotationPlanDto firstPlan = planList.get(0);
+                quoterPlan.setInsurerAlias(insurerAlias);
+                quoterPlan.setExternalQuotationId(String.valueOf(firstPlan.getQuotationIdBCI()));
+                try {
+                    String expiryStr = firstPlan.getExpiryDateBCI();
+                    if (expiryStr != null && expiryStr.length() >= 10) {
+                        quoterPlan.setExpiryDate(LocalDate.parse(expiryStr.substring(0, 10)));
+                    } else {
+                        quoterPlan.setExpiryDate(DataHelper.deprecatedDate());
+                    }
+                } catch (Exception e) {
+                    quoterPlan.setExpiryDate(DataHelper.deprecatedDate());
+                }
+                userRepository.save(userDB);
+            } else if ("aseguradora5".equals(insurerAlias)) { // FDI
+                QuotationPlanDto firstPlan = planList.get(0);
+                quoterPlan.setInsurerAlias(insurerAlias);
+                quoterPlan.setExternalQuotationId(String.valueOf(firstPlan.getQuotationIdFDI()));
+                quoterPlan.setDealTokenFDI(firstPlan.getDealTokenFDI() != null ? firstPlan.getDealTokenFDI() : "");
+                quoterPlan.setItemIdFDI(firstPlan.getItemIdFDI() != null ? firstPlan.getItemIdFDI() : 0);
+                try {
+                    String expiryStr = firstPlan.getExpiryDateFDI();
+                    if (expiryStr != null && expiryStr.length() >= 10) {
+                        quoterPlan.setExpiryDate(LocalDate.parse(expiryStr.substring(0, 10)));
+                    } else {
+                        quoterPlan.setExpiryDate(DataHelper.deprecatedDate());
+                    }
+                } catch (Exception e) {
+                    quoterPlan.setExpiryDate(DataHelper.deprecatedDate());
+                }
+                userRepository.save(userDB);
+            }
+        }
+
+        @SuppressWarnings("null")
         QuotationDto quotationDto = new QuotationDto(userQuoter.getQuoterId(), errorPlanFinder, errorMessage,
                 requestBody, responseStr, returnInsurerDB, planList);
         return ResponseHelper.ok("se ha realizado la cotización", quotationDto);
@@ -502,6 +564,7 @@ public class QuoterServiceImpl implements QuoterService {
                 quoterPlan.setMonthlyPrice(planSelected.monthlyPrice());
                 quoterPlan.setDeductibleDesc(planSelected.deductibleDesc());
                 quoterPlan.setDiscount(planSelected.discount());
+
                 // Actualizamos la dirección de la cotización para la inspección
                 QuoterAddressModel quoterAddress = quoterDB.getQuoterAddressData();
                 quoterAddress.setStreet(planSelected.street().strip());
@@ -742,21 +805,8 @@ public class QuoterServiceImpl implements QuoterService {
                 transactionDB.setStatus(pointOfTransactionStatus);
                 transactionDB.setUpdatedDate(currentDateTime);
                 transactionDB
-                        .setApprovalDate((isTrasactionApproved) ? currentDateTime : transactionDB.getApprovalDate()); // Se
-                                                                                                                      // actualiza
-                                                                                                                      // la
-                                                                                                                      // fecha
-                                                                                                                      // de
-                                                                                                                      // aprobación
-                                                                                                                      // de
-                                                                                                                      // la
-                                                                                                                      // cotización,
-                                                                                                                      // solo
-                                                                                                                      // si
-                                                                                                                      // la
-                                                                                                                      // transacción
-                                                                                                                      // es
-                                                                                                                      // aprobada.
+                        // Se actualiza la fecha de aprobación solo si la transacción fue aprobada
+                        .setApprovalDate((isTrasactionApproved) ? currentDateTime : transactionDB.getApprovalDate());
                 returnData.put("quoterId", quoterId);
                 returnData.put("transactionId", transactionId);
                 returnData.put("message", message);
@@ -899,12 +949,7 @@ public class QuoterServiceImpl implements QuoterService {
                 UserModel userDB = userRepository.findById(new ObjectId(userApproved.getUserId())).orElseThrow();
                 UserDataModel userData = userDB.getPersonalData();
                 String email = userData.getEmail();
-                if (UserHelper.isTestUser(email) || UserHelper.isDefaulUser(email)) {
-                    // No se contabiliza usuario porque es el usuario de la aplicación
-                    quoterHelper.addUserProblem(usersProblem, userApproved, "Usuario de prueba de la aplicación");
-                    usersToDelete.add(userApproved);
-                    continue;
-                }
+
                 userApproved.setName(userData.getName() + " " + userData.getSurname());
                 userApproved.setEmail(email);
                 AccountModel userAccount = quoterHelper.checkUserAccount(userDB);
