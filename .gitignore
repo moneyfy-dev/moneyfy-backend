@@ -26,6 +26,9 @@ dist/
 # JetBrains IDE
 .idea/
 
+# VS Code IDE
+.vscode/
+
 # Unit test reports
 TEST*.xml
 
@@ -50,7 +53,7 @@ Thumbs.db
 
 # Local Properties
 src/main/resources/application.properties
-src/main/resources/own-env.properties
+src/main/resources/properties/own-env.properties
 
 # Agent Context
 agent.md

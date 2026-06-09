@@ -67,12 +67,6 @@ public class QuoterServiceImpl implements QuoterService {
     @Value(value = "${moneyfy.api-key}")
     private String apiKeyMF;
 
-    @Value(value = "${report.commission.cutoff-date}")
-    private int commissionCutoffDate;
-
-    @Value(value = "${report.commission.payment-date}")
-    private int commissionPaymentDate;
-
     private final int commissionUserC = 35000;
     private final int commissionUserB = 10000;
     private final int commissionUserA = 5000;

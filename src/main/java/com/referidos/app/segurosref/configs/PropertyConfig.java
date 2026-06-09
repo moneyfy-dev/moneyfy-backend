@@ -10,8 +10,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import lombok.Data;
 @Configuration
 @PropertySources(value = {
-    @PropertySource(value = "classpath:info-messages.properties", encoding = "UTF-8"),
-    @PropertySource(value = "classpath:own-env.properties", encoding = "UTF-8")
+    @PropertySource(value = "classpath:properties/info-messages.properties", encoding = "UTF-8"),
+    @PropertySource(value = "classpath:properties/own-env.properties", encoding = "UTF-8")
 })
 public class PropertyConfig {
 
