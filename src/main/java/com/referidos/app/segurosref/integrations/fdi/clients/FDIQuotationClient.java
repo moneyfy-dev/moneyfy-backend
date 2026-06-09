@@ -7,6 +7,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -23,12 +26,6 @@ import com.referidos.app.segurosref.integrations.fdi.dtos.FDIQuotationPlanCoverD
 import com.referidos.app.segurosref.integrations.fdi.dtos.FDIQuotationPlanDto;
 import com.referidos.app.segurosref.integrations.fdi.pojos.FDIItemCreatePojo;
 import com.referidos.app.segurosref.integrations.fdi.pojos.FDIQuoteDealPojo;
-import com.referidos.app.segurosref.integrations.fdi.pojos.FDIQuoteDetailPojo;
-import com.referidos.app.segurosref.integrations.fdi.pojos.FDIQuoteItemPojo;
-import com.referidos.app.segurosref.integrations.fdi.pojos.FDIQuotePlanCoverPojo;
-import com.referidos.app.segurosref.integrations.fdi.pojos.FDIQuotePlanParamPojo;
-import com.referidos.app.segurosref.integrations.fdi.pojos.FDIQuotePlanParamRangeValuePojo;
-import com.referidos.app.segurosref.integrations.fdi.pojos.FDIQuotePlanPojo;
 import com.referidos.app.segurosref.integrations.fdi.pojos.FDIDealCreatePojo;
 import com.referidos.app.segurosref.integrations.fdi.requests.FDIDealUpAddressRequest;
 import com.referidos.app.segurosref.integrations.fdi.requests.FDIDealUpContractorRequest;
@@ -218,14 +215,14 @@ public class FDIQuotationClient {
             // Cotizaciones del plan puede tener más de un deducible, si es así, por
             // deducible se crea un nuevo plan
             Set<FDIQuotationPlanDto> plansDto = new HashSet<>();
-            FDIQuoteItemPojo itemPojo = quoteDealResponse.getItems().get(0);
+            FDIQuoteDealPojo.Item itemPojo = quoteDealResponse.getItems().get(0);
             fdiQuotationDto.setItemId(itemPojo.getItemId());
-            for (FDIQuoteDetailPojo quotationPojo : itemPojo.getQuotations()) {
+            for (FDIQuoteDealPojo.Detail quotationPojo : itemPojo.getQuotations()) {
                 // Como el plan es el mismo y solo cambia dependiendo el deducible, se busca los
                 // gastos que cubre que será lo mismo independiente del deducible
                 Set<FDIQuotationPlanCoverDto> coversDto = new HashSet<>();
-                FDIQuotePlanPojo planDetailPojo = quotationPojo.getPlan();
-                for (FDIQuotePlanCoverPojo coverPojo : planDetailPojo.getCoverages()) {
+                FDIQuoteDealPojo.Plan planDetailPojo = quotationPojo.getPlan();
+                for (FDIQuoteDealPojo.PlanCover coverPojo : planDetailPojo.getCoverages()) {
                     coversDto.add(new FDIQuotationPlanCoverDto(coverPojo.getId(), coverPojo.getName(),
                             coverPojo.getMainDescription(), coverPojo.getGeneralDescription(), coverPojo.getIsMain(),
                             coverPojo.getIsParam(), coverPojo.getValueDescription(), coverPojo.getPolCad(),
@@ -233,19 +230,19 @@ public class FDIQuotationClient {
                 }
                 // Ahora buscamos los deducibles. Y por deducibles creamos un plan de la
                 // cotización específica
-                for (FDIQuotePlanParamPojo parameterPojo : planDetailPojo.getParameters()) {
+                for (FDIQuoteDealPojo.PlanParam parameterPojo : planDetailPojo.getParameters()) {
                     if (parameterPojo.getType().equals("Deducible")) {
                         // Se encuentra el parámetro del deducible, se buscan los deducibles disponibles
-                        for (FDIQuotePlanParamRangeValuePojo valueDeducPojo : parameterPojo.getRanges().get(0)
+                        for (FDIQuoteDealPojo.PlanParamRangeValue valueDeducPojo : parameterPojo.getRanges().get(0)
                                 .getValues()) {
                             Integer deductibleUF = (Integer) valueDeducPojo.getValue();
                             String deductibleDesc = "Deducible " + String.valueOf(deductibleUF) + " UF";
                             String planId = "FDI_" + quotationPojo.getPlanId();
                             String uniquePlan = planId + "_" + String.valueOf(deductibleUF);
                             Integer totalMonths = 11;
-                            Double monthlyPriceUF = (quotationPojo.getGrossWrittenPremium()
-                                    + quotationPojo.getBrokerage()) / totalMonths;
-                            Double monthlyPrice = monthlyPriceUF * quotationPojo.getValueUf();
+                            BigDecimal grossPlusBrokerage = quotationPojo.getGrossWrittenPremium().add(quotationPojo.getBrokerage());
+                            BigDecimal monthlyPriceUF = grossPlusBrokerage.divide(BigDecimal.valueOf(totalMonths), 2, RoundingMode.HALF_UP);
+                            BigDecimal monthlyPrice = monthlyPriceUF.multiply(quotationPojo.getValueUf()).setScale(2, RoundingMode.HALF_UP);
                             plansDto.add(new FDIQuotationPlanDto(uniquePlan, planDetailPojo.getName(), planId,
                                     quotationPojo.getId(), quotationPojo.getFIDId(), quotationPojo.getExpiryDate(),
                                     quotationPojo.getPolicyInceptionDate(), quotationPojo.getPolicyExpiryDate(),
@@ -254,7 +251,7 @@ public class FDIQuotationClient {
                                     quotationPojo.getLiabilityAmount(), quotationPojo.getGarageType(),
                                     quotationPojo.getVehicleReplacement(), quotationPojo.getInspectionRequired(),
                                     quotationPojo.getMonthlyPremium(), monthlyPriceUF, monthlyPrice,
-                                    quotationPojo.getValueUf(), totalMonths, deductibleUF, deductibleDesc, 0.0,
+                                    quotationPojo.getValueUf(), totalMonths, deductibleUF, deductibleDesc, BigDecimal.ZERO,
                                     planDetailPojo.getPaymentPlan(), planDetailPojo.getPaymentPipeline(),
                                     planDetailPojo.getQuotationPeriod(), planDetailPojo.getPaymentWay(), coversDto));
                         }

@@ -1,5 +1,6 @@
 package com.referidos.app.segurosref.dtos.quotation;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
@@ -12,13 +13,13 @@ import lombok.EqualsAndHashCode;
 @Data
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@JsonPropertyOrder(value = {"uniquePlan", "planId", "insurer", "planName", "valueUF", "grossPriceUF",
+@JsonPropertyOrder(value = { "uniquePlan", "planId", "insurer", "planName", "valueUF", "grossPriceUF",
         "totalMonths", "monthlyPriceUF", "monthlyPrice", "deductible", "deductibleDesc", "discount",
         "stolenVehicle", "totalLoss", "damageThirdParty", "workshopType", "quotationIdBCI",
         "expiryDateBCI", "dealTokenFDI", "itemIdFDI",
         "quotationIdFDI", "FIDId", "expiryDateFDI", "brokerageUfFDI", "vehicleReplacementFDI",
         "inspectionRequiredFDI", "monthlyPremiumFDI", "paymentPlanFDI", "quotationPeriodFDI",
-        "paymentWayFDI", "coverages", "details"})
+        "paymentWayFDI", "coverages", "details" })
 public class QuotationPlanDto {
 
     @EqualsAndHashCode.Include
@@ -28,19 +29,19 @@ public class QuotationPlanDto {
     private String insurer;
     @EqualsAndHashCode.Include
     private String planName;
-    private Double valueUF;
-    private Double grossPriceUF;
+    private BigDecimal valueUF;
+    private BigDecimal grossPriceUF;
     private Integer totalMonths;
-    private Double monthlyPriceUF;
-    private Double monthlyPrice;
+    private BigDecimal monthlyPriceUF;
+    private BigDecimal monthlyPrice;
     private Integer deductible;
     private String deductibleDesc;
-    private Double discount;
+    private BigDecimal discount;
     private String stolenVehicle;
     private String totalLoss;
     private String damageThirdParty;
     private String workshopType;
-    
+
     private Integer quotationIdBCI;
     private String expiryDateBCI;
 
@@ -49,17 +50,17 @@ public class QuotationPlanDto {
     private Integer quotationIdFDI;
     private String FIDId;
     private String expiryDateFDI;
-    private Double brokerageUfFDI;
+    private BigDecimal brokerageUfFDI;
     private String vehicleReplacementFDI;
     private Integer inspectionRequiredFDI;
-    private Double monthlyPremiumFDI;
+    private BigDecimal monthlyPremiumFDI;
     private String paymentPlanFDI;
     private String quotationPeriodFDI;
     private String paymentWayFDI;
 
     private Set<QuotationPlanCoverDto> coverages;
     private List<String> details;
-    
+
     // Métodos de lógica, propios de la clase
     public List<String> addDetail(String detail) {
         this.details.add(detail);

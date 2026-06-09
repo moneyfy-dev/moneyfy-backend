@@ -1,5 +1,6 @@
 package com.referidos.app.segurosref.integrations.bci.dtos;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import com.referidos.app.segurosref.integrations.BaseIntegrationResponse;
@@ -19,15 +20,15 @@ public class BCIQuotationDto extends BaseIntegrationResponse {
     private Integer idCotizacion;
     private String nroCotizacion;
     private String vigenciaCotizacion;
-    private Double tasaCambioUF;
-    private Double iva;
+    private BigDecimal tasaCambioUF;
+    private BigDecimal iva;
     private Integer rutCliente;
     private String rutDV;
     private Integer idMarca;
     private Integer idModelo;
     private Integer anioVehiculo;
     private Integer cantidadCuotas;
-    private Double tasaInteresCuota;
+    private BigDecimal tasaInteresCuota;
     private List<BCIQuotationPlanDto> plans;
 
     public BCIQuotationDto(Integer internalErrorCode) {

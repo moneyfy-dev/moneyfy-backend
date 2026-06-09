@@ -1,5 +1,6 @@
 package com.referidos.app.segurosref.models;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -17,13 +18,13 @@ public class QuoterPlanModel {
     private String quoterPlanId;
     private String insurer;
     private String planName;
-    private double valueUF;
-    private double grossPriceUF;
+    private BigDecimal valueUF;
+    private BigDecimal grossPriceUF;
     private int totalMonths;
-    private double monthlyPriceUF;
-    private double monthlyPrice;
+    private BigDecimal monthlyPriceUF;
+    private BigDecimal monthlyPrice;
     private String deductibleDesc;
-    private double discount;
+    private BigDecimal discount;
 
     private String insurerAlias;
     private String externalQuotationId;
