@@ -26,10 +26,7 @@ import jakarta.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping(value = "/seed")
 @PreAuthorize(value = "denyAll()")
-@Tag(
-    name = "Seed Controller",
-    description = "Controller to seed essential data"
-)
+@Tag(name = "Seed Controller", description = "Controller to seed essential data")
 public class SeedController {
 
     @Autowired
@@ -37,136 +34,39 @@ public class SeedController {
 
     @PostMapping(value = "/cities")
     @PreAuthorize(value = "permitAll()")
-    @Operation(
-        summary = "Register or update the cities of the application",
-        description = "Register or update the cities of the application",
-        tags = {"Seed Controller"},
-        parameters = {
-            @Parameter(
-                name = "Api-Key-MoneyFy",
-                in = ParameterIn.HEADER,
-                description = "Security parameter for some public endpoints",
-                required = true
-            )
-        },
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Refresh All Data Again",
-            required = true,
-            content = @Content(
-                mediaType = CONTENT_TYPE,
-                schema = @Schema(implementation = SeedRequest.class)
-            )
-        ),
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The cities were registered successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        }
-    )
+    @Operation(summary = "Register or update the cities of the application", description = "Register or update the cities of the application", tags = {
+            "Seed Controller" }, parameters = {
+                    @Parameter(name = "Api-Key-MoneyFy", in = ParameterIn.HEADER, description = "Security parameter for some public endpoints", required = true)
+            }, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Refresh All Data Again", required = true, content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = SeedRequest.class))), responses = {
+                    @ApiResponse(responseCode = "200", description = "The cities were registered successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                    @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+            })
     public ResponseEntity<?> checkCities(HttpServletRequest request, @RequestBody SeedRequest seedRequest) {
         return seedService.checkCities(request, seedRequest);
     }
 
-
     @PostMapping(value = "/insurers")
     @PreAuthorize(value = "permitAll()")
-    @Operation(
-        summary = "Register or update the insurers of the application",
-        description = "Register or update the insurers of the application",
-        tags = {"Seed Controller"},
-        parameters = {
-            @Parameter(
-                name = "Api-Key-MoneyFy",
-                in = ParameterIn.HEADER,
-                description = "Security parameter for some public endpoints",
-                required = true
-            )
-        },
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Refresh All Data Again",
-            required = true,
-            content = @Content(
-                mediaType = CONTENT_TYPE,
-                schema = @Schema(implementation = SeedRequest.class)
-            )
-        ),
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The test and default users were updated successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        }
-    )
+    @Operation(summary = "Register or update the insurers of the application", description = "Register or update the insurers of the application", tags = {
+            "Seed Controller" }, parameters = {
+                    @Parameter(name = "Api-Key-MoneyFy", in = ParameterIn.HEADER, description = "Security parameter for some public endpoints", required = true)
+            }, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Refresh All Data Again", required = true, content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = SeedRequest.class))), responses = {
+                    @ApiResponse(responseCode = "200", description = "The test and default users were updated successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                    @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+            })
     public ResponseEntity<?> checkInsurers(HttpServletRequest request, @RequestBody SeedRequest seedRequest) {
         return seedService.checkInsurers(request, seedRequest);
     }
 
     @PostMapping(value = "/brands")
     @PreAuthorize(value = "permitAll()")
-    @Operation(
-        summary = "Register the brands to quote your vehicle",
-        description = "Register the brands to quote your vehicle",
-        tags = {"Seed Controller"},
-        parameters = {
-            @Parameter(
-                name = "Api-Key-MoneyFy",
-                in = ParameterIn.HEADER,
-                description = "Security parameter for some public endpoints",
-                required = true
-            )
-        },
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Refresh All Data Again",
-            required = true,
-            content = @Content(
-                mediaType = CONTENT_TYPE,
-                schema = @Schema(implementation = SeedRequest.class)
-            )
-        ),
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The vehicle brands were created successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        }
-    )
+    @Operation(summary = "Register the brands to quote your vehicle", description = "Register the brands to quote your vehicle", tags = {
+            "Seed Controller" }, parameters = {
+                    @Parameter(name = "Api-Key-MoneyFy", in = ParameterIn.HEADER, description = "Security parameter for some public endpoints", required = true)
+            }, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Refresh All Data Again", required = true, content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = SeedRequest.class))), responses = {
+                    @ApiResponse(responseCode = "200", description = "The vehicle brands were created successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                    @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+            })
     public ResponseEntity<?> checkBrands(HttpServletRequest request, @RequestBody SeedRequest seedRequest) {
         return seedService.checkBrands(request, seedRequest);
     }

@@ -9,12 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping("/notifs")
 @PreAuthorize(value = "denyAll()")
-@Tag(
-    name = "Notification Controller",
-    description = "It allows you to charge the notifications that the user already got"
-)
+@Tag(name = "Notification Controller", description = "It allows you to charge the notifications that the user already got")
 public class NotificationController {
-
-    
 
 }

@@ -34,331 +34,130 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @RestController
-@RequestMapping(value="/quoter")
+@RequestMapping(value = "/quoter")
 @PreAuthorize(value = "denyAll()")
-@Tag (
-    name = "Quoter Controller",
-    description = "Controller to search the insurance that adjust your car the most"
-)
+@Tag(name = "Quoter Controller", description = "Controller to search the insurance that adjust your car the most")
 public class QuoterController {
 
-    @Autowired
-    private QuoterService quoterService;
+        @Autowired
+        private QuoterService quoterService;
 
-    // Endpoint para buscar marcas/modelos registrados
-    @GetMapping(value = "/search/vehicle/brands")
-    @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
-    @Operation(
-        summary = "Search the available brands",
-        description = "Search the available brands to quote",
-        tags = {"Quoter Controller"},
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "Available brands found",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        },
-        parameters = {
-            @Parameter(
-                name = "Refresh-Token",
-                in = ParameterIn.HEADER,
-                description = "Token that allow you to update the credentials",
-                required = true
-            )
+        // Endpoint para buscar marcas/modelos registrados
+        @GetMapping(value = "/search/vehicle/brands")
+        @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
+        @Operation(summary = "Search the available brands", description = "Search the available brands to quote", tags = {
+                        "Quoter Controller" }, responses = {
+                                        @ApiResponse(responseCode = "200", description = "Available brands found", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                                        @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+                        }, parameters = {
+                                        @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
+                        })
+        public ResponseEntity<?> searchVehicleBrands(Authentication auth) {
+                return quoterService.searchVehicleBrands(auth.getPrincipal().toString());
         }
-    )
-    public ResponseEntity<?> searchVehicleBrands(Authentication auth) {
-        return quoterService.searchVehicleBrands(auth.getPrincipal().toString());
-    }
 
-    // Endpoint para buscar aseguradoras registrados
-    @GetMapping(value = "/search/insurers")
-    @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
-    @Operation(
-        summary = "Search the available insurers",
-        description = "Search the available insurers to start the quote",
-        tags = {"Quoter Controller"},
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "Available insurers found",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        },
-        parameters = {
-            @Parameter(
-                name = "Refresh-Token",
-                in = ParameterIn.HEADER,
-                description = "Token that allow you to update the credentials",
-                required = true
-            )
+        // Endpoint para buscar aseguradoras registrados
+        @GetMapping(value = "/search/insurers")
+        @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
+        @Operation(summary = "Search the available insurers", description = "Search the available insurers to start the quote", tags = {
+                        "Quoter Controller" }, responses = {
+                                        @ApiResponse(responseCode = "200", description = "Available insurers found", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                                        @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+                        }, parameters = {
+                                        @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
+                        })
+        public ResponseEntity<?> searchInsurers(Authentication auth) {
+                return quoterService.searchInsurers(auth.getPrincipal().toString());
         }
-    )
-    public ResponseEntity<?> searchInsurers(Authentication auth) {
-        return quoterService.searchInsurers(auth.getPrincipal().toString());
-    }
 
-    @PostMapping(value = "/search/vehicle")
-    @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
-    @Operation(
-        summary = "Search a vehicle",
-        description = "Search a vehicle by its license plate and owner id (rut)",
-        tags = {"Quoter Controller"},
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Provide the license plate and the owner id (rut)",
-            required = true,
-            content = @Content(
-                mediaType = CONTENT_TYPE,
-                schema = @Schema(implementation = SearchVehicleRequest.class)
-            )
-        ),
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The vehicle was encountered successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        },
-        parameters = {
-            @Parameter(
-                name = "Refresh-Token",
-                in = ParameterIn.HEADER,
-                description = "Token that allow you to update the credentials",
-                required = true
-            )
+        @PostMapping(value = "/search/vehicle")
+        @PreAuthorize(value = "hasRole('USER')")
+        @Operation(summary = "Search a vehicle", description = "Search a vehicle by its license plate and owner id (rut)", tags = {
+                        "Quoter Controller" }, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Provide the license plate and the owner id (rut)", required = true, content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = SearchVehicleRequest.class))), responses = {
+                                        @ApiResponse(responseCode = "200", description = "The vehicle was encountered successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                                        @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+                        }, parameters = {
+                                        @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
+                        })
+        public ResponseEntity<?> searchVehicle(@RequestBody SearchVehicleRequest searchVehicle,
+                        BindingResult bindingResult,
+                        Authentication auth) {
+                quoterService.validateVehicleFinder(searchVehicle, bindingResult);
+                if (bindingResult.hasErrors()) {
+                        return ResponseHelper.preconditionMap("información no aceptada",
+                                        DataHelper.buildErrorFields(bindingResult));
+                }
+                return quoterService.searchVehicle(searchVehicle, auth.getPrincipal().toString());
         }
-    )
-    public ResponseEntity<?> searchVehicle(@RequestBody SearchVehicleRequest searchVehicle, BindingResult bindingResult,
-            Authentication auth) {
-        quoterService.validateVehicleFinder(searchVehicle, bindingResult);
-        if(bindingResult.hasErrors()) {
-            return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
-        }
-        return quoterService.searchVehicle(searchVehicle, auth.getPrincipal().toString());
-    }
 
-    @PostMapping(value = "/search/plan")
-    @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
-    @Operation(
-        summary = "Search a plan to quote a vehicle",
-        description = "Search a plan to quote a vehicle and find the best insurance",
-        tags = {"Quoter Controller"},
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Provide the vehicle data and the purchaser id and if he's the owner",
-            required = true,
-            content = @Content(
-                mediaType = CONTENT_TYPE,
-                schema = @Schema(implementation = SearchPlanRequest.class)
-            )
-        ),
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "There were plans encountered for the vehicle",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        },
-        parameters = {
-            @Parameter(
-                name = "Refresh-Token",
-                in = ParameterIn.HEADER,
-                description = "Token that allow you to update the credentials",
-                required = true
-            )
+        @PostMapping(value = "/search/plan")
+        @PreAuthorize(value = "hasRole('USER')")
+        @Operation(summary = "Search a plan to quote a vehicle", description = "Search a plan to quote a vehicle and find the best insurance", tags = {
+                        "Quoter Controller" }, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Provide the vehicle data and the purchaser id and if he's the owner", required = true, content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = SearchPlanRequest.class))), responses = {
+                                        @ApiResponse(responseCode = "200", description = "There were plans encountered for the vehicle", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                                        @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+                        }, parameters = {
+                                        @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
+                        })
+        public ResponseEntity<?> searchPlan(@RequestBody SearchPlanRequest searchPlan, BindingResult bindingResult,
+                        Authentication auth) {
+                quoterService.validatePlanFinder(searchPlan, bindingResult);
+                if (bindingResult.hasErrors()) {
+                        return ResponseHelper.preconditionMap("información no aceptada",
+                                        DataHelper.buildErrorFields(bindingResult));
+                }
+                return quoterService.searchPlan(searchPlan, auth.getPrincipal().toString());
         }
-    )
-    public ResponseEntity<?> searchPlan(@RequestBody SearchPlanRequest searchPlan, BindingResult bindingResult,
-            Authentication auth) {
-        quoterService.validatePlanFinder(searchPlan, bindingResult);
-        if(bindingResult.hasErrors()) {
-            return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
-        }
-        return quoterService.searchPlan(searchPlan, auth.getPrincipal().toString());
-    }
 
-    @PutMapping(value = "/select/plan")
-    @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
-    @Operation(
-        summary = "Select a plan provided",
-        description = "Select a plan provided for the vehicle quote",
-        tags = {"Quoter Controller"},
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Provide the plan and address data for the quote",
-            required = true,
-            content = @Content(
-                mediaType = CONTENT_TYPE,
-                schema = @Schema(implementation = SelectPlanRequest.class)
-            )
-        ),
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The quote was updated successfully with the plan provided",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        },
-        parameters = {
-            @Parameter(
-                name = "Refresh-Token",
-                in = ParameterIn.HEADER,
-                description = "Token that allow you to update the credentials",
-                required = true
-            )
+        @PutMapping(value = "/select/plan")
+        @PreAuthorize(value = "hasRole('USER')")
+        @Operation(summary = "Select a plan provided", description = "Select a plan provided for the vehicle quote", tags = {
+                        "Quoter Controller" }, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Provide the plan and address data for the quote", required = true, content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = SelectPlanRequest.class))), responses = {
+                                        @ApiResponse(responseCode = "200", description = "The quote was updated successfully with the plan provided", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                                        @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+                        }, parameters = {
+                                        @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
+                        })
+        public ResponseEntity<?> selectPlan(@RequestBody SelectPlanRequest selectPlan, BindingResult bindingResult,
+                        Authentication auth) {
+                quoterService.validateSelectedPlan(selectPlan, bindingResult);
+                if (bindingResult.hasErrors()) {
+                        return ResponseHelper.preconditionMap("información no aceptada",
+                                        DataHelper.buildErrorFields(bindingResult));
+                }
+                return quoterService.selectPlan(selectPlan, auth.getPrincipal().toString());
         }
-    )
-    public ResponseEntity<?> selectPlan(@RequestBody SelectPlanRequest selectPlan, BindingResult bindingResult,
-            Authentication auth) {
-        quoterService.validateSelectedPlan(selectPlan, bindingResult);
-        if(bindingResult.hasErrors()) {
-            return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
-        }
-        return quoterService.selectPlan(selectPlan, auth.getPrincipal().toString());
-    }
 
-    @PutMapping(value = "/generate/transaction")
-    @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
-    @Operation(
-        summary = "Confirm payment for the user quoter",
-        description = "Confirm payment for the user quoter and update the wallet",
-        tags = {"Quoter Controller"},
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Provide the data to generate the transaction",
-            required = true,
-            content = @Content(
-                mediaType = CONTENT_TYPE,
-                schema = @Schema(implementation = GenerateTransactionRequest.class)
-            )
-        ),
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The transaction was generated successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        },
-        parameters = {
-            @Parameter(
-                name = "Refresh-Token",
-                in = ParameterIn.HEADER,
-                description = "Token that allow you to update the credentials",
-                required = true
-            )
+        @PutMapping(value = "/generate/transaction")
+        @PreAuthorize(value = "hasRole('USER')")
+        @Operation(summary = "Confirm payment for the user quoter", description = "Confirm payment for the user quoter and update the wallet", tags = {
+                        "Quoter Controller" }, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Provide the data to generate the transaction", required = true, content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GenerateTransactionRequest.class))), responses = {
+                                        @ApiResponse(responseCode = "200", description = "The transaction was generated successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                                        @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+                        }, parameters = {
+                                        @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
+                        })
+        public ResponseEntity<?> generateTransaction(@RequestBody GenerateTransactionRequest generateTransaction,
+                        Authentication auth, HttpServletRequest request) {
+                return quoterService.generateTransaction(generateTransaction, auth.getPrincipal().toString(),
+                                request.getRequestURI());
         }
-    )
-    public ResponseEntity<?> generateTransaction(@RequestBody GenerateTransactionRequest generateTransaction, Authentication auth, HttpServletRequest request) {
-        return quoterService.generateTransaction(generateTransaction, auth.getPrincipal().toString(), request.getRequestURI());
-    }
 
-    @PutMapping(value = "/finalize/quote")
-    @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
-    @Operation(
-        summary = "Finalize a quote that is Pending",
-        description = "Finalize a quote that is Pending and it needs to be ended",
-        tags = {"Quoter Controller"},
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Provide the data to finalize the quote",
-            required = true,
-            content = @Content(
-                mediaType = CONTENT_TYPE,
-                schema = @Schema(implementation = FinalizeQuoteRequest.class)
-            )
-        ),
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The user's quote was finalized successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        },
-        parameters = {
-            @Parameter(
-                name = "Refresh-Token",
-                in = ParameterIn.HEADER,
-                description = "Token that allow you to update the credentials",
-                required = true
-            )
+        @PutMapping(value = "/finalize/quote")
+        @PreAuthorize(value = "hasRole('ADMIN')")
+        @Operation(
+            summary = "Massive finalize of quotes that are Pending",
+            description = "Massive finalize of quotes that are Pending and it needs to be ended", tags = {
+                            "Quoter Controller" }, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Provide the data to finalize the quote", required = true, content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = FinalizeQuoteRequest.class))), responses = {
+                                            @ApiResponse(responseCode = "200", description = "The user's quote was finalized successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                                            @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+                            }, parameters = {
+                                            @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
+                            })
+        public ResponseEntity<?> finalizeQuote(@RequestBody FinalizeQuoteRequest finalizeQuote, Authentication auth,
+                        HttpServletRequest request) {
+                return quoterService.finalizeQuote(finalizeQuote, auth.getPrincipal().toString(),
+                                request.getRequestURI());
         }
-    )
-    public ResponseEntity<?> finalizeQuote(@RequestBody FinalizeQuoteRequest finalizeQuote, Authentication auth, HttpServletRequest request) {
-        return quoterService.finalizeQuote(finalizeQuote, auth.getPrincipal().toString(), request.getRequestURI());
-    }
 
 }
