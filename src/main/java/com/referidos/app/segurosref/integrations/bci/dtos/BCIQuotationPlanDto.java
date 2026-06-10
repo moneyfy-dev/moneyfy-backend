@@ -1,5 +1,6 @@
 package com.referidos.app.segurosref.integrations.bci.dtos;
 
+import java.math.BigDecimal;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
@@ -19,11 +20,11 @@ public class BCIQuotationPlanDto {
     private String planName;
     private Integer deductible;
     private String deductibleDesc;
-    private Double netValueUF;
-    private Double grossValueUF;
-    private Double taxValueUF;
-    private Double monthlyPrice;
-    private Double monthlyPriceUF;
+    private BigDecimal netValueUF;
+    private BigDecimal grossValueUF;
+    private BigDecimal taxValueUF;
+    private BigDecimal monthlyPrice;
+    private BigDecimal monthlyPriceUF;
     private Set<BCIQuotationPlanCoverDto> coverages;
 
 }

@@ -25,10 +25,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping(value = "/plans")
 @PreAuthorize(value = "denyAll()")
-@Tag(
-    name = "Plan Controller",
-    description = "Controller to handle the different plans that exist in the data base"
-)
+@Tag(name = "Plan Controller", description = "Controller to handle the different plans that exist in the data base")
 public class PlanController {
 
     @Autowired
@@ -36,44 +33,15 @@ public class PlanController {
 
     // Endpoint de búsqueda de plan
     @GetMapping(value = "/{planId}")
-    @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
-    @Operation(
-        summary = "Search an specific plan to get the details",
-        description = "Search an specific plan to get the details",
-        tags = {"Plan Controller"},
-        parameters = {
-            @Parameter(
-                name = "planId",
-                in = ParameterIn.PATH,
-                description = "Enter the plan id to search it",
-                required = true
-            ),
-            @Parameter(
-                name = "Refresh-Token",
-                in = ParameterIn.HEADER,
-                description = "Token that allow you to update the credentials",
-                required = true
-            )
-        },
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The plan was encountered successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        }
-    )
+    @PreAuthorize(value = "hasRole('USER')")
+    @Operation(summary = "Search an specific plan to get the details", description = "Search an specific plan to get the details", tags = {
+            "Plan Controller" }, parameters = {
+                    @Parameter(name = "planId", in = ParameterIn.PATH, description = "Enter the plan id to search it", required = true),
+                    @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
+            }, responses = {
+                    @ApiResponse(responseCode = "200", description = "The plan was encountered successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                    @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+            })
     public ResponseEntity<?> findPlanById(@PathVariable String planId, Authentication auth) {
         return planService.findPlanById(auth.getPrincipal().toString(), planId);
     }

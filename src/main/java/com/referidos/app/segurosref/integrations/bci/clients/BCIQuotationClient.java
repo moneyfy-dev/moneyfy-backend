@@ -2,6 +2,7 @@ package com.referidos.app.segurosref.integrations.bci.clients;
 
 import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -160,8 +161,8 @@ public class BCIQuotationClient {
             Integer idCotizacion = resultado.getIntNroTarificacion();
             String nroCotizacion = resultado.getStrNroCotizacion();
             String vigenciaCotizacion = resultado.getDtFinVigencia();
-            Double tasaCambioUF = resultado.getDecTasaDeCambioUF();
-            Double iva = resultado.getDecIva();
+            BigDecimal tasaCambioUF = resultado.getDecTasaDeCambioUF();
+            BigDecimal iva = resultado.getDecIva();
 
             List<BCIQuoteCarPojo.ProductoWrapper> productos = resultado.getLstProductos();
             if (productos == null || productos.isEmpty()) {
@@ -170,7 +171,7 @@ public class BCIQuotationClient {
             }
 
             BCIQuoteCarPojo.ProductoWrapper prodWrapper = productos.get(0);
-            Double tasaInteresCuota = prodWrapper.getDecTasaInteresCuota();
+            BigDecimal tasaInteresCuota = prodWrapper.getDecTasaInteresCuota();
             Integer cantidadCuotas = 0;
             if (prodWrapper.getProducto() != null) {
                 cantidadCuotas = prodWrapper.getProducto().getIntCantidadCuotas();
@@ -221,11 +222,11 @@ public class BCIQuotationClient {
                     Integer deductibleValue = this.getDeductible(deductibleId);
                     String uniqueValue = planIdStr + "_" + deductibleValue;
                     String deductibleDescription = t.getStrDeducible();
-                    Double netValueUF = t.getDecValorNetoUfConInteres();
-                    Double grossValueUF = t.getDecValorBrutoUfConInteres();
-                    Double taxValueUF = t.getDecImpuestoConInteres();
-                    Double monthlyValue = t.getIntValorCuotaPesos();
-                    Double monthlyValueUF = t.getIntValorCuotaUf();
+                    BigDecimal netValueUF = t.getDecValorNetoUfConInteres();
+                    BigDecimal grossValueUF = t.getDecValorBrutoUfConInteres();
+                    BigDecimal taxValueUF = t.getDecImpuestoConInteres();
+                    BigDecimal monthlyValue = t.getIntValorCuotaPesos();
+                    BigDecimal monthlyValueUF = t.getIntValorCuotaUf();
 
                     plans.add(new BCIQuotationPlanDto(uniqueValue, planIdStr, planName, deductibleValue,
                             deductibleDescription, netValueUF, grossValueUF, taxValueUF, monthlyValue, monthlyValueUF,
@@ -273,7 +274,7 @@ public class BCIQuotationClient {
                     bciQuotationPlan.getMonthlyPrice(),
                     bciQuotationPlan.getDeductible(),
                     bciQuotationPlan.getDeductibleDesc(),
-                    0.0, // descuento
+                    BigDecimal.ZERO, // descuento
                     "Valor comercial",
                     "Valor comercial",
                     "Hasta UF 500 entre daño emergente, moral y lucro cesante",

@@ -24,10 +24,7 @@ import jakarta.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping(value = "/log")
 @PreAuthorize(value = "denyAll()")
-@Tag(
-    name = "Log Controller",
-    description = "Controller to handle errors, information data through logs"
-)
+@Tag(name = "Log Controller", description = "Controller to handle errors, information data through logs")
 public class LogController {
 
     @Autowired
@@ -36,39 +33,15 @@ public class LogController {
     // Endpoint para la búsqueda de todos los logs de la aplicación
     @GetMapping(value = "/find/all")
     @PreAuthorize(value = "permitAll()")
-    @Operation(
-        summary = "Search all the logs to verify the application status",
-        description = "Search all the logs to verify the application status",
-        tags = {"Log Controller"},
-        parameters = {
-            @Parameter(
-                name = "Api-Key-MoneyFy",
-                in = ParameterIn.HEADER,
-                description = "Security parameter for some public endpoints",
-                required = true
-            )
-        },
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The logs were recovered successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        }
-    )
+    @Operation(summary = "Search all the logs to verify the application status", description = "Search all the logs to verify the application status", tags = {
+            "Log Controller" }, parameters = {
+                    @Parameter(name = "Api-Key-MoneyFy", in = ParameterIn.HEADER, description = "Security parameter for some public endpoints", required = true)
+            }, responses = {
+                    @ApiResponse(responseCode = "200", description = "The logs were recovered successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                    @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+            })
     public ResponseEntity<?> findAllLogs(HttpServletRequest request) {
         return logService.findAllLogs(request);
     }
-    
+
 }

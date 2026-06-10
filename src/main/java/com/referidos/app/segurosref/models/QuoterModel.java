@@ -26,5 +26,5 @@ public class QuoterModel {
     public String getQuoterId() {
         return quoterId.toString();
     }
-    
+
 }

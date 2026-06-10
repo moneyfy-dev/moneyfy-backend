@@ -48,6 +48,7 @@ public class SecurityConfig {
                 "/log/**",
                 "/transaction/**",
                 "/quoter/commission/**",
+                "/api/v1/manager/**",
                 "/swagger-ui.html",
                 "/swagger-ui/**",
                 "/v3/api-docs/**"

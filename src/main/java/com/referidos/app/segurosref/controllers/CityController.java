@@ -24,10 +24,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping(value = "/cities")
 @PreAuthorize(value = "denyAll()")
-@Tag(
-    name = "City Controller",
-    description = "Controller to recover the cities for the address"
-)
+@Tag(name = "City Controller", description = "Controller to recover the cities for the address")
 public class CityController {
 
     @Autowired
@@ -36,37 +33,13 @@ public class CityController {
     // Endpoints para recuperar y registrar ciudades de la aplicación
     @GetMapping(value = "/find/all")
     @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
-    @Operation(
-        summary = "Search all the cities register in the application",
-        description = "Search all the cities register in the application",
-        tags = {"City Controller"},
-        parameters = {
-            @Parameter(
-                name = "Refresh-Token",
-                in = ParameterIn.HEADER,
-                description = "Token that allow you to update the credentials",
-                required = true
-            )
-        },
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The cities were encountered successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        }
-    )
+    @Operation(summary = "Search all the cities register in the application", description = "Search all the cities register in the application", tags = {
+            "City Controller" }, parameters = {
+                    @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
+            }, responses = {
+                    @ApiResponse(responseCode = "200", description = "The cities were encountered successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                    @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+            })
     public ResponseEntity<?> findAll(Authentication auth) {
         return cityService.findAll(auth.getPrincipal().toString());
     }

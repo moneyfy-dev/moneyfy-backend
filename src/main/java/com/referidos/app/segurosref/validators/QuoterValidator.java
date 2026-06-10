@@ -20,8 +20,9 @@ public class QuoterValidator implements Validator {
     @SuppressWarnings("null")
     @Override
     public boolean supports(Class<?> clazz) {
-        // Lo que se debería colocar es un objeto que se va utilizar para las validaciones, no específicamente el modelo
-        return  clazz.isAssignableFrom(SearchVehicleRequest.class) ||
+        // Lo que se debería colocar es un objeto que se va utilizar para las
+        // validaciones, no específicamente el modelo
+        return clazz.isAssignableFrom(SearchVehicleRequest.class) ||
                 clazz.isAssignableFrom(SearchPlanRequest.class) ||
                 clazz.isAssignableFrom(SelectPlanRequest.class);
     }
@@ -30,14 +31,14 @@ public class QuoterValidator implements Validator {
     @Override
     public void validate(Object target, Errors errors) {
         SearchVehicleRequest searchVehicle = (SearchVehicleRequest) target;
-        
+
         String ppu = this.validateInput.verifyPpu(searchVehicle.ppu());
         String ownerId = this.validateInput.verifyPersonalId(searchVehicle.ownerId());
 
-        if(!ppu.equals("")) {
+        if (!ppu.equals("")) {
             errors.rejectValue("ppu", null, ppu);
         }
-        if(!ownerId.equals("")) {
+        if (!ownerId.equals("")) {
             errors.rejectValue("ownerId", null, ownerId);
         }
     }
@@ -56,9 +57,10 @@ public class QuoterValidator implements Validator {
         String purchaserEmail = this.validateInput.verifyEmail(searchPlan.purchaserEmail());
         String purchaserPhone = this.validateInput.verifyPhoneOptional(searchPlan.purchaserPhone());
         String ownerRelationOption = this.validateInput.verifyOwnerOption(searchPlan.ownerRelationOption());
-        
+
         this.verifyPlanFinderData(quoterId, ppu, brand, model, year, insurerAlias, purchaserId, purchaserName,
-                purchaserPaternalSur, purchaserMaternalSur, purchaserEmail, purchaserPhone, ownerRelationOption, bindingResult);
+                purchaserPaternalSur, purchaserMaternalSur, purchaserEmail, purchaserPhone, ownerRelationOption,
+                bindingResult);
     }
 
     public void validateSelectedPlan(SelectPlanRequest selectPlan, BindingResult bindingResult) {
@@ -67,13 +69,18 @@ public class QuoterValidator implements Validator {
         String planId = this.validateInput.verifyPlanId(selectPlan.planId());
         String insurer = this.validateInput.verifyInsurer(selectPlan.insurer());
         String planName = this.validateInput.verifyPlanName(selectPlan.planName());
-        String valueUF = this.validateInput.verifyNumberValue(selectPlan.valueUF());
-        String grossPriceUF = this.validateInput.verifyNumberValue(selectPlan.grossPriceUF());
+        String valueUF = this.validateInput
+                .verifyNumberValue((selectPlan.valueUF() != null ? selectPlan.valueUF().doubleValue() : 0.0));
+        String grossPriceUF = this.validateInput
+                .verifyNumberValue((selectPlan.grossPriceUF() != null ? selectPlan.grossPriceUF().doubleValue() : 0.0));
         String totalMonths = this.validateInput.verifyNumberValue(selectPlan.totalMonths());
-        String monthlyPriceUF = this.validateInput.verifyNumberValue(selectPlan.monthlyPriceUF());
-        String monthlyPrice = this.validateInput.verifyNumberValue(selectPlan.monthlyPrice());
+        String monthlyPriceUF = this.validateInput.verifyNumberValue(
+                (selectPlan.monthlyPriceUF() != null ? selectPlan.monthlyPriceUF().doubleValue() : 0.0));
+        String monthlyPrice = this.validateInput
+                .verifyNumberValue((selectPlan.monthlyPrice() != null ? selectPlan.monthlyPrice().doubleValue() : 0.0));
         String deductibleDesc = this.validateInput.verifyDeductibleDesc(selectPlan.deductibleDesc());
-        String discount = this.validateInput.verifyNumberValue(selectPlan.discount());
+        String discount = this.validateInput
+                .verifyNumberValue((selectPlan.discount() != null ? selectPlan.discount().doubleValue() : 0.0));
         // Datos del dueño del vehículo
         String ownerName = this.validateInput.verifyName(selectPlan.ownerName());
         String ownerPaternalSur = this.validateInput.verifySurname(selectPlan.ownerPaternalSur());
@@ -84,111 +91,114 @@ public class QuoterValidator implements Validator {
         String department = this.validateInput.verifyDepartment(selectPlan.department());
         // Validar siguientes campos y verificar si tienen error los demás campos
         this.validatePlanData(quoterId, planId, insurer, planName, valueUF, grossPriceUF, totalMonths, monthlyPriceUF,
-                monthlyPrice, deductibleDesc, discount, ownerName, ownerPaternalSur, ownerMaternalSur, street, streetNumber,
+                monthlyPrice, deductibleDesc, discount, ownerName, ownerPaternalSur, ownerMaternalSur, street,
+                streetNumber,
                 department, bindingResult);
     }
 
-    // Verificar si existen errores en caso de haberlos, se asignan al objeto vinculante
+    // Verificar si existen errores en caso de haberlos, se asignan al objeto
+    // vinculante
     @SuppressWarnings("null")
-    private void verifyPlanFinderData(String quoterId, String ppu, String brand, String model, String year, String insurerAlias,
+    private void verifyPlanFinderData(String quoterId, String ppu, String brand, String model, String year,
+            String insurerAlias,
             String purchaserId, String purchaserName, String purchaserPaternalSur,
             String purchaserMaternalSur, String purchaserEmail, String purchaserPhone, String ownerRelationOption,
             Errors errors) {
-        if(!quoterId.equals("")) {
+        if (!quoterId.equals("")) {
             errors.rejectValue("quoterId", null, quoterId);
         }
-        if(!ppu.equals("")) {
+        if (!ppu.equals("")) {
             errors.rejectValue("ppu", null, ppu);
         }
-        if(!brand.equals("")) {
+        if (!brand.equals("")) {
             errors.rejectValue("brand", null, brand);
         }
-        if(!model.equals("")) {
+        if (!model.equals("")) {
             errors.rejectValue("model", null, model);
         }
-        if(!year.equals("")) {
+        if (!year.equals("")) {
             errors.rejectValue("year", null, year);
         }
-        if(!insurerAlias.equals("")) {
+        if (!insurerAlias.equals("")) {
             errors.rejectValue("insurerAlias", null, insurerAlias);
         }
-        if(!purchaserId.equals("")) {
+        if (!purchaserId.equals("")) {
             errors.rejectValue("purchaserId", null, purchaserId);
         }
-        if(!purchaserName.equals("")) {
+        if (!purchaserName.equals("")) {
             errors.rejectValue("purchaserName", null, purchaserName);
         }
-        if(!purchaserPaternalSur.equals("")) {
+        if (!purchaserPaternalSur.equals("")) {
             errors.rejectValue("purchaserPaternalSur", null, purchaserPaternalSur);
         }
-        if(!purchaserMaternalSur.equals("")) {
+        if (!purchaserMaternalSur.equals("")) {
             errors.rejectValue("purchaserMaternalSur", null, purchaserMaternalSur);
         }
-        if(!purchaserEmail.equals("")) {
+        if (!purchaserEmail.equals("")) {
             errors.rejectValue("purchaserEmail", null, purchaserEmail);
         }
-        if(!purchaserPhone.equals("")) {
+        if (!purchaserPhone.equals("")) {
             errors.rejectValue("purchaserPhone", null, purchaserPhone);
         }
-        if(!ownerRelationOption.equals("")) {
+        if (!ownerRelationOption.equals("")) {
             errors.rejectValue("ownerRelationOption", null, ownerRelationOption);
         }
     }
-    
+
     @SuppressWarnings("null")
     private void validatePlanData(String quoterId, String planId, String insurer, String planName, String valueUF,
             String grossPriceUF, String totalMonths, String monthlyPriceUF, String monthlyPrice, String deductibleDesc,
             String discount, String ownerName, String ownerPaternalSur, String ownerMaternalSur, String street,
             String streetNumber, String department, BindingResult errors) {
-        if(!quoterId.equals("")) {
+        if (!quoterId.equals("")) {
             errors.rejectValue("quoterId", null, quoterId);
         }
-        if(!planId.equals("")) {
+        if (!planId.equals("")) {
             errors.rejectValue("planId", null, planId);
         }
-        if(!insurer.equals("")) {
+        if (!insurer.equals("")) {
             errors.rejectValue("insurer", null, insurer);
         }
-        if(!planName.equals("")) {
+        if (!planName.equals("")) {
             errors.rejectValue("planName", null, planName);
         }
-        if(!valueUF.equals("")) {
+        if (!valueUF.equals("")) {
             errors.rejectValue("valueUF", null, valueUF);
         }
-        if(!grossPriceUF.equals("")) {
+        if (!grossPriceUF.equals("")) {
             errors.rejectValue("grossPriceUF", null, grossPriceUF);
         }
-        if(!totalMonths.equals("")) {
+        if (!totalMonths.equals("")) {
             errors.rejectValue("totalMonths", null, totalMonths);
         }
-        if(!monthlyPriceUF.equals("")) {
+        if (!monthlyPriceUF.equals("")) {
             errors.rejectValue("monthlyPriceUF", null, monthlyPriceUF);
         }
-        if(!monthlyPrice.equals("")) {
+        if (!monthlyPrice.equals("")) {
             errors.rejectValue("monthlyPrice", null, monthlyPrice);
         }
-        if(!deductibleDesc.equals("")) {
+        if (!deductibleDesc.equals("")) {
             errors.rejectValue("deductibleDesc", null, deductibleDesc);
         }
-        if(!discount.equals("")) {
+        if (!discount.equals("")) {
             errors.rejectValue("discount", null, discount);
         }
-        if(!ownerName.equals("")) {
+        if (!ownerName.equals("")) {
             errors.rejectValue("ownerName", null, ownerName);
         }
-        if(!ownerPaternalSur.equals("")) {
+        if (!ownerPaternalSur.equals("")) {
             errors.rejectValue("ownerPaternalSur", null, ownerPaternalSur);
         }
-        if(!ownerMaternalSur.equals("")) {
+        if (!ownerMaternalSur.equals("")) {
             errors.rejectValue("ownerMaternalSur", null, ownerMaternalSur);
         }
-        if(!street.equals("")) {
+        if (!street.equals("")) {
             errors.rejectValue("street", null, street);
         }
-        if(!streetNumber.equals("")) {
+        if (!streetNumber.equals("")) {
             errors.rejectValue("streetNumber", null, streetNumber);
         }
-        if(!department.equals("")) {
+        if (!department.equals("")) {
             errors.rejectValue("department", null, department);
         }
     }

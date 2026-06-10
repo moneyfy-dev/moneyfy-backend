@@ -33,10 +33,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping(value = "/accounts")
 @PreAuthorize(value = "denyAll()")
-@Tag(
-    name = "Accounts",
-    description = "Controller to handle the user accounts"
-)
+@Tag(name = "Accounts", description = "Controller to handle the user accounts")
 public class AccountController {
 
     @Autowired
@@ -44,190 +41,72 @@ public class AccountController {
 
     // ENDPOINTS RELACIONADOS CON EL MANEJO DE LAS CUENTAS BANCARIAS DEL USUARIO
     @PostMapping(value = "/create")
-    @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
-    @Operation(
-        summary = "Create a new account",
-        description = "Create a new account for your user authenticated",
-        tags = {"Accounts"},
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Put the information required",
-            required = true,
-            content = @Content(
-                mediaType = CONTENT_TYPE,
-                schema = @Schema(implementation = AccountRequest.class)
-            )
-        ),
-        responses = {
-            @ApiResponse(
-                responseCode = "201",
-                description = "The user account was created successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        },
-        parameters = {
-            @Parameter(
-                name = "Refresh-Token",
-                in = ParameterIn.HEADER,
-                description = "Token that allow you to update the credentials",
-                required = true
-            )
-        }
-    )
-    public ResponseEntity<GeneralResponse> create(@RequestBody AccountRequest account, BindingResult bindingResult, Authentication auth) {
+    @PreAuthorize(value = "hasRole('USER')")
+    @Operation(summary = "Create a new account", description = "Create a new account for your user authenticated", tags = {
+            "Accounts" }, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Put the information required", required = true, content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = AccountRequest.class))), responses = {
+                    @ApiResponse(responseCode = "201", description = "The user account was created successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                    @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+            }, parameters = {
+                    @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
+            })
+    public ResponseEntity<GeneralResponse> create(@RequestBody AccountRequest account, BindingResult bindingResult,
+            Authentication auth) {
         accountService.validate(account, bindingResult, true);
-        if(bindingResult.hasErrors()) {
-            return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
+        if (bindingResult.hasErrors()) {
+            return ResponseHelper.preconditionMap("información no aceptada",
+                    DataHelper.buildErrorFields(bindingResult));
         }
         return accountService.create(account, auth.getPrincipal().toString());
     }
 
     @PutMapping(value = "/update")
-    @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
-    @Operation(
-        summary = "Update your account",
-        description = "Update your account for your user authenticated",
-        tags = {"Accounts"},
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Put the information required",
-            required = true,
-            content = @Content(
-                mediaType = CONTENT_TYPE,
-                schema = @Schema(implementation = AccountRequest.class)
-            )
-        ),
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The user account was updated successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        },
-        parameters = {
-            @Parameter(
-                name = "Refresh-Token",
-                in = ParameterIn.HEADER,
-                description = "Token that allow you to update the credentials",
-                required = true
-            )
-        }
-    )
-    public ResponseEntity<GeneralResponse> update(@RequestBody AccountRequest account, BindingResult bindingResult, Authentication auth) {
+    @PreAuthorize(value = "hasRole('USER')")
+    @Operation(summary = "Update your account", description = "Update your account for your user authenticated", tags = {
+            "Accounts" }, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Put the information required", required = true, content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = AccountRequest.class))), responses = {
+                    @ApiResponse(responseCode = "200", description = "The user account was updated successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                    @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+            }, parameters = {
+                    @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
+            })
+    public ResponseEntity<GeneralResponse> update(@RequestBody AccountRequest account, BindingResult bindingResult,
+            Authentication auth) {
         accountService.validate(account, bindingResult, false);
-        if(bindingResult.hasErrors()) {
-            return ResponseHelper.preconditionMap("información no aceptada", DataHelper.buildErrorFields(bindingResult));
+        if (bindingResult.hasErrors()) {
+            return ResponseHelper.preconditionMap("información no aceptada",
+                    DataHelper.buildErrorFields(bindingResult));
         }
         return accountService.update(account, auth.getPrincipal().toString());
     }
 
     @DeleteMapping(value = "/delete/{accountId}")
-    @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
-    @Operation(
-        summary = "Delete your account",
-        description = "Delete your account for your user authenticated",
-        tags = {"Accounts"},
-        parameters = {
-            @Parameter(
-                name = "accountId",
-                in = ParameterIn.PATH,
-                description = "Enter the user account id for the deletion",
-                required = true
-            ),
-            @Parameter(
-                name = "Refresh-Token",
-                in = ParameterIn.HEADER,
-                description = "Token that allow you to update the credentials",
-                required = true
-            )
-        },
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The user account was deleted successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        }
-    )
+    @PreAuthorize(value = "hasRole('USER')")
+    @Operation(summary = "Delete your account", description = "Delete your account for your user authenticated", tags = {
+            "Accounts" }, parameters = {
+                    @Parameter(name = "accountId", in = ParameterIn.PATH, description = "Enter the user account id for the deletion", required = true),
+                    @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
+            }, responses = {
+                    @ApiResponse(responseCode = "200", description = "The user account was deleted successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                    @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+            })
     public ResponseEntity<GeneralResponse> delete(@PathVariable String accountId, Authentication auth) {
-        if(!ObjectId.isValid(accountId)) {
+        if (!ObjectId.isValid(accountId)) {
             return ResponseHelper.failedDependency("no se ha podido identificar el recurso", "failed dependency");
         }
         return accountService.delete(accountId, auth.getPrincipal().toString());
     }
 
     @PostMapping(value = "/select/{accountId}")
-    @PreAuthorize(value = "hasAnyRole('ADMIN', 'USER')")
-    @Operation(
-        summary = "Select the account",
-        description = "Select the account that will receive the income",
-        tags = {"Accounts"},
-        parameters = {
-            @Parameter(
-                name = "accountId",
-                in = ParameterIn.PATH,
-                description = "Enter the user account id for the selection",
-                required = true
-            ),
-            @Parameter(
-                name = "Refresh-Token",
-                in = ParameterIn.HEADER,
-                description = "Token that allow you to update the credentials",
-                required = true
-            )
-        },
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "The user account was selected successfully",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            ),
-            @ApiResponse(
-                responseCode = "4XX",
-                description = "General responses",
-                content = @Content(
-                    mediaType = CONTENT_TYPE,
-                    schema = @Schema(implementation = GeneralResponse.class)
-                )
-            )
-        }
-    )
+    @PreAuthorize(value = "hasRole('USER')")
+    @Operation(summary = "Select the account", description = "Select the account that will receive the income", tags = {
+            "Accounts" }, parameters = {
+                    @Parameter(name = "accountId", in = ParameterIn.PATH, description = "Enter the user account id for the selection", required = true),
+                    @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
+            }, responses = {
+                    @ApiResponse(responseCode = "200", description = "The user account was selected successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                    @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+            })
     public ResponseEntity<GeneralResponse> select(@PathVariable String accountId, Authentication auth) {
-        if(!ObjectId.isValid(accountId)) {
+        if (!ObjectId.isValid(accountId)) {
             return ResponseHelper.failedDependency("no se ha podido identificar el recurso", "failed dependency");
         }
         return accountService.select(accountId, auth.getPrincipal().toString());

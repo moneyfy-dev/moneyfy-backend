@@ -49,7 +49,8 @@ public class ExceptionHandlerController {
 
     @ExceptionHandler(value = MultipartException.class)
     public ResponseEntity<GeneralResponse> handleMultipartException(MultipartException ex) {
-        return ResponseHelper.failedDependency("el archivo no cumple con los requerimientos solicitados", ex.getMessage());
+        return ResponseHelper.failedDependency("el archivo no cumple con los requerimientos solicitados",
+                ex.getMessage());
     }
 
     @ExceptionHandler(value = IllegalArgumentException.class)
@@ -59,7 +60,8 @@ public class ExceptionHandlerController {
 
     @ExceptionHandler(value = NotReadablePropertyException.class)
     public ResponseEntity<GeneralResponse> handleNotReadablePropertyException(NotReadablePropertyException ex) {
-        return ResponseHelper.failedDependency("el objeto vinculante no pudo ser enlazado a los campos proveídos", ex.getMessage());
+        return ResponseHelper.failedDependency("el objeto vinculante no pudo ser enlazado a los campos proveídos",
+                ex.getMessage());
     }
 
     @ExceptionHandler(value = NullPointerException.class)

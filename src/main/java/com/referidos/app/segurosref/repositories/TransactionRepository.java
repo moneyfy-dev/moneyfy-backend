@@ -15,25 +15,30 @@ public interface TransactionRepository extends MongoRepository<TransactionModel,
 
     @Query(value = "{'userId': ?0, 'commissionScope': {$gte: ?1}, 'status': {$in: ['Aprobado', 'Liberado']}}", count = true)
     long countByUserIdAndCommissionScopeGTEAndStatusPassed(String userId, int commissionScope);
-    
+
     Optional<TransactionModel> findByUserIdAndQuoterId(String userId, String quoterId);
 
     Optional<TransactionModel> findByUserIdAndQuoterIdAndStatus(String userId, String quoterId, String status);
-    
+
     boolean existsByUserIdAndQuoterId(String userId, String quoterId);
-    
+
+    // Optimizacion: extraer transacciones masivamente por lista de ids
+    List<TransactionModel> findByQuoterIdIn(List<String> quoterIds);
+
     @Query(value = "{'approvalDate': {$lt: ?0}, 'status': 'Aprobado'}")
     List<TransactionModel> findAllByApprovalDateBeforeAndStatusApproved(LocalDateTime afterCutoffDate);
 
     @Query(value = "{'approvalDate': {$gte: ?0}, 'commissions.userId': ?1, 'status': {$in: ['Aprobado', 'Liberado']}}")
-    List<TransactionModel> findAllByApprovalDateAfterAndCommissions_UserIdAndStatusPassed(LocalDateTime lastMonthlyEarning, String userId);
-    
+    List<TransactionModel> findAllByApprovalDateAfterAndCommissions_UserIdAndStatusPassed(
+            LocalDateTime lastMonthlyEarning, String userId);
+
     @Query(value = "{'commissions.userId': ?0, 'status': {$in: ['Aprobado', 'Liberado']}}")
     List<TransactionModel> findAllByCommissions_UserIdAndStatusPassed(String userId);
 
     List<TransactionModel> findAllByUserReferringFound(Boolean userReferringFound);
 
-    // Spring entiende que debe buscar dentro de la lista 'commissions', cualquier objeto cuyo 'userId' coincida con el parámetro.
-    List<TransactionModel> findAllByCommissions_UserId(String userId);    
+    // Spring entiende que debe buscar dentro de la lista 'commissions', cualquier
+    // objeto cuyo 'userId' coincida con el parámetro.
+    List<TransactionModel> findAllByCommissions_UserId(String userId);
 
 }

@@ -1,5 +1,6 @@
 package com.referidos.app.segurosref.integrations.fdi.dtos;
 
+import java.math.BigDecimal;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
@@ -21,21 +22,21 @@ public class FDIQuotationPlanDto {
     private String policyInceptionDate;
     private String policyExpiryDate;
     private Integer policyPeriodVigency;
-    private Double netPremiumUF;
-    private Double grossWrittenPremiumUF;
-    private Double brokerageUF;
+    private BigDecimal netPremiumUF;
+    private BigDecimal grossWrittenPremiumUF;
+    private BigDecimal brokerageUF;
     private Integer liabilityAmount;
     private String garageType;
     private String vehicleReplacement;
     private Integer inspectionRequired;
-    private Double monthlyPremium;
-    private Double monthlyPriceUF;
-    private Double monthlyPrice;
-    private Double valueUF;
+    private BigDecimal monthlyPremium;
+    private BigDecimal monthlyPriceUF;
+    private BigDecimal monthlyPrice;
+    private BigDecimal valueUF;
     private Integer totalMonths;
     private Integer deductibleUF;
     private String deductibleDesc;
-    private Double discount;
+    private BigDecimal discount;
     private String paymentPlan;
     private String paymentPipeline;
     private String quotationPeriod;

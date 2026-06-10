@@ -1,5 +1,6 @@
 package com.referidos.app.segurosref.integrations.bci.pojos;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.http.HttpStatusCode;
@@ -38,7 +39,8 @@ public class BCIQuoteCarPojo extends BaseIntegrationResponse {
         super(internalErrorCode);
     }
 
-    public BCIQuoteCarPojo(Integer internalErrorCode, String responseBodyStr, String statusOrErrorStr, HttpStatusCode statusResponse) {
+    public BCIQuoteCarPojo(Integer internalErrorCode, String responseBodyStr, String statusOrErrorStr,
+            HttpStatusCode statusResponse) {
         super(internalErrorCode);
         this.responseBodyStr = responseBodyStr;
         this.statusOrErrorStr = statusOrErrorStr;
@@ -53,10 +55,10 @@ public class BCIQuoteCarPojo extends BaseIntegrationResponse {
         private String strNroCotizacion;
 
         @JsonProperty("dec_TasaDeCambioUF")
-        private Double decTasaDeCambioUF;
+        private BigDecimal decTasaDeCambioUF;
 
         @JsonProperty("dec_Iva")
-        private Double decIva;
+        private BigDecimal decIva;
 
         @JsonProperty("bool_IsPinValido")
         private Boolean boolIsPinValido;
@@ -76,7 +78,7 @@ public class BCIQuoteCarPojo extends BaseIntegrationResponse {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ProductoWrapper {
         @JsonProperty("dec_TasaInteresCuota")
-        private Double decTasaInteresCuota;
+        private BigDecimal decTasaInteresCuota;
 
         @JsonProperty("producto")
         private Producto producto;
@@ -170,34 +172,34 @@ public class BCIQuoteCarPojo extends BaseIntegrationResponse {
         private String strDeducible;
 
         @JsonProperty("dec_ValorNetoUfConInteres")
-        private Double decValorNetoUfConInteres;
+        private BigDecimal decValorNetoUfConInteres;
 
         @JsonProperty("dec_ValorBrutoUfConInteres")
-        private Double decValorBrutoUfConInteres;
+        private BigDecimal decValorBrutoUfConInteres;
 
         @JsonProperty("dec_ImpuestoConInteres")
-        private Double decImpuestoConInteres;
+        private BigDecimal decImpuestoConInteres;
 
         @JsonProperty("dec_ValorNetoUfSinInteres")
-        private Double decValorNetoUfSinInteres;
+        private BigDecimal decValorNetoUfSinInteres;
 
         @JsonProperty("dec_ValorBrutoUfSinInteres")
-        private Double decValorBrutoUfSinInteres;
+        private BigDecimal decValorBrutoUfSinInteres;
 
         @JsonProperty("dec_ImpuestoSinInteres")
-        private Double decImpuestoSinInteres;
+        private BigDecimal decImpuestoSinInteres;
 
         @JsonProperty("int_ValorBrutoPesos")
-        private Double intValorBrutoPesos;
+        private BigDecimal intValorBrutoPesos;
 
         @JsonProperty("int_ValorCuotaPesos")
-        private Double intValorCuotaPesos;
+        private BigDecimal intValorCuotaPesos;
 
         @JsonProperty("int_ValorCuotaUf")
-        private Double intValorCuotaUf;
+        private BigDecimal intValorCuotaUf;
 
         @JsonProperty("int_ValorUltimaCuotaUf")
-        private Double intValorUltimaCuotaUf;
+        private BigDecimal intValorUltimaCuotaUf;
 
         @JsonProperty("bool_EsPrimaMinima")
         private Boolean boolEsPrimaMinima;
@@ -206,7 +208,7 @@ public class BCIQuoteCarPojo extends BaseIntegrationResponse {
         private Integer intCantidadCuotas;
 
         @JsonProperty("dec_ValorNetoUfConDescuentos")
-        private Double decValorNetoUfConDescuentos;
+        private BigDecimal decValorNetoUfConDescuentos;
 
         @JsonProperty("int_UfDeducible")
         private Integer intUfDeducible;
