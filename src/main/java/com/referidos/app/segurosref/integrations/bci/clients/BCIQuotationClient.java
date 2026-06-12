@@ -1,6 +1,7 @@
 package com.referidos.app.segurosref.integrations.bci.clients;
 
 import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
+import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -8,7 +9,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -42,10 +42,10 @@ import com.referidos.app.segurosref.models.BrandModel;
 import com.referidos.app.segurosref.repositories.BrandRepository;
 
 @Component
+@RequiredArgsConstructor
 public class BCIQuotationClient {
 
-    @Autowired
-    private BCIAuthClient bciAuthClient;
+    private final BCIAuthClient bciAuthClient;
 
     @Value(value = "${bci.qa.base-url}")
     private String bciBaseUrl;

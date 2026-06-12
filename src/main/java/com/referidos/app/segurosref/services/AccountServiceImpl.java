@@ -1,10 +1,10 @@
 package com.referidos.app.segurosref.services;
 
 import java.time.LocalDateTime;
+import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,13 +20,12 @@ import com.referidos.app.segurosref.responses.GeneralResponse;
 import com.referidos.app.segurosref.validators.AccountValidator;
 
 @Service
+@RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private AccountValidator validator;
+    private final AccountValidator validator;
 
     // SERVICIOS RELACIONADOS CON EL MANEJO DE LAS CUENTAS BANCARIAS DEL USUARIO
     @Transactional

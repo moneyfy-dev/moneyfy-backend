@@ -1,6 +1,7 @@
 package com.referidos.app.segurosref.services;
 
 import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
+import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,7 +13,6 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -62,6 +62,7 @@ import com.referidos.app.segurosref.requests.SearchPlanRequest;
 import com.referidos.app.segurosref.validators.QuoterValidator;
 
 @Service
+@RequiredArgsConstructor
 public class QuoterServiceImpl implements QuoterService {
 
     @Value(value = "${moneyfy.api-key}")
@@ -76,41 +77,29 @@ public class QuoterServiceImpl implements QuoterService {
     @Value("${moneyfy.commissions.level3}")
     private int commissionUserA;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private InsurerRepository insurerRepository;
+    private final InsurerRepository insurerRepository;
 
-    @Autowired
-    private BrandRepository brandRepository;
+    private final BrandRepository brandRepository;
 
-    @Autowired
-    private PlanRepository planRepository;
+    private final PlanRepository planRepository;
 
-    @Autowired
-    private TransactionRepository transactionRepository;
+    private final TransactionRepository transactionRepository;
 
-    @Autowired
-    private ReferredRepository referredRepository;
+    private final ReferredRepository referredRepository;
 
-    @Autowired
-    private QuoterValidator quoterValidator;
+    private final QuoterValidator quoterValidator;
 
-    @Autowired
-    private BCIQuotationClient bciQuotationClient;
+    private final BCIQuotationClient bciQuotationClient;
 
-    @Autowired
-    private BCIVehicleClient bciVehicleClient;
+    private final BCIVehicleClient bciVehicleClient;
 
-    @Autowired
-    private FDIQuotationClient fdiQuotationClient;
+    private final FDIQuotationClient fdiQuotationClient;
 
-    @Autowired
-    private EmailAppProvider emailAppProvider;
+    private final EmailAppProvider emailAppProvider;
 
-    @Autowired
-    private QuoterHelper quoterHelper;
+    private final QuoterHelper quoterHelper;
 
     @Transactional(readOnly = true)
     @Override

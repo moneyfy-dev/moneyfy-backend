@@ -1,6 +1,7 @@
 package com.referidos.app.segurosref.integrations.email.providers;
 
 import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
+import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -8,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -30,16 +30,15 @@ import com.referidos.app.segurosref.models.UserModel;
 import jakarta.mail.internet.MimeMessage;
 
 @Component
+@RequiredArgsConstructor
 public class EmailAppProvider {
 
     private static final String MONEYFY_LOGO_CID = "moneyfy-logo";
     private static final String MONEYFY_LOGO_PATH = "static/email/moneyfy-logo.png";
 
-    @Autowired
-    private EmailDefaultClient emailClient;
+    private final EmailDefaultClient emailClient;
 
-    @Autowired
-    private TemplateEngine templateEngine;
+    private final TemplateEngine templateEngine;
 
     @Value(value = "${mail.sender.user}")
     private String sender;

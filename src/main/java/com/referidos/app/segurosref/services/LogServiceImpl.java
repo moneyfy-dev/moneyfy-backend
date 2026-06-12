@@ -1,9 +1,9 @@
 package com.referidos.app.segurosref.services;
 
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -16,13 +16,13 @@ import com.referidos.app.segurosref.repositories.LogRepository;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Service
+@RequiredArgsConstructor
 public class LogServiceImpl implements LogService {
 
     @Value(value = "${moneyfy.api-key}")
     private String apiKeyMF;
 
-    @Autowired
-    private LogRepository logRepository;
+    private final LogRepository logRepository;
 
     @Override
     public ResponseEntity<?> findAllLogs(HttpServletRequest request) {

@@ -1,22 +1,22 @@
 package com.referidos.app.segurosref.helpers;
 
 import java.time.LocalDate;
+import lombok.RequiredArgsConstructor;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 // Clase para validar la lógica de todos los inputs de la aplicación
 @Component
+@RequiredArgsConstructor
 public class ValidateInputHelper {
 
-    @Autowired
-    private Environment env;
+    private final Environment env;
 
     public static boolean checkApiKeyMF(String apiKeyMF, String apiKeyParameter) {
         return apiKeyMF != null && apiKeyParameter != null && apiKeyMF.equals(apiKeyParameter);

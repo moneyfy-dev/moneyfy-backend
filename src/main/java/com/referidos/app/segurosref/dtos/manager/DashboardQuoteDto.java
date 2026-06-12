@@ -47,6 +47,10 @@ public class DashboardQuoteDto {
     private String quoterAddressStreetNumber;
 
     // Transaction optional data
+    private String transactionId;
+    private String transactionStatus;
+    private String commissionStatus;
+    private String approvalDate;
     private int transactionTotalCommission;
     private int transactionTotalScope;
 }

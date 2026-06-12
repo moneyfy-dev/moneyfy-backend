@@ -1,8 +1,8 @@
 package com.referidos.app.segurosref.controllers;
 
 import static com.referidos.app.segurosref.configs.JwtConfig.CONTENT_TYPE;
+import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,13 +33,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(value = "/users")
 @PreAuthorize(value = "denyAll()")
 @Tag(name = "User", description = "Controller to handle the system users")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
     // ENDPOINTS PARA FLUJOS RELACIONADOS AL USUARIO
     @PutMapping(value = "/update")

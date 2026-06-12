@@ -1,10 +1,10 @@
 package com.referidos.app.segurosref.services;
 
 import java.util.LinkedHashMap;
+import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -24,22 +24,19 @@ import com.referidos.app.segurosref.requests.SeedRequest;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Service
+@RequiredArgsConstructor
 public class SeedServiceImpl implements SeedService {
 
     @Value(value = "${moneyfy.api-key}")
     private String apiKeyMF;
 
-    @Autowired
-    private SeedHelper seedHelper;
+    private final SeedHelper seedHelper;
 
-    @Autowired
-    private CityRepository cityRepository;
+    private final CityRepository cityRepository;
 
-    @Autowired
-    private InsurerRepository insurerRepository;
+    private final InsurerRepository insurerRepository;
 
-    @Autowired
-    private BrandRepository brandRepository;
+    private final BrandRepository brandRepository;
 
     @Transactional
     @Override

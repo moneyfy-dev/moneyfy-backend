@@ -1,8 +1,8 @@
 package com.referidos.app.segurosref.controllers;
 
 import static com.referidos.app.segurosref.configs.JwtConfig.CONTENT_TYPE;
+import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,13 +24,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(value = "/seed")
 @PreAuthorize(value = "denyAll()")
 @Tag(name = "Seed Controller", description = "Controller to seed essential data")
 public class SeedController {
 
-    @Autowired
-    private SeedService seedService;
+    private final SeedService seedService;
 
     @PostMapping(value = "/cities")
     @PreAuthorize(value = "permitAll()")

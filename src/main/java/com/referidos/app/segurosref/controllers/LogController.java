@@ -1,8 +1,8 @@
 package com.referidos.app.segurosref.controllers;
 
 import static com.referidos.app.segurosref.configs.JwtConfig.CONTENT_TYPE;
+import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,13 +22,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(value = "/log")
 @PreAuthorize(value = "denyAll()")
 @Tag(name = "Log Controller", description = "Controller to handle errors, information data through logs")
 public class LogController {
 
-    @Autowired
-    private LogService logService;
+    private final LogService logService;
 
     // Endpoint para la búsqueda de todos los logs de la aplicación
     @GetMapping(value = "/find/all")

@@ -1,8 +1,8 @@
 package com.referidos.app.segurosref.services;
 
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,13 +15,12 @@ import com.referidos.app.segurosref.repositories.CityRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
 
 @Service
+@RequiredArgsConstructor
 public class CityServiceImpl implements CityService {
 
-    @Autowired
-    private CityRepository cityRepository;
+    private final CityRepository cityRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     @Override
