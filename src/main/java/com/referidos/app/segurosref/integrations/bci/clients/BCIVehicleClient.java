@@ -1,8 +1,8 @@
 package com.referidos.app.segurosref.integrations.bci.clients;
 
 import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
+import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -22,10 +22,10 @@ import com.referidos.app.segurosref.integrations.bci.pojos.BCITokenCreatePojo;
 import com.referidos.app.segurosref.integrations.bci.pojos.BCIVehicleResponsePojo;
 
 @Component
+@RequiredArgsConstructor
 public class BCIVehicleClient {
 
-    @Autowired
-    private BCIAuthClient bciAuthClient;
+    private final BCIAuthClient bciAuthClient;
 
     @Value(value = "${bci.qa.base-url}")
     private String bciBaseUrl;

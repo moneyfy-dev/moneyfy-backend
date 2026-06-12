@@ -1,8 +1,8 @@
 package com.referidos.app.segurosref.controllers;
 
 import static com.referidos.app.segurosref.configs.JwtConfig.CONTENT_TYPE;
+import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -22,13 +22,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(value = "/cities")
 @PreAuthorize(value = "denyAll()")
 @Tag(name = "City Controller", description = "Controller to recover the cities for the address")
 public class CityController {
 
-    @Autowired
-    private CityService cityService;
+    private final CityService cityService;
 
     // Endpoints para recuperar y registrar ciudades de la aplicación
     @GetMapping(value = "/find/all")

@@ -1,6 +1,7 @@
 package com.referidos.app.segurosref.services;
 
 import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
+import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,7 +11,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -47,28 +47,22 @@ import com.referidos.app.segurosref.responses.GeneralResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Service
+@RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private DeviceRepository deviceRepository;
+    private final DeviceRepository deviceRepository;
 
-    @Autowired
-    private ReferredRepository referredRepository;
+    private final ReferredRepository referredRepository;
 
-    @Autowired
-    private EmailAppProvider emailAppProvider;
+    private final EmailAppProvider emailAppProvider;
 
-    @Autowired
-    private ValidateInputHelper validateInputHelper;
+    private final ValidateInputHelper validateInputHelper;
 
-    @Autowired
-    private UserHelper userHelper;
+    private final UserHelper userHelper;
 
-    @Autowired
-    private PasswordEncoder pwdEncoder;
+    private final PasswordEncoder pwdEncoder;
 
     @Transactional(readOnly=true)
     @Override

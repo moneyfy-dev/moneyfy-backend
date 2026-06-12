@@ -1,8 +1,8 @@
 package com.referidos.app.segurosref.controllers;
 
 import static com.referidos.app.segurosref.configs.JwtConfig.CONTENT_TYPE;
+import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -36,15 +36,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(value = "/auth")
 @Tag(name = "Authentication", description = "Controller to authenticate the system users")
 public class AuthController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private UserDetailsServiceImpl userDetailsServiceImpl;
+    private final UserDetailsServiceImpl userDetailsServiceImpl;
 
     // ENDPOINTS PARA EL FLUJO DE REGISTRAR UN NUEVO USUARIO DE LA APLICACIÓN
     @PostMapping(value = "/register")

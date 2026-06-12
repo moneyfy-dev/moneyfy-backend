@@ -1,6 +1,7 @@
 package com.referidos.app.segurosref.services;
 
 import java.io.IOException;
+import lombok.RequiredArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -11,7 +12,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -46,28 +46,22 @@ import com.referidos.app.segurosref.responses.GeneralResponse;
 import com.referidos.app.segurosref.validators.UserValidator;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private DeviceRepository deviceRepository;
+    private final DeviceRepository deviceRepository;
 
-    @Autowired
-    private ReferredRepository referredRepository;
+    private final ReferredRepository referredRepository;
 
-    @Autowired
-    private TransactionRepository transactionRepository;
+    private final TransactionRepository transactionRepository;
 
-    @Autowired
-    private PaymentRepository paymentRepository;
+    private final PaymentRepository paymentRepository;
 
-    @Autowired
-    private UserValidator userValidator;
+    private final UserValidator userValidator;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     // SERVICIOS PARA FLUJOS RELACIONADOS AL USUARIO
     @Transactional

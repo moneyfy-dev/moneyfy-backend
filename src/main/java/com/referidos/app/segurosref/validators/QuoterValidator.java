@@ -1,6 +1,6 @@
 package com.referidos.app.segurosref.validators;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
@@ -12,10 +12,10 @@ import com.referidos.app.segurosref.requests.SelectPlanRequest;
 import com.referidos.app.segurosref.requests.SearchPlanRequest;
 
 @Component
+@RequiredArgsConstructor
 public class QuoterValidator implements Validator {
 
-    @Autowired
-    private ValidateInputHelper validateInput;
+    private final ValidateInputHelper validateInput;
 
     @SuppressWarnings("null")
     @Override

@@ -1,10 +1,10 @@
 package com.referidos.app.segurosref.services;
 
 import java.util.ArrayList;
+import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,16 +19,14 @@ import com.referidos.app.segurosref.repositories.PlanRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
 
 @Service
+@RequiredArgsConstructor
 public class PlanServiceImpl implements PlanService {
 
-    @Autowired
-    private PlanRepository planRepository;
+    private final PlanRepository planRepository;
 
-    @Autowired
-    private InsurerRepository insurerRepository;
+    private final InsurerRepository insurerRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     // Servicio para enconotrar plan realizado en un una cotización y para que el frotend lo pueda volver a cargar
     @Transactional(readOnly = true)

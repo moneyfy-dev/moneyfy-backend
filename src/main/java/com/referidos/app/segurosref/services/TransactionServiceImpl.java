@@ -1,10 +1,10 @@
 package com.referidos.app.segurosref.services;
 
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -18,13 +18,13 @@ import com.referidos.app.segurosref.repositories.TransactionRepository;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Service
+@RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
 
     @Value(value = "${moneyfy.api-key}")
     private String apiKeyMF;
 
-    @Autowired
-    private TransactionRepository transactionRepository;
+    private final TransactionRepository transactionRepository;
 
     @Override
     @Transactional(readOnly = true)

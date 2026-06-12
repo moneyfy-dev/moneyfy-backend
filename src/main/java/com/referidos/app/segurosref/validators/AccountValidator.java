@@ -1,6 +1,6 @@
 package com.referidos.app.segurosref.validators;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
@@ -9,10 +9,10 @@ import com.referidos.app.segurosref.helpers.ValidateInputHelper;
 import com.referidos.app.segurosref.requests.AccountRequest;
 
 @Component
+@RequiredArgsConstructor
 public class AccountValidator implements Validator {
 
-    @Autowired
-    private ValidateInputHelper validateInputHelper;
+    private final ValidateInputHelper validateInputHelper;
 
     @SuppressWarnings("null")
     @Override

@@ -5,11 +5,9 @@ import java.util.Optional;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
 
 import com.referidos.app.segurosref.models.DeviceModel;
 
-@Repository
 public interface DeviceRepository extends MongoRepository<DeviceModel, ObjectId> {
 
     Optional<DeviceModel> findByUser(String user);

@@ -6,11 +6,9 @@ import java.util.Optional;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
-import org.springframework.stereotype.Repository;
 
 import com.referidos.app.segurosref.models.TransactionModel;
 
-@Repository
 public interface TransactionRepository extends MongoRepository<TransactionModel, String> {
 
     @Query(value = "{'userId': ?0, 'commissionScope': {$gte: ?1}, 'status': {$in: ['Aprobado', 'Liberado']}}", count = true)

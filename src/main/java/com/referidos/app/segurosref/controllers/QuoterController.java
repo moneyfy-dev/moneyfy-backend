@@ -1,8 +1,8 @@
 package com.referidos.app.segurosref.controllers;
 
 import static com.referidos.app.segurosref.configs.JwtConfig.CONTENT_TYPE;
+import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -34,13 +34,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(value = "/quoter")
 @PreAuthorize(value = "denyAll()")
 @Tag(name = "Quoter Controller", description = "Controller to search the insurance that adjust your car the most")
 public class QuoterController {
 
-        @Autowired
-        private QuoterService quoterService;
+        private final QuoterService quoterService;
 
         // Endpoint para buscar marcas/modelos registrados
         @GetMapping(value = "/search/vehicle/brands")
@@ -145,15 +145,13 @@ public class QuoterController {
 
         @PutMapping(value = "/finalize/quote")
         @PreAuthorize(value = "hasRole('ADMIN')")
-        @Operation(
-            summary = "Massive finalize of quotes that are Pending",
-            description = "Massive finalize of quotes that are Pending and it needs to be ended", tags = {
-                            "Quoter Controller" }, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Provide the data to finalize the quote", required = true, content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = FinalizeQuoteRequest.class))), responses = {
-                                            @ApiResponse(responseCode = "200", description = "The user's quote was finalized successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
-                                            @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
-                            }, parameters = {
-                                            @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
-                            })
+        @Operation(summary = "Massive finalize of quotes that are Pending", description = "Massive finalize of quotes that are Pending and it needs to be ended", tags = {
+                        "Quoter Controller" }, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Provide the data to finalize the quote", required = true, content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = FinalizeQuoteRequest.class))), responses = {
+                                        @ApiResponse(responseCode = "200", description = "The user's quote was finalized successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                                        @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+                        }, parameters = {
+                                        @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
+                        })
         public ResponseEntity<?> finalizeQuote(@RequestBody FinalizeQuoteRequest finalizeQuote, Authentication auth,
                         HttpServletRequest request) {
                 return quoterService.finalizeQuote(finalizeQuote, auth.getPrincipal().toString(),

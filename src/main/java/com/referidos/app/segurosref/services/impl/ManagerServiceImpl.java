@@ -1,13 +1,13 @@
 package com.referidos.app.segurosref.services.impl;
 
 import java.math.BigDecimal;
+import lombok.RequiredArgsConstructor;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.referidos.app.segurosref.dtos.manager.DashboardQuoteDto;
@@ -20,13 +20,12 @@ import com.referidos.app.segurosref.repositories.UserRepository;
 import com.referidos.app.segurosref.services.ManagerService;
 
 @Service
+@RequiredArgsConstructor
 public class ManagerServiceImpl implements ManagerService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private TransactionRepository transactionRepository;
+    private final TransactionRepository transactionRepository;
 
     @Override
     public DashboardResponseDto getQuotesDashboard() {

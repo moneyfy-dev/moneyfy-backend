@@ -1,6 +1,5 @@
 package com.referidos.app.segurosref.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,15 +11,17 @@ import org.springframework.web.bind.annotation.RestController;
 import com.referidos.app.segurosref.dtos.manager.DashboardResponseDto;
 import com.referidos.app.segurosref.services.ManagerService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/api/v1/manager")
+@RequiredArgsConstructor
 public class ManagerController {
 
     @Value("${moneyfy.api-key}")
     private String moneyfyApiKey;
 
-    @Autowired
-    private ManagerService managerService;
+    private final ManagerService managerService;
 
     // TODO: Ajuste momentaneo, se debe arreglar a futuro usando
     // @PreAuthorize("hasRole('ADMIN')")
