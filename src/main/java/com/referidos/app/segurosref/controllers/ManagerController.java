@@ -29,7 +29,7 @@ public class ManagerController {
     // @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/dashboard/quotes")
     public ResponseEntity<DashboardPaginatedResponseDto> getQuotesDashboard(
-            @RequestHeader(value = "X-Moneyfy-Api-Key", required = false) String apiKey,
+            @RequestHeader(value = "X-Moneyfy-Api-Key", required = true) String apiKey,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String userId,
@@ -37,7 +37,8 @@ public class ManagerController {
 
         if (apiKey == null || !apiKey.equals(moneyfyApiKey)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new DashboardPaginatedResponseDto("No autorizado", HttpStatus.UNAUTHORIZED.value(), null));
+                    .body(new DashboardPaginatedResponseDto("No autorizado",
+                            HttpStatus.UNAUTHORIZED.value(), null));
         }
 
         DashboardPaginatedResponseDto response = managerService.getQuotesDashboard(page, size, userId, quoteStatus);

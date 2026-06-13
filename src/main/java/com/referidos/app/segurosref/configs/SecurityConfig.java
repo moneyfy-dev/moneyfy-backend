@@ -110,7 +110,7 @@ public class SecurityConfig {
                 "exp://*"
         ));
         cors.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        cors.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Refresh-Token", "Origin", "User-Agent"));
+        cors.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Refresh-Token", "Origin", "User-Agent", "X-Moneyfy-Api-Key"));
         cors.setAllowCredentials(true);
 
         // Creamos la instancia del objeto que implementa la interfaz Cors... y entregamos las
