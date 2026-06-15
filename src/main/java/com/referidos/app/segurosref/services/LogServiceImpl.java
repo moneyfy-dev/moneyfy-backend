@@ -26,7 +26,7 @@ public class LogServiceImpl implements LogService {
 
     @Override
     public ResponseEntity<?> findAllLogs(HttpServletRequest request) {
-        if(!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
+        if(!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("X-Moneyfy-Api-Key"))) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
         List<LogModel> logsDB = logRepository.findAll();

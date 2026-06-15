@@ -56,10 +56,17 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             "/auth/restore/password",
             "/auth/confirm/password/reset",
             "/auth/resend/code",
+            "/seed/**",
+            "/log/**",
+            "/transaction/**",
+            "/quoter/commission/**",
+            "/api/v1/manager/**",
+            "/swagger-ui.html",
             "/swagger-ui/**",
             "/v3/api-docs/**",
             "/swagger-resources/**",
-            "/webjars/**"
+            "/webjars/**",
+
     };
 
     public JwtValidationFilter(AuthenticationManager authenticationManager, AuthRepository authRepository) {

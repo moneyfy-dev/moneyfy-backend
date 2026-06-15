@@ -36,7 +36,7 @@ public class SeedController {
     @PreAuthorize(value = "permitAll()")
     @Operation(summary = "Register or update the cities of the application", description = "Register or update the cities of the application", tags = {
             "Seed Controller" }, parameters = {
-                    @Parameter(name = "Api-Key-MoneyFy", in = ParameterIn.HEADER, description = "Security parameter for some public endpoints", required = true)
+                    @Parameter(name = "X-Moneyfy-Api-Key", in = ParameterIn.HEADER, description = "Security parameter for some public endpoints", required = true)
             }, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Refresh All Data Again", required = true, content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = SeedRequest.class))), responses = {
                     @ApiResponse(responseCode = "200", description = "The cities were registered successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
                     @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
@@ -49,7 +49,7 @@ public class SeedController {
     @PreAuthorize(value = "permitAll()")
     @Operation(summary = "Register or update the insurers of the application", description = "Register or update the insurers of the application", tags = {
             "Seed Controller" }, parameters = {
-                    @Parameter(name = "Api-Key-MoneyFy", in = ParameterIn.HEADER, description = "Security parameter for some public endpoints", required = true)
+                    @Parameter(name = "X-Moneyfy-Api-Key", in = ParameterIn.HEADER, description = "Security parameter for some public endpoints", required = true)
             }, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Refresh All Data Again", required = true, content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = SeedRequest.class))), responses = {
                     @ApiResponse(responseCode = "200", description = "The test and default users were updated successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
                     @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
@@ -62,7 +62,7 @@ public class SeedController {
     @PreAuthorize(value = "permitAll()")
     @Operation(summary = "Register the brands to quote your vehicle", description = "Register the brands to quote your vehicle", tags = {
             "Seed Controller" }, parameters = {
-                    @Parameter(name = "Api-Key-MoneyFy", in = ParameterIn.HEADER, description = "Security parameter for some public endpoints", required = true)
+                    @Parameter(name = "X-Moneyfy-Api-Key", in = ParameterIn.HEADER, description = "Security parameter for some public endpoints", required = true)
             }, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Refresh All Data Again", required = true, content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = SeedRequest.class))), responses = {
                     @ApiResponse(responseCode = "200", description = "The vehicle brands were created successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
                     @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))

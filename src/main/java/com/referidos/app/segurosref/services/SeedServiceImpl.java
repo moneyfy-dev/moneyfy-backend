@@ -41,7 +41,7 @@ public class SeedServiceImpl implements SeedService {
     @Transactional
     @Override
     public ResponseEntity<?> checkCities(HttpServletRequest request, SeedRequest seedRequest) {
-        if (!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
+        if (!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("X-Moneyfy-Api-Key"))) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
         boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
@@ -59,7 +59,7 @@ public class SeedServiceImpl implements SeedService {
     @Transactional
     @Override
     public ResponseEntity<?> checkInsurers(HttpServletRequest request, SeedRequest seedRequest) {
-        if (!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
+        if (!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("X-Moneyfy-Api-Key"))) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
         boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
@@ -77,7 +77,7 @@ public class SeedServiceImpl implements SeedService {
     @Transactional
     @Override
     public ResponseEntity<?> checkBrands(HttpServletRequest request, SeedRequest seedRequest) {
-        if (!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
+        if (!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("X-Moneyfy-Api-Key"))) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
         boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
