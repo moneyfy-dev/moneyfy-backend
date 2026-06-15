@@ -30,28 +30,18 @@ public class UserValidator implements Validator {
     @Override
     public void validate(Object target, Errors errors) {
         UserRegisterRequest user = (UserRegisterRequest) target;
-        this.validateRegister(user, errors);
 
-        String profileRole = this.validateInput.verifyProfileRole(user.profileRole());
-        if(!profileRole.equals("")) {
-            errors.rejectValue("profileRole", null, profileRole);
-        }
-    }
-
-    public void validateRegister(Object target, Errors errors) {
-        UserRegisterRequest user = (UserRegisterRequest) target;
-        
         String name = this.validateInput.verifyName(user.name());
         String surname = this.validateInput.verifySurname(user.surname());
         String email = this.validateInput.verifyEmail(user.email());
         String pwd = this.validateInput.verifyPwd(user.pwd());
-        
+
         this.verifyData(name, surname, email, pwd, errors);
     }
 
     public void validateUpdate(Object target, BindingHelper bindingHelper) {
         UserUpdateRequest user = (UserUpdateRequest) target;
-        
+
         String name = this.validateInput.verifyName(user.name());
         String surname = this.validateInput.verifySurname(user.surname());
         String phone = this.validateInput.verifyPhoneOptional(user.phone());
@@ -59,22 +49,22 @@ public class UserValidator implements Validator {
         String dateOfBirth = this.validateInput.verifyDateOfBirthOptional(user.dateOfBirth());
         String profilePicture = this.validateInput.verifyProfilePictureOptional(user.profilePicture());
 
-        if(!name.equals("")) {
+        if (!name.equals("")) {
             bindingHelper.addError("name", name);
         }
-        if(!surname.equals("")) {
+        if (!surname.equals("")) {
             bindingHelper.addError("surname", surname);
         }
-        if(!phone.equals("")) {
+        if (!phone.equals("")) {
             bindingHelper.addError("phone", phone);
         }
-        if(!address.equals("")) {
+        if (!address.equals("")) {
             bindingHelper.addError("address", address);
         }
-        if(!dateOfBirth.equals("")) {
+        if (!dateOfBirth.equals("")) {
             bindingHelper.addError("dateOfBirth", dateOfBirth);
         }
-        if(!profilePicture.equals("")) {
+        if (!profilePicture.equals("")) {
             bindingHelper.addError("profilePicture", profilePicture);
         }
     }
@@ -82,22 +72,24 @@ public class UserValidator implements Validator {
     @SuppressWarnings("null")
     public void validatePasswordChanged(Object target, Errors errors) {
         ChangePwdRequest changePwd = (ChangePwdRequest) target;
-        
+
         // Variables que contienen los mensajes de error
         String oldPwd = (DataHelper.isNull(changePwd.oldPwd())) ? "is required" : "";
         String newPwd = validateInput.verifyPwd(changePwd.newPwd());
 
-        if(!oldPwd.equals("")) {
+        if (!oldPwd.equals("")) {
             errors.rejectValue("oldPwd", null, oldPwd);
         }
-        if(!newPwd.equals("")) {
+        if (!newPwd.equals("")) {
             errors.rejectValue("newPwd", null, newPwd);
         }
-        if(newPwd.equals("") && oldPwd.equals("")) {
-            // Si ambos campos no tienen mensaje de error, o sea son vacíos, es porque tienen almacenado un valor correcto,
-            // pero, ahora, abordamos el caso de que sean iguales, porque no tiene caso cambiar la contraseña, si va a ser
+        if (newPwd.equals("") && oldPwd.equals("")) {
+            // Si ambos campos no tienen mensaje de error, o sea son vacíos, es porque
+            // tienen almacenado un valor correcto,
+            // pero, ahora, abordamos el caso de que sean iguales, porque no tiene caso
+            // cambiar la contraseña, si va a ser
             // la misma.
-            if( changePwd.newPwd().equals(changePwd.oldPwd()) ) {
+            if (changePwd.newPwd().equals(changePwd.oldPwd())) {
                 errors.rejectValue("newPwd", null, "needs to be different from the oldPwd");
             }
         }
@@ -106,16 +98,16 @@ public class UserValidator implements Validator {
 
     @SuppressWarnings("null")
     private void verifyData(String name, String surname, String email, String pwd, Errors errors) {
-        if(!name.equals("")) {
+        if (!name.equals("")) {
             errors.rejectValue("name", null, name);
         }
-        if(!surname.equals("")) {
+        if (!surname.equals("")) {
             errors.rejectValue("surname", null, surname);
         }
-        if(!email.equals("")) {
+        if (!email.equals("")) {
             errors.rejectValue("email", null, email);
         }
-        if(!pwd.equals("")) {
+        if (!pwd.equals("")) {
             errors.rejectValue("pwd", null, pwd);
         }
     }

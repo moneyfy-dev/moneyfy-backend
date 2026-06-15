@@ -84,7 +84,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
 
         UserDataModel userData = this.createUserData(userRegister.name().strip(), userRegister.surname().strip(),
-                userRegister.email().toLowerCase());
+                userRegister.email().toLowerCase().strip());
         WalletModel wallet = new WalletModel(0, 0, 0, 0);
         NotificationModel notifs = new NotificationModel(true, true, true,
                 false, false, true, false, false, false, new ArrayList<>());

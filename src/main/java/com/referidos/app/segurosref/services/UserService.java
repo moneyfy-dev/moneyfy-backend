@@ -13,21 +13,26 @@ public interface UserService {
 
     // SERVICIOS PARA FLUJOS RELACIONADOS AL USUARIO
     ResponseEntity<?> update(UserUpdateRequest user, String emailAuth);
-    ResponseEntity<?> changePassword(ChangePwdRequest changePwd, String emailAuth);
-    ResponseEntity<GeneralResponse> hydrationData(String emailAuth, String updateCredential, String device);
-    ResponseEntity<GeneralResponse> listReferreds(String emailAuth, String updateCredential, String device);
-    ResponseEntity<GeneralResponse> obtainCommissions(String emailAuth);
-    ResponseEntity<GeneralResponse> obtainPayments(String emailAuth);
-    ResponseEntity<GeneralResponse> monthlyEarnings(String emailAuth);
-    
-    // SERVICIOS DE VALIDACIONES DE DATOS
-    void validateRegister(UserRegisterRequest user, Errors errors);
-    void validateSave(UserRegisterRequest user, Errors errors);
-    void validateUpdate(UserUpdateRequest user, BindingHelper bindingHelper);
-    void validatePasswordChanged(ChangePwdRequest changePwd, Errors errors);
 
-    // // SERVICIOS SUPUESTOS PARA ADMINISTRADORES QUE NO SE ESTÁN UTILIZANDO AÚN
-    // List<UserSimpleDto> findAll();
-    // ResponseEntity<?> findById(ObjectId userId);
+    ResponseEntity<?> changePassword(ChangePwdRequest changePwd, String emailAuth);
+
+    ResponseEntity<GeneralResponse> hydrationData(String emailAuth, String updateCredential, String device);
+
+    ResponseEntity<GeneralResponse> listReferreds(String emailAuth, String updateCredential, String device);
+
+    ResponseEntity<GeneralResponse> obtainCommissions(String emailAuth);
+
+    ResponseEntity<GeneralResponse> obtainPayments(String emailAuth);
+
+    ResponseEntity<GeneralResponse> monthlyEarnings(String emailAuth);
+
+    // SERVICIOS DE VALIDACIONES DE DATOS
+    void validateSimpleUser(UserRegisterRequest user, Errors errors);
+
+    void validateSave(UserRegisterRequest user, Errors errors);
+
+    void validateUpdate(UserUpdateRequest user, BindingHelper bindingHelper);
+
+    void validatePasswordChanged(ChangePwdRequest changePwd, Errors errors);
 
 }

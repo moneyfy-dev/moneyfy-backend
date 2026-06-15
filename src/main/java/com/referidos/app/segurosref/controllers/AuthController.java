@@ -42,7 +42,7 @@ public class AuthController {
     @Operation(summary = "Receive a confirmation code for common users")
     public ResponseEntity<GeneralResponse> register(@RequestBody UserRegisterRequest user,
             BindingResult bindingResult) {
-        userService.validateRegister(user, bindingResult);
+        userService.validateSimpleUser(user, bindingResult);
         if (bindingResult.hasErrors()) {
             return ResponseHelper.preconditionMap("información no aceptada",
                     DataHelper.buildErrorFields(bindingResult));
@@ -53,14 +53,16 @@ public class AuthController {
     @PostMapping(value = "/confirm/registration")
     @PreAuthorize(value = "permitAll()")
     @Operation(summary = "Complete your user registration")
-    public ResponseEntity<GeneralResponse> confirmRegistration(@RequestBody ConfirmUserRequest confirm) throws JsonProcessingException {
+    public ResponseEntity<GeneralResponse> confirmRegistration(@RequestBody ConfirmUserRequest confirm)
+            throws JsonProcessingException {
         return userDetailsServiceImpl.confirmRegistration(confirm);
     }
 
     @PostMapping(value = "/log-in")
     @PreAuthorize(value = "permitAll()")
     @Operation(summary = "User login")
-    public ResponseEntity<GeneralResponse> login(@RequestBody UserLoginRequest requestUser) throws JsonProcessingException {
+    public ResponseEntity<GeneralResponse> login(@RequestBody UserLoginRequest requestUser)
+            throws JsonProcessingException {
         return userDetailsServiceImpl.userLogin(requestUser);
     }
 

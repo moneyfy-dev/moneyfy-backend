@@ -22,11 +22,12 @@ public class UserHelper {
     // Función que verifica el usuario para activarlo o dejarlo obsoleto, ya que, se
     // encuentra desactivado
     @Transactional
-    public UserModel checkUserAccount(UserRepository userRepository, ReferredRepository referredRepository, UserModel userDB) {
+    public UserModel checkUserAccount(UserRepository userRepository, ReferredRepository referredRepository,
+            UserModel userDB) {
         LocalDateTime currentDateTime = LocalDateTime.now();
         LocalDate deactivationDate = userDB.getDisableAccount().toLocalDate();
         long daysBetween = currentDateTime.toLocalDate().toEpochDay() - deactivationDate.toEpochDay();
-        
+
         // El usuario queda obsoleto, si ya transcurrio el tiempo estipulado en el
         // estado 'Desactivado' o sea más de 30 días.
         if (daysBetween > 30 && deactivationDate.getYear() > 2020) {
@@ -48,7 +49,7 @@ public class UserHelper {
         userDataDB.setStatus("Activado");
         userDB.setDisableAccount(DataHelper.deprecatedDateTime());
         userDB = userRepository.save(userDB);
-        
+
         // Se recupera la data de los registros relacionados a los referidos para volver
         // a activarlos
         List<ReferredModel> updateTheReferreds = new ArrayList<>();
@@ -74,7 +75,8 @@ public class UserHelper {
     // Se utiliza cuando el usuario se encuentra "Desactivado" y si se cumplen los
     // 30 días del usuario desactivado se "elimina"
     @Transactional
-    public boolean makeUserObsolete(UserRepository userRepository, ReferredRepository referredRepository, UserModel userDB) {
+    public boolean makeUserObsolete(UserRepository userRepository, ReferredRepository referredRepository,
+            UserModel userDB) {
         LocalDateTime currentDateTime = LocalDateTime.now();
         LocalDate deactivationDate = userDB.getDisableAccount().toLocalDate();
         long daysBetween = currentDateTime.toLocalDate().toEpochDay() - deactivationDate.toEpochDay();
@@ -85,11 +87,15 @@ public class UserHelper {
         return false;
     }
 
+    // TODO: Revisar flujo, si el flujo de desactivación se mantiene como está, se
+    // debe evaluar la eliminación del objeto de autenticación asociado a la cuenta
+    // del usuario.
     @Transactional
-    public void obsoleteUser(UserRepository userRepository, ReferredRepository referredRepository, UserModel userDB, LocalDateTime currentDateTime) {
+    public void obsoleteUser(UserRepository userRepository, ReferredRepository referredRepository, UserModel userDB,
+            LocalDateTime currentDateTime) {
         // El usuario estuvo deshabilidato por más de 30 días, por lo tanto, queda
         // obsoleto cambiándole el email,
-        // por un código único con el subfijo ".user-deleted". 
+        // por un código único con el subfijo ".user-deleted".
         // Los registros de referidos
         // quedarían con la nueva llave del email, pero deshabilitados. Ahora, generamos
         // un email de eliminación
@@ -114,7 +120,7 @@ public class UserHelper {
         userDB.getPersonalData().setEmail(emailForUserDeleted);
         userDB.getPersonalData().setStatus("Obsoleto");
         userRepository.save(userDB);
-        
+
         // Buscamos a los referidos para dejarlos obsoletos y para asignarle el nuevo
         // email de usuario eliminado
         List<ReferredModel> updateTheReferreds = new ArrayList<>();

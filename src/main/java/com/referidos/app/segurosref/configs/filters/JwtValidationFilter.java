@@ -83,7 +83,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
         }
 
         String tokenHeader = request.getHeader(HEADER_AUTHORIZATION);
-        String refreshToken = request.getHeader("Refresh-Token");
+        String refreshToken = request.getHeader("X-New-Refresh-Token");
 
         if (tokenHeader == null || !tokenHeader.startsWith(PREFIX_TOKEN)) {
             sendUnauthorizedError(response);
