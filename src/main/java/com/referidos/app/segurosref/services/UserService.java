@@ -18,7 +18,7 @@ public interface UserService {
 
     ResponseEntity<GeneralResponse> hydrationData(String emailAuth);
 
-    ResponseEntity<GeneralResponse> listReferreds(String emailAuth, String updateCredential, String device);
+    ResponseEntity<GeneralResponse> listReferreds(String emailAuth);
 
     ResponseEntity<GeneralResponse> obtainCommissions(String emailAuth);
 

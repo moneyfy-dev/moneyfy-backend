@@ -128,7 +128,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public ResponseEntity<GeneralResponse> listReferreds(String emailAuth, String updateCredential, String device) {
+    public ResponseEntity<GeneralResponse> listReferreds(String emailAuth) {
         UserModel userA = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         List<ReferredDto> referredsDto = new ArrayList<>(); // Lista de todos los referidos que se van a mostrar.
         List<ReferredModel> referredsB = referredRepository.findAllByUserReferring(emailAuth);
@@ -141,7 +141,11 @@ public class UserServiceImpl implements UserService {
             // usuario que está haciendo
             // la solicitud, contabilizando los usuariosB y los usuariosC
             String userEmailB = referredB.getReferred();
-            UserModel userB = userRepository.findByPersonalData_Email(userEmailB).orElseThrow();
+            Optional<UserModel> userBOptional = userRepository.findByPersonalData_Email(userEmailB);
+            if (userBOptional.isEmpty()) {
+                continue;
+            }
+            UserModel userB = userBOptional.get();
             UserDataModel userDataB = userB.getPersonalData();
             // Si el usuario aún no confirma su registro, no se agrega como referido
             Optional<AuthModel> authOptionalB = authRepository.findByEmail(userEmailB);
@@ -184,7 +188,11 @@ public class UserServiceImpl implements UserService {
             List<ReferredModel> referredsC = referredRepository.findAllByUserReferring(userEmailB);
             for (ReferredModel referredC : referredsC) {
                 String userEmailC = referredC.getReferred();
-                UserModel userC = userRepository.findByPersonalData_Email(userEmailC).orElseThrow();
+                Optional<UserModel> userCOptional = userRepository.findByPersonalData_Email(userEmailC);
+                if (userCOptional.isEmpty()) {
+                    continue;
+                }
+                UserModel userC = userCOptional.get();
                 String userCId = userC.getUserId();
                 String userCStatus = userC.getPersonalData().getStatus();
                 long totalTransactionsC = transactionRepository

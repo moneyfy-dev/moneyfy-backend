@@ -450,7 +450,7 @@ public class QuoterServiceImpl implements QuoterService {
             if (optionalPlan.isEmpty()) {
                 PlanModel novaPlan = new PlanModel(insurerPlanId, insurerPlan.getInsurer(), insurerPlan.getPlanName(),
                         insurerPlan.getDeductibleDesc(), insurerPlan.getStolenVehicle(), insurerPlan.getTotalLoss(),
-                        insurerPlan.getDamageThirdParty(), insurerPlan.getWorkshopType(), insurerPlan.getDetails(),
+                        insurerPlan.getDamageThirdParty(), insurerPlan.getWorkshopType(), insurerPlan.getCoverages(), insurerPlan.getDetails(),
                         currentDateTime, currentDateTime);
                 planRepository.save(novaPlan);
             }
