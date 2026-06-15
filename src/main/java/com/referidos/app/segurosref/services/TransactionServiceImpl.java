@@ -29,7 +29,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional(readOnly = true)
     public ResponseEntity<?> findById(String transactionId, HttpServletRequest request) {
-        if(!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
+        if(!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("X-Moneyfy-Api-Key"))) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
         if(transactionId == null) {
@@ -45,7 +45,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional(readOnly = true)
     public ResponseEntity<?> findAllByUserReferringFound(HttpServletRequest request) {
-        if(!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("Api-Key-MoneyFy"))) {
+        if(!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("X-Moneyfy-Api-Key"))) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
         List<TransactionModel> transactionsDB = transactionRepository.findAllByUserReferringFound(false);
