@@ -20,10 +20,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import com.referidos.app.segurosref.configs.filters.DeviceValidationFilter;
 import com.referidos.app.segurosref.configs.filters.JwtValidationFilter;
-import com.referidos.app.segurosref.repositories.DeviceRepository;
-import com.referidos.app.segurosref.repositories.UserRepository;
+import com.referidos.app.segurosref.repositories.AuthRepository;
 
 import java.util.Arrays;
 
@@ -33,7 +31,8 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
@@ -41,55 +40,44 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
         return http
-            .securityMatcher(
-                "/",
-                "/auth/**",
-                "/seed/**",
-                "/log/**",
-                "/transaction/**",
-                "/quoter/commission/**",
-                "/api/v1/manager/**",
-                "/swagger-ui.html",
-                "/swagger-ui/**",
-                "/v3/api-docs/**"
-            )
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .cors(cors -> cors.configurationSource(this.corsConfigurationSource()))
-            .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll()
-            )
-            .build();
+                .securityMatcher(
+                        "/",
+                        "/auth/**",
+                        "/seed/**",
+                        "/log/**",
+                        "/transaction/**",
+                        "/quoter/commission/**",
+                        "/api/v1/manager/**",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**")
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(cors -> cors.configurationSource(this.corsConfigurationSource()))
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll())
+                .build();
     }
 
     @Bean
     @Order(2)
     public SecurityFilterChain apiFilterChain(HttpSecurity http,
-            JwtValidationFilter jwtValidationFilter,
-            DeviceValidationFilter deviceValidationFilter) throws Exception {
+            JwtValidationFilter jwtValidationFilter) throws Exception {
         return http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .cors(cors -> cors.configurationSource(this.corsConfigurationSource()))
-            .authorizeHttpRequests(auth -> auth
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtValidationFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(deviceValidationFilter, JwtValidationFilter.class)
-            .build();
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(cors -> cors.configurationSource(this.corsConfigurationSource()))
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtValidationFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
     @Bean
     public JwtValidationFilter jwtValidationFilter(
             AuthenticationManager authenticationManager,
-            UserRepository userRepository,
-            DeviceRepository deviceRepository) {
-        return new JwtValidationFilter(authenticationManager, userRepository, deviceRepository);
-    }
-
-    @Bean
-    public DeviceValidationFilter deviceValidationFilter() {
-        return new DeviceValidationFilter();
+            AuthRepository authRepository) {
+        return new JwtValidationFilter(authenticationManager, authRepository);
     }
 
     @Bean
@@ -107,14 +95,16 @@ public class SecurityConfig {
                 "http://127.0.0.1:*",
                 "http://192.168.*.*:*",
                 "http://10.*.*.*:*",
-                "exp://*"
-        ));
+                "exp://*"));
         cors.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        cors.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Refresh-Token", "Origin", "User-Agent"));
+        cors.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Refresh-Token", "Origin", "User-Agent",
+                "X-Moneyfy-Api-Key", "X-New-Session-Token", "X-New-Refresh-Token"));
         cors.setAllowCredentials(true);
 
-        // Creamos la instancia del objeto que implementa la interfaz Cors... y entregamos las
-        // configuraciones del source, que se aplicaran en una ruta de nuestra app del backend.
+        // Creamos la instancia del objeto que implementa la interfaz Cors... y
+        // entregamos las
+        // configuraciones del source, que se aplicaran en una ruta de nuestra app del
+        // backend.
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cors);
 
@@ -124,7 +114,8 @@ public class SecurityConfig {
     @Bean
     public FilterRegistrationBean<CorsFilter> corsFilter() {
         @SuppressWarnings("null")
-        FilterRegistrationBean<CorsFilter> corsFilter = new FilterRegistrationBean<>(new CorsFilter(this.corsConfigurationSource()));
+        FilterRegistrationBean<CorsFilter> corsFilter = new FilterRegistrationBean<>(
+                new CorsFilter(this.corsConfigurationSource()));
         corsFilter.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return corsFilter;
     }

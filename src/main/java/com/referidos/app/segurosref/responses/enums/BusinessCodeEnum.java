@@ -5,6 +5,7 @@ public enum BusinessCodeEnum {
     // Errores Generales de la Aplicación
     APP_GENERAL_BAD_REQUEST(1, "Error al procesar la solicitud"),
     APP_INCORRECT_FORMAT(2, "El formato de los datos enviados no es válido o es incorrecto para procesar la solicitud"),
+    APP_TOKEN_INVALID_OR_EXPIRED(3, "El token de sesión ha expirado o es inválido"),
     
     // Integración BCI (Códigos 40+)
     BCI_TOKEN_CREATION_EXCEPTION(40, "Error de excepción al realizar petición para generar token en servicio externo (BCI)"),

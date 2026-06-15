@@ -88,8 +88,8 @@ public class ManagerServiceImpl implements ManagerService {
         List<String> currentQuoterIds = new ArrayList<>();
         for (Document doc : dataFacet) {
             Document quoterDoc = doc.get("quoters", Document.class);
-            if (quoterDoc != null && quoterDoc.getString("quoterId") != null) {
-                currentQuoterIds.add(quoterDoc.getString("quoterId"));
+            if (quoterDoc != null && quoterDoc.get("quoterId") != null) {
+                currentQuoterIds.add(quoterDoc.get("quoterId").toString());
             }
         }
 
