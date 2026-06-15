@@ -56,6 +56,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             "/auth/restore/password",
             "/auth/confirm/password/reset",
             "/auth/resend/code",
+            "/home",
             "/seed/**",
             "/log/**",
             "/transaction/**",

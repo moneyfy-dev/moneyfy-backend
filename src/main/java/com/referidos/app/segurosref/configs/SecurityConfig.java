@@ -41,7 +41,7 @@ public class SecurityConfig {
     public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
         return http
                 .securityMatcher(
-                        "/",
+                        "/home",
                         "/auth/**",
                         "/seed/**",
                         "/log/**",
