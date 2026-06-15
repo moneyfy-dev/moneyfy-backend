@@ -105,7 +105,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             UserDataModel userDataDB = userDB.getPersonalData();
             AuthModel authDB = authOptional.get();
 
-            if (authDB.getRefreshToken() != null && !authDB.getRefreshToken().isEmpty()) {
+            if (authDB.isAccountConfirmed()) {
                 String statusUserDB = userDataDB.getStatus();
                 switch (statusUserDB) {
                     case "Activado" -> {
@@ -144,7 +144,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .role("ROLE_USER")
                 .codeAuth(pwdEncoder.encode(codeAuth))
                 .codeExpirationTime(currenDateTime)
-                .refreshToken("")
+                .accountConfirmed(false)
+                .tokenRevocationDate(currenDateTime)
                 .build();
         authRepository.save(authModel);
 
@@ -167,7 +168,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         UserModel userDB = userRepository.findByPersonalData_Email(userEmail).orElseThrow();
         AuthModel authDB = authRepository.findByEmail(userEmail).orElseThrow();
 
-        if (authDB.getRefreshToken() == null || authDB.getRefreshToken().isEmpty()) {
+        if (!authDB.isAccountConfirmed()) {
             boolean isCodeActive = isCodeActive(authDB.getCodeExpirationTime(), LocalDateTime.now(), 3);
             boolean codeMatches = pwdEncoder.matches(confirm.code(), authDB.getCodeAuth());
 
@@ -187,16 +188,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         String codeToRefer = DataHelper.generateCodeToRefer(userRepository);
         userDB.setCodeToRefer(codeToRefer);
 
-        // Inicializamos tokenRevocationDate ya que es la primera vez que se confirman
-        // los datos
-        authDB.setTokenRevocationDate(LocalDateTime.now());
+        authDB.setAccountConfirmed(true);
+        authRepository.save(authDB);
 
         String sessionToken = JwtConfig.createSessionToken(userEmail,
                 Collections.singletonList(new SimpleGrantedAuthority(authDB.getRole())));
         String refreshToken = JwtConfig.createRefreshToken(userEmail);
-
-        authDB.setRefreshToken(refreshToken);
-        authRepository.save(authDB);
 
         userData.setStatus("Activado");
         userDB = userRepository.save(userDB);
@@ -235,10 +232,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             }
         }
 
-        Map<String, Object> responseData = Map.of(
-                "user", DataHelper.buildUser(userDB),
-                "sessionToken", sessionToken,
-                "refreshToken", refreshToken);
+        Map<String, Object> responseData = DataHelper.buildUserAuthData(userDB, sessionToken, refreshToken);
 
         return ResponseHelper.created("usuario registrado exitosamente", responseData);
     }
@@ -263,13 +257,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                                 Collections.singletonList(new SimpleGrantedAuthority(authDB.getRole())));
                         String refreshToken = JwtConfig.createRefreshToken(email);
 
-                        authDB.setRefreshToken(refreshToken);
-                        authRepository.save(authDB);
-
-                        Map<String, Object> responseData = Map.of(
-                                "user", DataHelper.buildUser(userDB),
-                                "sessionToken", sessionToken,
-                                "refreshToken", refreshToken);
+                        Map<String, Object> responseData = DataHelper.buildUserAuthData(userDB, sessionToken,
+                                refreshToken);
                         return ResponseHelper.ok("se ha iniciado sesión exitosamente", responseData);
                     }
                     case "Desactivado" -> {
@@ -300,7 +289,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             AuthModel auth = authOptional.get();
             // Invalida todos los tokens anteriores actualizando tokenRevocationDate a now()
             auth.setTokenRevocationDate(LocalDateTime.now());
-            auth.setRefreshToken("");
             authRepository.save(auth);
             return ResponseHelper.ok("Sesión cerrada exitosamente en todos los dispositivos",
                     (Map<String, Object>) null);
@@ -319,7 +307,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             UserModel userDB = userOptional.get();
             UserDataModel userData = userDB.getPersonalData();
 
-            if (authDB.getRefreshToken() != null && !authDB.getRefreshToken().isEmpty()) {
+            if (authDB.isAccountConfirmed()) {
                 String statusUserDB = userData.getStatus();
                 String codeAuth = generateRandomCode();
 
@@ -350,7 +338,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Transactional
-    public ResponseEntity<GeneralResponse> confirmPasswordReset(PasswordResetRequest passwordReset) {
+    public ResponseEntity<GeneralResponse> confirmPasswordReset(PasswordResetRequest passwordReset) throws JsonProcessingException {
         String userEmail = passwordReset.email().toLowerCase();
         Optional<AuthModel> authOptional = authRepository.findByEmail(userEmail);
         Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(userEmail);
@@ -366,8 +354,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 String repeatedPwd = passwordReset.repeatedPwd();
 
                 if (this.validateInputHelper.verifyPwd(newPwd).equals("") && !DataHelper.isNull(repeatedPwd) &&
-                        newPwd.equals(repeatedPwd) && authDB.getRefreshToken() != null
-                        && !authDB.getRefreshToken().isEmpty()) {
+                        newPwd.equals(repeatedPwd) && authDB.isAccountConfirmed()) {
 
                     String statusUserDB = userData.getStatus();
                     switch (statusUserDB) {
@@ -389,12 +376,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
                     authDB.setPwd(pwdEncoder.encode(newPwd));
                     authDB.setTokenRevocationDate(LocalDateTime.now());
-                    authDB.setRefreshToken(""); // Obliga a re-login
                     authRepository.save(authDB);
 
+                    String sessionToken = JwtConfig.createSessionToken(userEmail,
+                            Collections.singletonList(new SimpleGrantedAuthority(authDB.getRole())));
+                    String refreshToken = JwtConfig.createRefreshToken(userEmail);
+
                     return ResponseHelper.ok(
-                            "se ha restablecido exitosamente la contraseña del usuario. Por seguridad, debes iniciar sesión nuevamente.",
-                            DataHelper.buildUser(userDB));
+                            "se ha restablecido exitosamente la contraseña del usuario. Has iniciado sesión automáticamente.",
+                            DataHelper.buildUserAuthData(userDB, sessionToken, refreshToken));
                 }
             } else {
                 return ResponseHelper.gone("el código ha expirado o no es correcto", null);
@@ -419,15 +409,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             if (!DataHelper.isNull(type)) {
                 switch (type) {
                     case "registerUser": {
-                        if ((authDB.getRefreshToken() == null || authDB.getRefreshToken().isEmpty())
-                                && userStatusDB.equals("Desactivado")) {
+                        if (!authDB.isAccountConfirmed() && userStatusDB.equals("Desactivado")) {
                             emailAppProvider.sendAuthCodeToRegisterUser(new String[] { userEmail }, code);
                             isValid = true;
                         }
                         break;
                     }
                     case "restorePassword": {
-                        if (authDB.getRefreshToken() != null && !authDB.getRefreshToken().isEmpty()) {
+                        if (authDB.isAccountConfirmed()) {
                             emailAppProvider.sendAuthCodeToRestorePassword(new String[] { userEmail }, code);
                             isValid = true;
                         }
@@ -464,7 +453,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (authOptional.isPresent()) {
             AuthModel auth = authOptional.get();
             auth.setTokenRevocationDate(currentDateTime);
-            auth.setRefreshToken("");
             authRepository.save(auth);
         }
 

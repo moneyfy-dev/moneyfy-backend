@@ -71,10 +71,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-
-        response.addHeader("X-JWT-Filter", "hit");
-
-        String path = request.getRequestURI();
+        String path = request.getServletPath();
         for (String publicRoute : PUBLIC_ROUTES) {
             if (pathMatcher.match(publicRoute, path)) {
                 chain.doFilter(request, response);
@@ -140,7 +137,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             }
 
             Optional<AuthModel> authOptional = authRepository.findByEmail(userEmail);
-            if (authOptional.isEmpty() || !refreshToken.equals(authOptional.get().getRefreshToken())) {
+            if (authOptional.isEmpty()) {
                 sendUnauthorizedError(response);
                 return;
             }
@@ -158,8 +155,6 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             long timeLeft = expiration.getTime() - System.currentTimeMillis();
             if (timeLeft <= REFRESH_THRESHOLD) {
                 String newRefreshToken = JwtConfig.createRefreshToken(userEmail);
-                authModel.setRefreshToken(newRefreshToken);
-                authRepository.save(authModel);
                 response.addHeader("X-New-Refresh-Token", newRefreshToken);
             }
 
@@ -187,7 +182,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
     }
 
     private void sendUnauthorizedError(HttpServletResponse response) throws IOException {
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.setStatus(HttpStatus.EXPECTATION_FAILED.value());
         response.setContentType(CONTENT_TYPE);
 
         BusinessCodeEnum errorEnum = BusinessCodeEnum.APP_TOKEN_INVALID_OR_EXPIRED;

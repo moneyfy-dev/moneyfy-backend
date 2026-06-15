@@ -83,7 +83,7 @@ public class AuthController {
     @PutMapping(value = "/confirm/password/reset")
     @PreAuthorize(value = "permitAll()")
     @Operation(summary = "Restore your user's password")
-    public ResponseEntity<GeneralResponse> confirmPasswordReset(@RequestBody PasswordResetRequest passwordReset) {
+    public ResponseEntity<GeneralResponse> confirmPasswordReset(@RequestBody PasswordResetRequest passwordReset) throws com.fasterxml.jackson.core.JsonProcessingException {
         return userDetailsServiceImpl.confirmPasswordReset(passwordReset);
     }
 

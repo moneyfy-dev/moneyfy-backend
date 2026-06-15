@@ -145,8 +145,7 @@ public class UserServiceImpl implements UserService {
             UserDataModel userDataB = userB.getPersonalData();
             // Si el usuario aún no confirma su registro, no se agrega como referido
             Optional<AuthModel> authOptionalB = authRepository.findByEmail(userEmailB);
-            if (authOptionalB.isEmpty() || authOptionalB.get().getRefreshToken() == null
-                    || authOptionalB.get().getRefreshToken().isEmpty()) {
+            if (authOptionalB.isEmpty() || !authOptionalB.get().isAccountConfirmed()) {
                 continue;
             }
             // Luego de checkear que el registro del usuario se completo, se actualiza info
