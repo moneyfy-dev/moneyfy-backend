@@ -31,9 +31,12 @@
                             }
                         },
                         "url": {
-                            "raw": "{{Dev - URL}}",
+                            "raw": "{{Dev - URL}}/home",
                             "host": [
                                 "{{Dev - URL}}"
+                            ],
+                            "path": [
+                                "home"
                             ]
                         }
                     },
@@ -1230,7 +1233,7 @@
                         "method": "POST",
                         "header": [
                             {
-                                "key": "Api-Key-MoneyFy",
+                                "key": "X-Moneyfy-Api-Key",
                                 "value": "{{Dev - API Key MoneyFy}}",
                                 "type": "text"
                             }
@@ -1263,7 +1266,7 @@
                         "method": "POST",
                         "header": [
                             {
-                                "key": "Api-Key-MoneyFy",
+                                "key": "X-Moneyfy-Api-Key",
                                 "value": "{{Dev - API Key MoneyFy}}",
                                 "type": "text"
                             }
@@ -1296,7 +1299,7 @@
                         "method": "POST",
                         "header": [
                             {
-                                "key": "Api-Key-MoneyFy",
+                                "key": "X-Moneyfy-Api-Key",
                                 "value": "{{Dev - API Key MoneyFy}}",
                                 "type": "text"
                             }
@@ -1334,7 +1337,7 @@
                         "method": "GET",
                         "header": [
                             {
-                                "key": "Api-Key-MoneyFy",
+                                "key": "X-Moneyfy-Api-Key",
                                 "value": "{{Dev - API Key MoneyFy}}",
                                 "type": "text"
                             }
@@ -1364,7 +1367,7 @@
                         "method": "GET",
                         "header": [
                             {
-                                "key": "Api-Key-MoneyFy",
+                                "key": "X-Moneyfy-Api-Key",
                                 "value": "{{Dev - API Key MoneyFy}}",
                                 "type": "text"
                             }
@@ -1388,7 +1391,7 @@
                         "method": "GET",
                         "header": [
                             {
-                                "key": "Api-Key-MoneyFy",
+                                "key": "X-Moneyfy-Api-Key",
                                 "value": "{{Dev - API Key MoneyFy}}",
                                 "type": "text"
                             }

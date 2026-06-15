@@ -117,7 +117,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public ResponseEntity<GeneralResponse> hydrationData(String emailAuth, String updateCredential, String device) {
+    public ResponseEntity<GeneralResponse> hydrationData(String emailAuth) {
         // Endpoint utilizado para refrescar la data de la aplicación.
         // La actualización de credenciales ahora se maneja vía Sliding Session en los
         // headers.

@@ -16,7 +16,7 @@ public interface UserService {
 
     ResponseEntity<?> changePassword(ChangePwdRequest changePwd, String emailAuth);
 
-    ResponseEntity<GeneralResponse> hydrationData(String emailAuth, String updateCredential, String device);
+    ResponseEntity<GeneralResponse> hydrationData(String emailAuth);
 
     ResponseEntity<GeneralResponse> listReferreds(String emailAuth, String updateCredential, String device);
 
