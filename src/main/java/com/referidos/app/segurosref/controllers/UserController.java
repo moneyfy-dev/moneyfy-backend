@@ -30,7 +30,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequiredArgsConstructor
@@ -101,9 +100,8 @@ public class UserController {
                         }, parameters = {
                                         @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
                         })
-        public ResponseEntity<GeneralResponse> listReferreds(Authentication auth, HttpServletRequest request) {
-                return userService.listReferreds(auth.getPrincipal().toString(), auth.getCredentials().toString(),
-                                request.getHeader("User-Agent"));
+        public ResponseEntity<GeneralResponse> listReferreds(Authentication auth) {
+                return userService.listReferreds(auth.getPrincipal().toString());
         }
 
         @PostMapping(value = "/obtain/commissions")

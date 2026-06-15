@@ -2,11 +2,13 @@ package com.referidos.app.segurosref.models;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.referidos.app.segurosref.dtos.quotation.QuotationPlanCoverDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,7 +16,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 @JsonPropertyOrder(value = {"planId", "insurer", "planName", "deductibleDesc", "stolenVehicle", "totalLoss",
-        "damageThirdParty", "workshopType", "details", "createdDate", "updatedDate"})
+        "damageThirdParty", "workshopType", "coverages", "details", "createdDate", "updatedDate"})
 @Document(collection = "plans")
 public class PlanModel {
 
@@ -27,6 +29,7 @@ public class PlanModel {
     private String totalLoss;
     private String damageThirdParty;
     private String workshopType;
+    private Set<QuotationPlanCoverDto> coverages;
     private List<String> details;
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
