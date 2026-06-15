@@ -20,10 +20,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import com.referidos.app.segurosref.configs.filters.DeviceValidationFilter;
 import com.referidos.app.segurosref.configs.filters.JwtValidationFilter;
-import com.referidos.app.segurosref.repositories.DeviceRepository;
-import com.referidos.app.segurosref.repositories.UserRepository;
+import com.referidos.app.segurosref.repositories.AuthRepository;
 
 import java.util.Arrays;
 
@@ -65,8 +63,7 @@ public class SecurityConfig {
     @Bean
     @Order(2)
     public SecurityFilterChain apiFilterChain(HttpSecurity http,
-            JwtValidationFilter jwtValidationFilter,
-            DeviceValidationFilter deviceValidationFilter) throws Exception {
+            JwtValidationFilter jwtValidationFilter) throws Exception {
         return http
             .csrf(csrf -> csrf.disable())
             .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -75,21 +72,14 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtValidationFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(deviceValidationFilter, JwtValidationFilter.class)
             .build();
     }
 
     @Bean
     public JwtValidationFilter jwtValidationFilter(
             AuthenticationManager authenticationManager,
-            UserRepository userRepository,
-            DeviceRepository deviceRepository) {
-        return new JwtValidationFilter(authenticationManager, userRepository, deviceRepository);
-    }
-
-    @Bean
-    public DeviceValidationFilter deviceValidationFilter() {
-        return new DeviceValidationFilter();
+            AuthRepository authRepository) {
+        return new JwtValidationFilter(authenticationManager, authRepository);
     }
 
     @Bean

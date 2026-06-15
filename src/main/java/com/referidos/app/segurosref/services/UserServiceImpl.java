@@ -24,17 +24,16 @@ import com.referidos.app.segurosref.dtos.earning.MonthlyCommissionDto;
 import com.referidos.app.segurosref.dtos.earning.MonthlyDataDto;
 import com.referidos.app.segurosref.dtos.earning.MonthlyEarningDto;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
-import com.referidos.app.segurosref.helpers.UserHelper;
 import com.referidos.app.segurosref.helpers.BindingHelper;
 import com.referidos.app.segurosref.helpers.DataHelper;
-import com.referidos.app.segurosref.models.DeviceModel;
 import com.referidos.app.segurosref.models.PaymentModel;
 import com.referidos.app.segurosref.models.ReferredModel;
 import com.referidos.app.segurosref.models.TransactionComissionModel;
 import com.referidos.app.segurosref.models.TransactionModel;
+import com.referidos.app.segurosref.models.AuthModel;
 import com.referidos.app.segurosref.models.UserDataModel;
 import com.referidos.app.segurosref.models.UserModel;
-import com.referidos.app.segurosref.repositories.DeviceRepository;
+import com.referidos.app.segurosref.repositories.AuthRepository;
 import com.referidos.app.segurosref.repositories.PaymentRepository;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
 import com.referidos.app.segurosref.repositories.TransactionRepository;
@@ -51,7 +50,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
-    private final DeviceRepository deviceRepository;
+    private final AuthRepository authRepository;
 
     private final ReferredRepository referredRepository;
 
@@ -100,10 +99,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<?> changePassword(ChangePwdRequest changePwd, String emailAuth) {
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
-        UserDataModel userData = userDB.getPersonalData();
-        if(passwordEncoder.matches(changePwd.oldPwd(), userData.getPwd())) {
-            userData.setPwd(passwordEncoder.encode(changePwd.newPwd()));
-            userDB = userRepository.save(userDB);
+        AuthModel authDB = authRepository.findByEmail(emailAuth).orElseThrow();
+        if(passwordEncoder.matches(changePwd.oldPwd(), authDB.getPwd())) {
+            authDB.setPwd(passwordEncoder.encode(changePwd.newPwd()));
+            authRepository.save(authDB);
             return ResponseHelper.ok("la contraseña del usuario ha sido cambiada exitosamente", DataHelper.buildUser(userDB));
         } else {
             return ResponseHelper.locked("la contraseña antigua del usuario no coincide", null);
@@ -113,16 +112,9 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public ResponseEntity<GeneralResponse> hydrationData(String emailAuth, String updateCredential, String device) {
-        // Endpoint utilizado para refrescar la data de la aplicación, por lo tanto, un buen lugar para
-        // actualizar el refresh token, en caso de ser necesario.
+        // Endpoint utilizado para refrescar la data de la aplicación.
+        // La actualización de credenciales ahora se maneja vía Sliding Session en los headers.
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
-        // Revisar si realmente se tiene que actualizar el refresh token
-        if(updateCredential.equals("Dated")) {
-            Optional<DeviceModel> deviceOptional = deviceRepository.findByUserAndDevice(emailAuth, device);
-            if(deviceOptional.isPresent()) {
-                UserHelper.updateRefreshToken(userRepository, userDB, deviceOptional.get(), deviceRepository);
-            }
-        }
         return ResponseHelper.ok("la información de hidratación del usuario fue recuperada correctamente", DataHelper.buildUser(userDB));
     }
 
@@ -141,7 +133,8 @@ public class UserServiceImpl implements UserService {
             UserModel userB = userRepository.findByPersonalData_Email(userEmailB).orElseThrow();
             UserDataModel userDataB = userB.getPersonalData();
             // Si el usuario aún no confirma su registro, no se agrega como referido
-            if(userDataB.getRefreshToken().equals("") || userDataB.getSessionToken().equals("")) {
+            Optional<AuthModel> authOptionalB = authRepository.findByEmail(userEmailB);
+            if(authOptionalB.isEmpty() || authOptionalB.get().getRefreshToken() == null || authOptionalB.get().getRefreshToken().isEmpty()) {
                continue; 
             }
             // Luego de checkear que el registro del usuario se completo, se actualiza info dependiendo del estado
@@ -192,13 +185,7 @@ public class UserServiceImpl implements UserService {
             earnings += userBEarnings + userCEarnings;
             referredsDto.add(new ReferredDto((showStatusUserB.equals("Eliminado")) ? "No encontrado" : userEmailB, nameUserB, surnameUserB, showStatusUserB, referredsC.size(), earnings));
         }
-        // Revisamos si se tiene que actualizar el refresh token
-        if(updateCredential.equals("Dated")) {
-            Optional<DeviceModel> deviceOptional = deviceRepository.findByUserAndDevice(emailAuth, device);
-            if(deviceOptional.isPresent()) {
-                UserHelper.updateRefreshToken(userRepository, userA, deviceOptional.get(), deviceRepository);
-            }
-        }
+        // La actualización de credenciales ahora se maneja vía Sliding Session en los headers.
         return ResponseHelper.ok("se han recuperado los referidos", DataHelper.buildUser(userA, "referreds", referredsDto));
     }
 
