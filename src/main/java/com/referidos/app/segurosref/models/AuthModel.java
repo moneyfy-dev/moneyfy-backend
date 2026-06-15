@@ -30,7 +30,7 @@ public class AuthModel {
     
     private String role; // "USER", "ADMIN", etc.
 
-    private String refreshToken;
+    private boolean accountConfirmed;
 
     // Fecha a partir de la cual los tokens emitidos antes de este instante son inválidos
     private LocalDateTime tokenRevocationDate;

@@ -50,6 +50,14 @@ public class DataHelper {
         return Map.of("user", userModel, "data", data);
     }
 
+    public static Map<String, Object> buildUserAuthData(UserModel userModel, String sessionToken, String refreshToken) {
+        return Map.of(
+                "user", userModel,
+                "sessionToken", sessionToken,
+                "refreshToken", refreshToken
+        );
+    }
+
     public static LocalDate deprecatedDate() {
         return LocalDate.of(1900, 1, 1);
     }
