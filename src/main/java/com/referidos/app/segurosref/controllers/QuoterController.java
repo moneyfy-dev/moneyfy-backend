@@ -144,18 +144,17 @@ public class QuoterController {
         }
 
         @PutMapping(value = "/finalize/quote")
-        @PreAuthorize(value = "hasRole('ADMIN')")
+        @PreAuthorize(value = "permitAll()")
         @Operation(summary = "Massive finalize of quotes that are Pending", description = "Massive finalize of quotes that are Pending and it needs to be ended", tags = {
                         "Quoter Controller" }, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Provide the data to finalize the quote", required = true, content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = FinalizeQuoteRequest.class))), responses = {
                                         @ApiResponse(responseCode = "200", description = "The user's quote was finalized successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
                                         @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
                         }, parameters = {
-                                        @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
+                                        @Parameter(name = "X-Moneyfy-Api-Key", in = ParameterIn.HEADER, description = "Security parameter for some public endpoints", required = true)
                         })
-        public ResponseEntity<?> finalizeQuote(@RequestBody FinalizeQuoteRequest finalizeQuote, Authentication auth,
+        public ResponseEntity<?> finalizeQuote(@RequestBody FinalizeQuoteRequest finalizeQuote,
                         HttpServletRequest request) {
-                return quoterService.finalizeQuote(finalizeQuote, auth.getPrincipal().toString(),
-                                request.getRequestURI());
+                return quoterService.finalizeQuote(finalizeQuote, request.getRequestURI(), request);
         }
 
 }

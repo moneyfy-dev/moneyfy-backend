@@ -29,6 +29,7 @@ import com.referidos.app.segurosref.dtos.quotation.QuotationPlanDto;
 import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.QuoterHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
+import com.referidos.app.segurosref.helpers.ValidateInputHelper;
 import com.referidos.app.segurosref.integrations.bci.clients.BCIQuotationClient;
 import com.referidos.app.segurosref.integrations.email.providers.EmailAppProvider;
 import com.referidos.app.segurosref.integrations.fdi.clients.FDIQuotationClient;
@@ -60,6 +61,8 @@ import com.referidos.app.segurosref.responses.enums.BusinessCodeEnum;
 import com.referidos.app.segurosref.requests.SearchVehicleRequest;
 import com.referidos.app.segurosref.requests.SearchPlanRequest;
 import com.referidos.app.segurosref.validators.QuoterValidator;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -670,8 +673,11 @@ public class QuoterServiceImpl implements QuoterService {
     @SuppressWarnings("null")
     @Transactional
     @Override
-    public ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote, String emailAuth,
-            String requestEndpoint) {
+    public ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote, String requestEndpoint, HttpServletRequest request) {
+        if (!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("X-Moneyfy-Api-Key"))) {
+            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
+        }
+
         if (finalizeQuote == null || finalizeQuote.usersQuotes() == null) {
             return ResponseHelper.failedDependency("la data proporcionada no es correcta", "failed dependency");
         }
