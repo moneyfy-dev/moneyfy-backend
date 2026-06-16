@@ -10,8 +10,8 @@ Al recibir este comando, debes asumir el rol correspondiente (como la **Skill 3:
 
 2. **Creación del Registro (Log)**:
    - Debes crear un nuevo archivo Markdown (`.md`) dentro del directorio `agent/logs/`.
-   - El nombre del archivo debe seguir obligatoriamente el formato: `YYYY_MM_DD_HH_mm_nombre_autoexplicativo_del_registro.md`.
-     - Ejemplo: `2026_06_11_15_30_refactor_autowired_a_requiredargsconstructor.md`.
+   - El nombre del archivo debe seguir obligatoriamente el formato: `YYYY_MM_DD_HH_mm_ss_nombre_autoexplicativo_del_registro.md`.
+     - Ejemplo: `2026_06_11_15_30_00_refactor_autowired_a_requiredargsconstructor.md`.
 
 3. **Contenido del Registro**:
    - El archivo debe contener un resumen claro y conciso de los cambios realizados en la API.
