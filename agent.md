@@ -60,7 +60,7 @@ El flujo de una cotización y la transacción asociada se coordina a través de 
 3. **`Recopilando`**: Se establece cuando el usuario selecciona un plan específico y provee datos de inspección.
 4. **`Pendiente`**: Se activa al momento de generar la transacción de la propuesta formal a la aseguradora y procesar las comisiones.
 5. **`Aprobado` / `Rechazado` / `Caducado`**: Determinado por la respuesta de la aseguradora (aprobación/pago verificado e inspección completada).
-6. **`Liberado`**: Cuando el dinero acumulado de la comisión se transfiere a la cuenta bancaria del usuario.
+6. **`Pagado`**: Cuando el dinero acumulado de la comisión se transfiere a la cuenta bancaria del usuario.
 
 #### Estados de la Transacción (`TransactionModel`):
 Las transacciones se generan en el momento en que se concreta una propuesta formal. Manejan exactamente el mismo ciclo de estados que la cotización, con la salvedad de que la transacción **comienza directamente en el estado `Pendiente`** (cuando se crea el registro de la transacción asociada a la cotización).
@@ -152,7 +152,7 @@ El flujo de una cotización y la transacción asociada se coordina a través de 
 3. **`Recopilando`**: Se establece cuando el usuario selecciona un plan específico y provee datos de inspección.
 4. **`Pendiente`**: Se activa al momento de generar la transacción de la propuesta formal a la aseguradora y procesar las comisiones.
 5. **`Aprobado` / `Rechazado` / `Caducado`**: Determinado por la respuesta de la aseguradora (aprobación/pago verificado e inspección completada).
-6. **`Liberado`**: Cuando el dinero acumulado de la comisión se transfiere a la cuenta bancaria del usuario.
+6. **`Pagado`**: Cuando el dinero acumulado de la comisión se transfiere a la cuenta bancaria del usuario.
 
 #### Estados de la Transacción (`TransactionModel`):
 Las transacciones se generan en el momento en que se concreta una propuesta formal. Manejan exactamente el mismo ciclo de estados que la cotización, con la salvedad de que la transacción **comienza directamente en el estado `Pendiente`** (cuando se crea el registro de la transacción asociada a la cotización).
@@ -193,8 +193,10 @@ Para operaciones masivas (por ejemplo, el endpoint `finalizeQuote` para uso excl
 
 ## Limits and Workflow
 - [Limits and Workflow](file:///d:/wk/moneyfy/agent/limits/workflow.md): Directrices del proceso de desarrollo en la rama `eliu`, requerimientos de revisión, políticas para proponer Pull Requests y flujos de commits.
-- **Exclusión de Git**: Los directorios `/agent` y `.agent` están excluidos de Git en `.gitignore` y se mantienen de forma estrictamente local.
 
+## Documentación y MVPs (NUEVO)
+- **Documentación Específica (`agent/docs/`)**: Espacio reservado para documentos provistos por el usuario que explican contexto, estructura o detalles adicionales. El agente deberá leerlos cuando el usuario le indique utilizarlos para un requerimiento.
+- **Entregables y MVPs (`agent/mvps/`)**: Registro de los incrementales o "Minimum Viable Products" del proyecto. Ayuda a mantener alineado al agente con el objetivo principal del desarrollo en curso.
 ## Business Rules
 - [Business Rules Directory](file:///d:/wk/moneyfy/agent/business_rules/): Carpeta con reglas de negocio obligatorias.
 - [Security and Authentication](file:///d:/wk/moneyfy/agent/business_rules/security_auth.md): Estándares para el manejo de AuthModel, JWT, Sliding Session y estandarización de errores HTTP 401.
