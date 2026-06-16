@@ -9,6 +9,7 @@ import com.referidos.app.segurosref.requests.SelectPlanRequest;
 
 import com.referidos.app.segurosref.requests.SearchVehicleRequest;
 import com.referidos.app.segurosref.requests.SearchPlanRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public interface QuoterService {
 
@@ -28,7 +29,7 @@ public interface QuoterService {
     ResponseEntity<?> generateTransaction(GenerateTransactionRequest generateTransaction, String emailAuth,
             String requestEndpoint);
 
-    ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote, String emailAuth, String requestEndpoint);
+    ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote, String requestEndpoint, HttpServletRequest request);
 
     // Servicios para validaciones de datos
     void validateVehicleFinder(SearchVehicleRequest searchVehicle, BindingResult bindingResult);

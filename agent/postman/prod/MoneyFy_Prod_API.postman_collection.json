@@ -1108,8 +1108,8 @@
                         "method": "PUT",
                         "header": [
                             {
-                                "key": "Refresh-Token",
-                                "value": "{{Prod - Refresh Token}}",
+                                "key": "X-Moneyfy-Api-Key",
+                                "value": "{{Prod - API Key MoneyFy}}",
                                 "type": "text"
                             }
                         ],

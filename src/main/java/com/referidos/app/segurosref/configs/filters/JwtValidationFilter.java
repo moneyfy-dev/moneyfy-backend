@@ -61,6 +61,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             "/log/**",
             "/transaction/**",
             "/quoter/commission/**",
+            "/quoter/finalize/quote",
             "/api/v1/manager/**",
             "/swagger-ui.html",
             "/swagger-ui/**",
