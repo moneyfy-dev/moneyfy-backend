@@ -13,9 +13,12 @@ import com.referidos.app.segurosref.services.ManagerService;
 import com.referidos.app.segurosref.dtos.manager.DashboardPaginatedResponseDto;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import com.referidos.app.segurosref.dtos.manager.PayQuotesRequest;
+import jakarta.servlet.http.HttpServletRequest;
+import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
 
 import lombok.RequiredArgsConstructor;
 
@@ -61,5 +64,11 @@ public class ManagerController {
         }
 
         return managerService.payQuotes(request);
+    }
+
+    @PutMapping("/finalize/quote")
+    public ResponseEntity<?> finalizeQuote(@RequestBody FinalizeQuoteRequest finalizeQuote,
+            HttpServletRequest request) {
+        return managerService.finalizeQuote(finalizeQuote, request);
     }
 }

@@ -286,7 +286,7 @@
                         "header": [],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\r\n    \"email\": \"{{Prod - userEmail}}\",\r\n    \"type\": \"changeDevice\" // Tambi\u00e9n, pueder ser => changeDevice o restorePassword o registerUser\r\n}",
+                            "raw": "{\r\n    \"email\": \"{{Prod - userEmail}}\",\r\n    \"type\": \"changeDevice\" // También, pueder ser => changeDevice o restorePassword o registerUser\r\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -1026,7 +1026,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\r\n    \"quoterId\": \"6a28e4095b5950dfb4b6e323\",\r\n    \"planId\": \"FDI_322\",\r\n    \"insurer\": \"FDI\",\r\n    \"planName\": \"AUT\u00d3NOMO.IA TALLER DE MARCA CON/DMExt\",\r\n    \"valueUF\": 39764.84,\r\n    \"grossPriceUF\": 9.58,\r\n    \"totalMonths\": 11,\r\n    \"monthlyPriceUF\": 0.97,\r\n    \"monthlyPrice\": 38571.89,\r\n    \"deductible\": 3,\r\n    \"deductibleDesc\": \"Deducible 3 UF\",\r\n    \"discount\": 0,\r\n    \"ownerName\": \"Ramiro\",\r\n    \"ownerPaternalSur\": \"Riquelme\",\r\n    \"ownerMaternalSur\": \"Gonz\u00e1lez\",\r\n    \"street\": \"San Antonio\",\r\n    \"streetNumber\": \"190#D\",\r\n    \"department\": \"\"\r\n}",
+                            "raw": "{\r\n    \"quoterId\": \"6a28e4095b5950dfb4b6e323\",\r\n    \"planId\": \"FDI_322\",\r\n    \"insurer\": \"FDI\",\r\n    \"planName\": \"AUTÓNOMO.IA TALLER DE MARCA CON/DMExt\",\r\n    \"valueUF\": 39764.84,\r\n    \"grossPriceUF\": 9.58,\r\n    \"totalMonths\": 11,\r\n    \"monthlyPriceUF\": 0.97,\r\n    \"monthlyPrice\": 38571.89,\r\n    \"deductible\": 3,\r\n    \"deductibleDesc\": \"Deducible 3 UF\",\r\n    \"discount\": 0,\r\n    \"ownerName\": \"Ramiro\",\r\n    \"ownerPaternalSur\": \"Riquelme\",\r\n    \"ownerMaternalSur\": \"González\",\r\n    \"street\": \"San Antonio\",\r\n    \"streetNumber\": \"190#D\",\r\n    \"department\": \"\"\r\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -1089,53 +1089,6 @@
                                 "quoter",
                                 "generate",
                                 "transaction"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "finalize quote",
-                    "protocolProfileBehavior": {
-                        "strictSSL": true
-                    },
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{Prod - Session Token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "PUT",
-                        "header": [
-                            {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - API Key MoneyFy}}",
-                                "type": "text"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"usersQuotes\": [\n        {\n            \"userId\": \"user-id-1\",\n            \"quotes\": [\n                {\n                    \"quoterId\": \"quoter-1-a\",\n                    \"transactionStatus\": \"Aprobado\"\n                },\n                {\n                    \"quoterId\": \"quoter-1-b\",\n                    \"transactionStatus\": \"Rechazado\"\n                },\n                {\n                    \"quoterId\": \"quoter-1-c\",\n                    \"transactionStatus\": \"Aprobado\"\n                }\n            ]\n        },\n        {\n            \"userId\": \"user-id-2\",\n            \"quotes\": [\n                {\n                    \"quoterId\": \"quoter-2-a\",\n                    \"transactionStatus\": \"Aprobado\"\n                },\n                {\n                    \"quoterId\": \"quoter-2-b\",\n                    \"transactionStatus\": \"Aprobado\"\n                },\n                {\n                    \"quoterId\": \"quoter-2-c\",\n                    \"transactionStatus\": \"Caducado\"\n                }\n            ]\n        }\n    ]\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        },
-                        "url": {
-                            "raw": "{{Prod - URL}}/quoter/finalize/quote",
-                            "host": [
-                                "{{Prod - URL}}"
-                            ],
-                            "path": [
-                                "quoter",
-                                "finalize",
-                                "quote"
                             ]
                         }
                     },
@@ -1434,6 +1387,90 @@
                                 "manager",
                                 "dashboard",
                                 "quotes"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "finalize quote",
+                    "protocolProfileBehavior": {
+                        "strictSSL": true
+                    },
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{Prod - Session Token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "X-Moneyfy-Api-Key",
+                                "value": "{{Prod - API Key MoneyFy}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"usersQuotes\": [\n        {\n            \"userId\": \"user-id-1\",\n            \"quotes\": [\n                {\n                    \"quoterId\": \"quoter-1-a\",\n                    \"transactionStatus\": \"Aprobado\"\n                },\n                {\n                    \"quoterId\": \"quoter-1-b\",\n                    \"transactionStatus\": \"Rechazado\"\n                },\n                {\n                    \"quoterId\": \"quoter-1-c\",\n                    \"transactionStatus\": \"Aprobado\"\n                }\n            ]\n        },\n        {\n            \"userId\": \"user-id-2\",\n            \"quotes\": [\n                {\n                    \"quoterId\": \"quoter-2-a\",\n                    \"transactionStatus\": \"Aprobado\"\n                },\n                {\n                    \"quoterId\": \"quoter-2-b\",\n                    \"transactionStatus\": \"Aprobado\"\n                },\n                {\n                    \"quoterId\": \"quoter-2-c\",\n                    \"transactionStatus\": \"Caducado\"\n                }\n            ]\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{Prod - URL}}/api/v1/manager/finalize/quote",
+                            "host": [
+                                "{{Prod - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "finalize",
+                                "quote"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "pay quotes",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "X-Moneyfy-Api-Key",
+                                "value": "{{Prod - X-Moneyfy-Api-Key}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"transactions\": [\"replace-id-1\", \"replace-id-2\"]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{Prod - URL}}/api/v1/manager/pay-quotes",
+                            "host": [
+                                "{{Prod - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "pay-quotes"
                             ]
                         }
                     },
