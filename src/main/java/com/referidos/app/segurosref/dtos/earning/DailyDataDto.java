@@ -9,16 +9,15 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-@JsonPropertyOrder(value = {"month", "totalCommission", "totalAmount", "commissions"})
-public class MonthlyDataDto {
+@JsonPropertyOrder(value = {"date", "totalCommission", "totalAmount", "commissions"})
+public class DailyDataDto {
 
-    private String month;
+    private String date;
     private int totalCommission;
     private int totalAmount;
-    private List<MonthlyCommissionDto> commissions;
+    private List<DailyCommissionDto> commissions;
 
-    // Métodos de lógica, propios de la clase
-    public List<MonthlyCommissionDto> addCommission(MonthlyCommissionDto commission) {
+    public List<DailyCommissionDto> addCommission(DailyCommissionDto commission) {
         this.commissions.add(commission);
         return this.commissions;
     }

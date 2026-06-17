@@ -6,7 +6,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -20,9 +19,9 @@ import org.springframework.validation.Errors;
 
 import com.referidos.app.segurosref.dtos.ReferredDto;
 import com.referidos.app.segurosref.dtos.UserCommissionDto;
-import com.referidos.app.segurosref.dtos.earning.MonthlyCommissionDto;
-import com.referidos.app.segurosref.dtos.earning.MonthlyDataDto;
-import com.referidos.app.segurosref.dtos.earning.MonthlyEarningDto;
+import com.referidos.app.segurosref.dtos.earning.DailyCommissionDto;
+import com.referidos.app.segurosref.dtos.earning.DailyDataDto;
+import com.referidos.app.segurosref.dtos.earning.LastDaysEarningDto;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.helpers.BindingHelper;
 import com.referidos.app.segurosref.helpers.DataHelper;
@@ -274,29 +273,28 @@ public class UserServiceImpl implements UserService {
                 DataHelper.buildUser(userDB, "userPayments", userPayments));
     }
 
-    // SERVICIO PARA OBTENER LAS GANANCIAS DEL USUARIO EN LOS ÚLTIMOS 5 MESES
+    // SERVICIO PARA OBTENER LAS GANANCIAS DEL USUARIO EN LOS ÚLTIMOS 7 DÍAS
     @Transactional(readOnly = true)
     @Override
-    public ResponseEntity<GeneralResponse> monthlyEarnings(String emailAuth) {
+    public ResponseEntity<GeneralResponse> weeklyEarnings(String emailAuth) {
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         String userId = userDB.getUserId();
         LocalDateTime currentDate = LocalDateTime.now();
         DateTimeFormatter formatterDate = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        // Obtención de fecha, del último mes, de los últimos 5 meses
-        LocalDateTime lastMonth = currentDate.minusMonths(4)
-                .with(TemporalAdjusters.firstDayOfMonth())
+        // Obtención de fecha de hace 6 días (7 días contando el actual)
+        LocalDateTime lastDay = currentDate.minusDays(6)
                 .withHour(0)
                 .withMinute(0)
                 .withSecond(0)
                 .withNano(0);
         // Buscamos todas las transacciones con algún estado aceptado y que la fecha en
-        // la que fue aprobada la
-        // transacción, haya sea igual o superior a la fecha previamente obtenida.
+        // la que fue aprobada la transacción, haya sea igual o superior a la fecha
+        // previamente obtenida.
         List<TransactionModel> transactionsDB = transactionRepository
-                .findAllByApprovalDateAfterAndCommissions_UserIdAndStatusPassed(lastMonth, userId);
-        MonthlyEarningDto monthlyEarningDto = new MonthlyEarningDto(
-                this.addMonthsToMonthlyEarnings(lastMonth, formatterDate),
-                0, 0, lastMonth.format(formatterDate));
+                .findAllByApprovalDateAfterAndCommissions_UserIdAndStatusPassed(lastDay, userId);
+        LastDaysEarningDto earningDto = new LastDaysEarningDto(
+                this.addDaysToEarnings(lastDay, formatterDate),
+                0, 0, lastDay.format(formatterDate));
         int finalCommissions = 0;
         int finalAmount = 0;
         for (TransactionModel transactionDB : transactionsDB) {
@@ -306,9 +304,9 @@ public class UserServiceImpl implements UserService {
                 String transactionUserId = commissionDB.getUserId();
                 int transactionCommission = commissionDB.getUserCommission();
                 if (userId.equals(transactionUserId)) {
-                    if (!this.addCommissionToMonthlyEarnings(monthlyEarningDto, transacionId,
-                            approvalDate.substring(0, 7), transactionCommission)) {
-                        return ResponseHelper.locked("no se pudo encontrar el mes, al que corresponde la comisión",
+                    if (!this.addCommissionToDailyEarnings(earningDto, transacionId,
+                            approvalDate, transactionCommission)) {
+                        return ResponseHelper.locked("no se pudo encontrar el día, al que corresponde la comisión",
                                 null);
                     }
                     finalCommissions += transactionCommission;
@@ -318,51 +316,35 @@ public class UserServiceImpl implements UserService {
             }
         }
         // Se vuelven a establecer los valores finales
-        monthlyEarningDto.setFinalCommissions(finalCommissions);
-        monthlyEarningDto.setFinalAmount(finalAmount);
-        return ResponseHelper.ok("se han recuperado las comisiones aceptadas de los últimos 5 meses del usuario",
-                DataHelper.buildUser(userDB, "monthlyEarnings", monthlyEarningDto));
+        earningDto.setFinalCommissions(finalCommissions);
+        earningDto.setFinalAmount(finalAmount);
+        return ResponseHelper.ok("se han recuperado las comisiones aceptadas de los últimos 7 días del usuario",
+                DataHelper.buildUser(userDB, "weeklyEarnings", earningDto));
     }
 
-    // SERVICIOS HELPERS PARA OBTENER LAS GANANCIAS DE LOS ÚLTIMOS 5 MESES DEL
+    // SERVICIOS HELPERS PARA OBTENER LAS GANANCIAS DE LOS ÚLTIMOS 7 DÍAS DEL
     // USUARIO
-    // Crea la estructura de la data de cada mes
-    private List<MonthlyDataDto> addMonthsToMonthlyEarnings(LocalDateTime lastMonth, DateTimeFormatter formatterDate) {
-        // Se toman los últimos cinco meses de las comisiones, y agregamos las fechas
-        // teniendo como
-        // referencia el cálculo del último mes.
-        List<MonthlyDataDto> list = new ArrayList<>();
-        // Agregamos los meses
-        String monthStr1 = lastMonth.plusMonths(4).toLocalDate().format(formatterDate);
-        MonthlyDataDto month1 = new MonthlyDataDto(monthStr1, 0, 0, new ArrayList<>());
-        String monthStr2 = lastMonth.plusMonths(3).toLocalDate().format(formatterDate);
-        MonthlyDataDto month2 = new MonthlyDataDto(monthStr2, 0, 0, new ArrayList<>());
-        String monthStr3 = lastMonth.plusMonths(2).toLocalDate().format(formatterDate);
-        MonthlyDataDto month3 = new MonthlyDataDto(monthStr3, 0, 0, new ArrayList<>());
-        String monthStr4 = lastMonth.plusMonths(1).toLocalDate().format(formatterDate);
-        MonthlyDataDto month4 = new MonthlyDataDto(monthStr4, 0, 0, new ArrayList<>());
-        String monthStr5 = lastMonth.toLocalDate().format(formatterDate);
-        MonthlyDataDto month5 = new MonthlyDataDto(monthStr5, 0, 0, new ArrayList<>());
-        // Se agrega a la lista la estructura de la ganancia de los últimos 5 meses
-        list.add(month1);
-        list.add(month2);
-        list.add(month3);
-        list.add(month4);
-        list.add(month5);
+    // Crea la estructura de la data de cada día
+    private List<DailyDataDto> addDaysToEarnings(LocalDateTime lastDay, DateTimeFormatter formatterDate) {
+        List<DailyDataDto> list = new ArrayList<>();
+        // Agregamos desde el día más reciente hasta el más antiguo o viceversa
+        for (int i = 6; i >= 0; i--) {
+            String dayStr = lastDay.plusDays(i).toLocalDate().format(formatterDate);
+            list.add(new DailyDataDto(dayStr, 0, 0, new ArrayList<>()));
+        }
         return list;
     }
 
-    // Asigna una comisión al mes correspondiente
-    private boolean addCommissionToMonthlyEarnings(MonthlyEarningDto monthlyEarningDto, String transacionId,
-            String approvalDateYearMonth, int transactionCommission) {
-        for (MonthlyDataDto monthDto : monthlyEarningDto.getMonths()) {
-            String yearMonth = monthDto.getMonth().substring(0, 7);
-            if (approvalDateYearMonth.equals(yearMonth)) {
-                int totalCommissions = monthDto.getTotalCommission() + transactionCommission;
-                int totalAmount = monthDto.getTotalAmount() + 1;
-                monthDto.setTotalCommission(totalCommissions);
-                monthDto.setTotalAmount(totalAmount);
-                monthDto.addCommission(new MonthlyCommissionDto(transacionId, transactionCommission));
+    // Asigna una comisión al día correspondiente
+    private boolean addCommissionToDailyEarnings(LastDaysEarningDto earningDto, String transacionId,
+            String approvalDateStr, int transactionCommission) {
+        for (DailyDataDto dayDto : earningDto.getDays()) {
+            if (approvalDateStr.equals(dayDto.getDate())) {
+                int totalCommissions = dayDto.getTotalCommission() + transactionCommission;
+                int totalAmount = dayDto.getTotalAmount() + 1;
+                dayDto.setTotalCommission(totalCommissions);
+                dayDto.setTotalAmount(totalAmount);
+                dayDto.addCommission(new DailyCommissionDto(transacionId, transactionCommission));
                 return true;
             }
         }

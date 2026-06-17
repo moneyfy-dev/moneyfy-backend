@@ -24,7 +24,7 @@ public interface UserService {
 
     ResponseEntity<GeneralResponse> obtainPayments(String emailAuth);
 
-    ResponseEntity<GeneralResponse> monthlyEarnings(String emailAuth);
+    ResponseEntity<GeneralResponse> weeklyEarnings(String emailAuth);
 
     // SERVICIOS DE VALIDACIONES DE DATOS
     void validateSimpleUser(UserRegisterRequest user, Errors errors);

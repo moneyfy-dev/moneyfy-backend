@@ -617,7 +617,7 @@
                     "response": []
                 },
                 {
-                    "name": "monthly earnings",
+                    "name": "weekly earnings",
                     "request": {
                         "auth": {
                             "type": "bearer",
@@ -638,13 +638,13 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{Dev - URL}}/users/monthly/earnings",
+                            "raw": "{{Dev - URL}}/users/weekly/earnings",
                             "host": [
                                 "{{Dev - URL}}"
                             ],
                             "path": [
                                 "users",
-                                "monthly",
+                                "weekly",
                                 "earnings"
                             ]
                         }
