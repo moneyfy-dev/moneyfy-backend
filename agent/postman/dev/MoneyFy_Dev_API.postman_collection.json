@@ -82,21 +82,13 @@
                             "script": {
                                 "exec": [
                                     "var jsonData = pm.response.json();",
-                                    "if (jsonData && jsonData.data && jsonData.data.tokens) {",
-                                    "    if (jsonData.data.tokens.jwtSession) {",
-                                    "        pm.environment.set(\"Dev - Session Token\", jsonData.data.tokens.jwtSession);",
+                                    "if (jsonData && jsonData.data) {",
+                                    "    if (jsonData.data.sessionToken) {",
+                                    "        pm.environment.set(\"Dev - Session Token\", jsonData.data.sessionToken);",
                                     "    }",
-                                    "    if (jsonData.data.tokens.jwtRefresh) {",
-                                    "        pm.environment.set(\"Dev - Refresh Token\", jsonData.data.tokens.jwtRefresh);",
+                                    "    if (jsonData.data.refreshToken) {",
+                                    "        pm.environment.set(\"Dev - Refresh Token\", jsonData.data.refreshToken);",
                                     "    }",
-                                    "}",
-                                    "",
-                                    "var jsonData = pm.response.json();",
-                                    "if(jsonData && jsonData.sessionToken) {",
-                                    "    pm.environment.set(\"sessionToken\", jsonData.sessionToken);",
-                                    "}",
-                                    "if(jsonData && jsonData.refreshToken) {",
-                                    "    pm.environment.set(\"refreshToken\", jsonData.refreshToken);",
                                     "}"
                                 ],
                                 "type": "text/javascript",
@@ -170,7 +162,27 @@
                             ]
                         }
                     },
-                    "response": []
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData && jsonData.data) {",
+                                    "    if (jsonData.data.sessionToken) {",
+                                    "        pm.environment.set(\"Dev - Session Token\", jsonData.data.sessionToken);",
+                                    "    }",
+                                    "    if (jsonData.data.refreshToken) {",
+                                    "        pm.environment.set(\"Dev - Refresh Token\", jsonData.data.refreshToken);",
+                                    "    }",
+                                    "}"
+                                ],
+                                "type": "text/javascript",
+                                "packages": {}
+                            }
+                        }
+                    ]
                 },
                 {
                     "name": "restore password",
@@ -239,42 +251,27 @@
                             ]
                         }
                     },
-                    "response": []
-                },
-                {
-                    "name": "confirm device change",
-                    "protocolProfileBehavior": {
-                        "strictSSL": true
-                    },
-                    "request": {
-                        "auth": {
-                            "type": "noauth"
-                        },
-                        "method": "PUT",
-                        "header": [],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\r\n    \"email\": \"{{Dev - userEmail}}\",\r\n    \"code\": \"453669\"\r\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData && jsonData.data) {",
+                                    "    if (jsonData.data.sessionToken) {",
+                                    "        pm.environment.set(\"Dev - Session Token\", jsonData.data.sessionToken);",
+                                    "    }",
+                                    "    if (jsonData.data.refreshToken) {",
+                                    "        pm.environment.set(\"Dev - Refresh Token\", jsonData.data.refreshToken);",
+                                    "    }",
+                                    "}"
+                                ],
+                                "type": "text/javascript",
+                                "packages": {}
                             }
-                        },
-                        "url": {
-                            "raw": "{{Dev - URL}}/auth/confirm/device/change",
-                            "host": [
-                                "{{Dev - URL}}"
-                            ],
-                            "path": [
-                                "auth",
-                                "confirm",
-                                "device",
-                                "change"
-                            ]
                         }
-                    },
-                    "response": []
+                    ]
                 },
                 {
                     "name": "resend authorization code",
@@ -1185,7 +1182,7 @@
             ]
         },
         {
-            "name": "Cities",
+            "name": "Regions",
             "item": [
                 {
                     "name": "find all",
@@ -1214,7 +1211,7 @@
                                 "{{Dev - URL}}"
                             ],
                             "path": [
-                                "cities",
+                                "regions",
                                 "find",
                                 "all"
                             ]
@@ -1228,7 +1225,7 @@
             "name": "Seed",
             "item": [
                 {
-                    "name": "seed cities",
+                    "name": "seed regions",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -1248,13 +1245,13 @@
                             }
                         },
                         "url": {
-                            "raw": "{{Dev - URL}}/seed/cities",
+                            "raw": "{{Dev - URL}}/seed/regions",
                             "host": [
                                 "{{Dev - URL}}"
                             ],
                             "path": [
                                 "seed",
-                                "cities"
+                                "regions"
                             ]
                         }
                     },

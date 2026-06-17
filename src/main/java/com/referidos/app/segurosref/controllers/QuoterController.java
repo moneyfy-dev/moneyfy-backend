@@ -138,9 +138,8 @@ public class QuoterController {
                                         @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
                         })
         public ResponseEntity<?> generateTransaction(@RequestBody GenerateTransactionRequest generateTransaction,
-                        Authentication auth, HttpServletRequest request) {
-                return quoterService.generateTransaction(generateTransaction, auth.getPrincipal().toString(),
-                                request.getRequestURI());
+                        Authentication auth) {
+                return quoterService.generateTransaction(generateTransaction, auth.getPrincipal().toString());
         }
 
         @PutMapping(value = "/finalize/quote")

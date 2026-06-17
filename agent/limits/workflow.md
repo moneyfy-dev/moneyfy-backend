@@ -11,14 +11,16 @@ Este documento define las reglas estrictas de desarrollo y el flujo de trabajo q
 1. **Rama de Trabajo Obligatoria (`eliu`)**:
    - Todos los cambios, experimentos y desarrollos de código se deben realizar exclusivamente en la rama `eliu`.
    - **NUNCA** realices commits directos o mezclas automáticas a la rama principal.
-   - **Exclusión de Git para `/agent` y `.agent`**: El directorio `/agent` y el archivo/directorio `.agent` están excluidos de Git en `.gitignore`. Por política del proyecto, todo este contexto de documentación y configuración se mantiene de forma estrictamente local y sin seguimiento de Git.
+   - **Seguimiento de Git para el Agente**: El directorio `/agent` está bajo seguimiento de control de versiones. Todo cambio en la documentación o contexto debe ser comiteado junto con el código.
 
-2. **Proceso de Revisión**:
+2. **Proceso de Revisión y Resúmenes**:
    - Todos los cambios realizados por el agente deben ser presentados y estar listos para ser revisados por el usuario para su posterior confirmación.
-   
+   - **Resúmenes Técnicos (`agent/summary/`)**: La creación de resúmenes o reportes técnicos en esta carpeta se hará **solo cuando el usuario lo solicite**. Una vez revisados, el usuario indicará que se vacíe/limpie la carpeta.
+
 3. **Flujo del Comando $/target y Pull Requests (PR)**:
    - El desarrollo se organiza en torno al comando [$/target](file:///d:/wk/moneyfy/agent/commands$/target.md), el cual asume de manera obligatoria la **Skill 1: Desarrollador Backend Senior**.
    - Un **Target** consiste en cumplir con un requerimiento de negocio específico a través de la creación, modificación o refactorización de flujos de la API REST.
+   - **Manejo de Artefactos (`agent/artifacts/`)**: Los archivos de artefactos (ej: `implementation_plan.md`, `task.md`) deben utilizarse durante el requerimiento. Sin embargo, al completar el target exitosamente, **su contenido debe vaciarse**, dejándolos limpios para el siguiente requerimiento.
    - **Cumplimiento del Requerimiento**: Una vez completado y verificado el requerimiento, el agente puede proponer o aconsejar la apertura de una Pull Request (PR) a la rama principal. Esta PR será revisada y aprobada por el usuario.
    - **Requerimiento Incompleto**: Si al finalizar la ejecución del comando aún no se cumple en su totalidad o faltan detalles, se continuará el desarrollo en la rama `eliu` incorporando las indicaciones extras, feedback y detalles que el usuario provea sobre lo que faltó para completarlo.
 
@@ -32,7 +34,7 @@ Este documento define las reglas estrictas de desarrollo y el flujo de trabajo q
    - Si existen cambios pendientes, se debe **sugerir y recomendar** al usuario la ejecución del comando [$/commit](file:///d:/wk/moneyfy/agent/commands/commit.md). **NUNCA debes ejecutar este comando de forma autónoma sin que el usuario lo solicite explícitamente o lo confirme.**
    - Este comando realiza la preparación (`git add`) y confirmación (`git commit`) de los cambios en la rama de desarrollo `eliu`.
    - **Mensaje de Commit**: Obligatoriamente en inglés, descriptivo y siguiendo buenas prácticas.
-   - **Historial (NUEVO)**: Inmediatamente después de que el commit sea exitoso, el agente debe recomendar o ejecutar el comando `$/log` para registrar este avance en el historial.
+   - **Historial (NUEVO)**: Inmediatamente después de que el commit sea exitoso, el agente debe recomendar o ejecutar el comando `$/log` para registrar este avance en el historial. El formato del archivo debe ser `YYYY_MM_DD_HH_mm_ss_nombre.md`.
    - **Exclusividad**: Solo en la rama `eliu` usando la **Skill 1: Desarrollador Backend Senior**.
 
 6. **Stack Tecnológico y Contexto de la API**:

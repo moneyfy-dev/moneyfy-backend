@@ -9,9 +9,10 @@ import jakarta.servlet.http.HttpServletRequest;
 public interface SeedService {
 
     // Servicios para registrar información esencial a la API
-    ResponseEntity<?> checkCities(HttpServletRequest request, SeedRequest seedRequest);
+    ResponseEntity<?> checkRegions(HttpServletRequest request, SeedRequest seedRequest);
 
     ResponseEntity<?> checkInsurers(HttpServletRequest request, SeedRequest seedRequest);
+
     ResponseEntity<?> checkBrands(HttpServletRequest request, SeedRequest seedRequest);
-    
+
 }

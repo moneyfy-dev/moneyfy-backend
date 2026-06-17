@@ -4,8 +4,8 @@ Este documento registra los flujos de negocio que están proyectados para desarr
 
 ## 1. Flujo de Liberación de Comisiones
 - **Estado Actual**: Las cotizaciones llegan hasta el estado final `"Aprobado"`, `"Rechazado"` o `"Caducado"`.
-- **Flujo Pendiente**: Existe una fase posterior donde una cotización con estado `"Aprobado"` transita al estado `"Liberado"`.
-- **Lógica de Negocio Proyectada**: El estado `"Liberado"` representa el momento en que las comisiones retenidas (que se encuentran en el "saldo disponible") son efectivamente **pagadas/liberadas** a los usuarios (referidores).
+- **Flujo Pendiente**: Existe una fase posterior donde una cotización con estado `"Aprobado"` transita al estado `"Pagado"`.
+- **Lógica de Negocio Proyectada**: El estado `"Pagado"` representa el momento en que las comisiones retenidas (que se encuentran en el "saldo disponible") son efectivamente **pagadas/liberadas** a los usuarios (referidores).
 - **Impacto**: Esto probablemente involucrará la lógica de la billetera virtual del usuario (Wallet/WalletBalance), el registro histórico de comisiones (Transactions) y posibles comprobantes de pago. No pertenece al flujo inicial del Dashboard, pero debe contemplarse arquitectónicamente a futuro para no bloquear su implementación.
 
 ## 2. Ajuste de Seguridad: Rol de Administrador

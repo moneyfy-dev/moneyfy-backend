@@ -82,12 +82,12 @@
                             "script": {
                                 "exec": [
                                     "var jsonData = pm.response.json();",
-                                    "if (jsonData && jsonData.data && jsonData.data.tokens) {",
-                                    "    if (jsonData.data.tokens.jwtSession) {",
-                                    "        pm.environment.set(\"Prod - Session Token\", jsonData.data.tokens.jwtSession);",
+                                    "if (jsonData && jsonData.data) {",
+                                    "    if (jsonData.data.sessionToken) {",
+                                    "        pm.environment.set(\"Prod - Session Token\", jsonData.data.sessionToken);",
                                     "    }",
-                                    "    if (jsonData.data.tokens.jwtRefresh) {",
-                                    "        pm.environment.set(\"Prod - Refresh Token\", jsonData.data.tokens.jwtRefresh);",
+                                    "    if (jsonData.data.refreshToken) {",
+                                    "        pm.environment.set(\"Prod - Refresh Token\", jsonData.data.refreshToken);",
                                     "    }",
                                     "}"
                                 ],
@@ -162,7 +162,27 @@
                             ]
                         }
                     },
-                    "response": []
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData && jsonData.data) {",
+                                    "    if (jsonData.data.sessionToken) {",
+                                    "        pm.environment.set(\"Prod - Session Token\", jsonData.data.sessionToken);",
+                                    "    }",
+                                    "    if (jsonData.data.refreshToken) {",
+                                    "        pm.environment.set(\"Prod - Refresh Token\", jsonData.data.refreshToken);",
+                                    "    }",
+                                    "}"
+                                ],
+                                "type": "text/javascript",
+                                "packages": {}
+                            }
+                        }
+                    ]
                 },
                 {
                     "name": "restore password",
@@ -231,42 +251,27 @@
                             ]
                         }
                     },
-                    "response": []
-                },
-                {
-                    "name": "confirm device change",
-                    "protocolProfileBehavior": {
-                        "strictSSL": true
-                    },
-                    "request": {
-                        "auth": {
-                            "type": "noauth"
-                        },
-                        "method": "PUT",
-                        "header": [],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\r\n    \"email\": \"{{Prod - userEmail}}\",\r\n    \"code\": \"453669\"\r\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData && jsonData.data) {",
+                                    "    if (jsonData.data.sessionToken) {",
+                                    "        pm.environment.set(\"Prod - Session Token\", jsonData.data.sessionToken);",
+                                    "    }",
+                                    "    if (jsonData.data.refreshToken) {",
+                                    "        pm.environment.set(\"Prod - Refresh Token\", jsonData.data.refreshToken);",
+                                    "    }",
+                                    "}"
+                                ],
+                                "type": "text/javascript",
+                                "packages": {}
                             }
-                        },
-                        "url": {
-                            "raw": "{{Prod - URL}}/auth/confirm/device/change",
-                            "host": [
-                                "{{Prod - URL}}"
-                            ],
-                            "path": [
-                                "auth",
-                                "confirm",
-                                "device",
-                                "change"
-                            ]
                         }
-                    },
-                    "response": []
+                    ]
                 },
                 {
                     "name": "resend authorization code",
@@ -1177,7 +1182,7 @@
             ]
         },
         {
-            "name": "Cities",
+            "name": "Regions",
             "item": [
                 {
                     "name": "find all",
@@ -1206,7 +1211,7 @@
                                 "{{Prod - URL}}"
                             ],
                             "path": [
-                                "cities",
+                                "regions",
                                 "find",
                                 "all"
                             ]
@@ -1220,7 +1225,7 @@
             "name": "Seed",
             "item": [
                 {
-                    "name": "seed cities",
+                    "name": "seed regions",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -1240,13 +1245,13 @@
                             }
                         },
                         "url": {
-                            "raw": "{{Prod - URL}}/seed/cities",
+                            "raw": "{{Prod - URL}}/seed/regions",
                             "host": [
                                 "{{Prod - URL}}"
                             ],
                             "path": [
                                 "seed",
-                                "cities"
+                                "regions"
                             ]
                         }
                     },

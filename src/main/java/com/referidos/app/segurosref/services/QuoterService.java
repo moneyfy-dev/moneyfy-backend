@@ -26,10 +26,10 @@ public interface QuoterService {
 
     ResponseEntity<?> selectPlan(SelectPlanRequest planSelected, String emailAuth);
 
-    ResponseEntity<?> generateTransaction(GenerateTransactionRequest generateTransaction, String emailAuth,
-            String requestEndpoint);
+    ResponseEntity<?> generateTransaction(GenerateTransactionRequest generateTransaction, String emailAuth);
 
-    ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote, String requestEndpoint, HttpServletRequest request);
+    ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote, String requestEndpoint,
+            HttpServletRequest request);
 
     // Servicios para validaciones de datos
     void validateVehicleFinder(SearchVehicleRequest searchVehicle, BindingResult bindingResult);
