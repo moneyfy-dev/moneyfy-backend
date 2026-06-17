@@ -82,21 +82,17 @@
                             "script": {
                                 "exec": [
                                     "var jsonData = pm.response.json();",
-                                    "if (jsonData && jsonData.data && jsonData.data.tokens) {",
-                                    "    if (jsonData.data.tokens.jwtSession) {",
-                                    "        pm.environment.set(\"Dev - Session Token\", jsonData.data.tokens.jwtSession);",
+                                    "if (jsonData && jsonData.data) {",
+                                    "    if (jsonData.data.sessionToken) {",
+                                    "        pm.environment.set(\"Dev - Session Token\", jsonData.data.sessionToken);",
+                                    "        pm.environment.set(\"Prod - Session Token\", jsonData.data.sessionToken);",
+                                    "        pm.environment.set(\"sessionToken\", jsonData.data.sessionToken);",
                                     "    }",
-                                    "    if (jsonData.data.tokens.jwtRefresh) {",
-                                    "        pm.environment.set(\"Dev - Refresh Token\", jsonData.data.tokens.jwtRefresh);",
+                                    "    if (jsonData.data.refreshToken) {",
+                                    "        pm.environment.set(\"Dev - Refresh Token\", jsonData.data.refreshToken);",
+                                    "        pm.environment.set(\"Prod - Refresh Token\", jsonData.data.refreshToken);",
+                                    "        pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
                                     "    }",
-                                    "}",
-                                    "",
-                                    "var jsonData = pm.response.json();",
-                                    "if(jsonData && jsonData.sessionToken) {",
-                                    "    pm.environment.set(\"sessionToken\", jsonData.sessionToken);",
-                                    "}",
-                                    "if(jsonData && jsonData.refreshToken) {",
-                                    "    pm.environment.set(\"refreshToken\", jsonData.refreshToken);",
                                     "}"
                                 ],
                                 "type": "text/javascript",
@@ -1185,7 +1181,7 @@
             ]
         },
         {
-            "name": "Cities",
+            "name": "Regions",
             "item": [
                 {
                     "name": "find all",
