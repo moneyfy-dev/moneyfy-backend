@@ -12,28 +12,28 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Data;
 
 @Data
-@JsonPropertyOrder(value = {"cityId", "city", "locations"})
-@Document(collection = "cities")
-public class CityModel {
+@JsonPropertyOrder(value = { "regionId", "region", "locations" })
+@Document(collection = "regions")
+public class RegionModel {
 
     @Id
-    private ObjectId cityId;
-    private String city;
+    private ObjectId regionId;
+    private String region;
     private List<String> locations;
 
     // Constructor personalizado
-    public CityModel(String city) {
+    public RegionModel(String region) {
         this.locations = new ArrayList<>();
-        this.city = city;
+        this.region = region;
     }
 
     // Getter personalizado, para obtener el id sin la estructura de objeto.
-    public String getCityId() {
-        return this.cityId.toString();
+    public String getRegionId() {
+        return this.regionId.toString();
     }
 
     // Métodos de lógica, propios de la clase
-    public CityModel addLocation(String location) {
+    public RegionModel addLocation(String location) {
         this.locations.add(location);
         return this;
     }

@@ -14,10 +14,10 @@ import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.helpers.SeedHelper;
 import com.referidos.app.segurosref.helpers.ValidateInputHelper;
 import com.referidos.app.segurosref.models.BrandModel;
-import com.referidos.app.segurosref.models.CityModel;
+import com.referidos.app.segurosref.models.RegionModel;
 import com.referidos.app.segurosref.models.InsurerModel;
 import com.referidos.app.segurosref.repositories.BrandRepository;
-import com.referidos.app.segurosref.repositories.CityRepository;
+import com.referidos.app.segurosref.repositories.RegionRepository;
 import com.referidos.app.segurosref.repositories.InsurerRepository;
 import com.referidos.app.segurosref.requests.SeedRequest;
 
@@ -32,7 +32,7 @@ public class SeedServiceImpl implements SeedService {
 
     private final SeedHelper seedHelper;
 
-    private final CityRepository cityRepository;
+    private final RegionRepository regionRepository;
 
     private final InsurerRepository insurerRepository;
 
@@ -40,19 +40,19 @@ public class SeedServiceImpl implements SeedService {
 
     @Transactional
     @Override
-    public ResponseEntity<?> checkCities(HttpServletRequest request, SeedRequest seedRequest) {
+    public ResponseEntity<?> checkRegions(HttpServletRequest request, SeedRequest seedRequest) {
         if (!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("X-Moneyfy-Api-Key"))) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }
         boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
-        Object[] objCities = seedHelper.updateCities(cityRepository, refreshData);
-        String message = (String) objCities[0];
+        Object[] objRegions = seedHelper.updateRegions(regionRepository, refreshData);
+        String message = (String) objRegions[0];
         @SuppressWarnings("unchecked")
-        List<CityModel> cities = (List<CityModel>) objCities[1];
+        List<RegionModel> regions = (List<RegionModel>) objRegions[1];
         // Construimos data para que el cuerpo de la solitud sea ordenada
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("message", message);
-        data.put("cities", cities);
+        data.put("regions", regions);
         return ResponseHelper.ok("se ha logrado hacer la petición", data);
     }
 

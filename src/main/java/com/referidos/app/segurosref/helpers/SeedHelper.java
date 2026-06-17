@@ -10,200 +10,199 @@ import org.springframework.transaction.annotation.Transactional;
 import com.referidos.app.segurosref.models.BrandDataModel;
 import com.referidos.app.segurosref.models.BrandInsurerModel;
 import com.referidos.app.segurosref.models.BrandModel;
-import com.referidos.app.segurosref.models.CityModel;
+import com.referidos.app.segurosref.models.RegionModel;
 import com.referidos.app.segurosref.models.InsurerModel;
 import com.referidos.app.segurosref.repositories.BrandRepository;
-import com.referidos.app.segurosref.repositories.CityRepository;
+import com.referidos.app.segurosref.repositories.RegionRepository;
 import com.referidos.app.segurosref.repositories.InsurerRepository;
 
 @Component
 public class SeedHelper {
 
-    // Actualizar las ciudades de la base de datos
-    public Object[] updateCities(CityRepository cityRepository, boolean refreshData) {
-        List<CityModel> cities = this.buildCities();
+    // Actualizar las regiones de la base de datos
+    public Object[] updateRegions(RegionRepository regionRepository, boolean refreshData) {
+        List<RegionModel> regions = this.buildRegions();
         if (refreshData) {
-            cityRepository.deleteAll();
-            if (cities.size() > 0) {
-                cities = cityRepository.saveAll(cities);
+            regionRepository.deleteAll();
+            if (regions.size() > 0) {
+                regions = regionRepository.saveAll(regions);
             }
-            return new Object[] { "Se han registrado las ciudades nuevamente", cities };
+            return new Object[] { "Se han registrado las regiones nuevamente", regions };
         }
         // Se compara la data actual vs la data de la DB para actualizarla
-        List<CityModel> citiesDB = cityRepository.findAll();
-        if (citiesDB.isEmpty()) {
-            if (cities.size() > 0) {
-                cities = cityRepository.saveAll(cities);
+        List<RegionModel> regionsDB = regionRepository.findAll();
+        if (regionsDB.isEmpty()) {
+            if (regions.size() > 0) {
+                regions = regionRepository.saveAll(regions);
             }
-            return new Object[] { "Se han registrado las ciudades", cities };
+            return new Object[] { "Se han registrado las regiones", regions };
         }
         // Existe data en la DB, así que hay que comparar
-        for (CityModel city : cities) {
-            String cityName = city.getCity();
-            boolean isCity = false;
-            for (CityModel cityDB : citiesDB) {
-                String cityNameDB = cityDB.getCity();
-                if (cityName.equals(cityNameDB)) {
-                    isCity = true;
-                    // Existe la ciudad, ahora hay que verificar si existen todas las comunas de la
-                    // ciudad
-                    for (String location : city.getLocations()) {
+        for (RegionModel region : regions) {
+            String regionName = region.getRegion();
+            boolean isRegion = false;
+            for (RegionModel regionDB : regionsDB) {
+                String regionNameDB = regionDB.getRegion();
+                if (regionName.equals(regionNameDB)) {
+                    isRegion = true;
+                    // Existe la región, ahora hay que verificar si existen todas las localidades de
+                    // la región
+                    for (String location : region.getLocations()) {
                         boolean isLocation = false;
-                        for (String locationDB : cityDB.getLocations()) {
+                        for (String locationDB : regionDB.getLocations()) {
                             if (location.equals(locationDB)) {
                                 isLocation = true;
                                 break;
                             }
                         }
-                        // Si la comuna no existe se agrega a la ciudad
+                        // Si la localidad no existe se agrega a la región
                         if (!isLocation) {
-                            cityDB.addLocation(location);
+                            regionDB.addLocation(location);
                         }
                     }
                     break;
                 }
             }
-            if (!isCity) {
-                citiesDB.add(city);
+            if (!isRegion) {
+                regionsDB.add(region);
             }
         }
-        citiesDB = cityRepository.saveAll(citiesDB);
-        return new Object[] { "Se han actualizado las ciudades", citiesDB };
+        regionsDB = regionRepository.saveAll(regionsDB);
+        return new Object[] { "Se han actualizado las regiones", regionsDB };
     }
 
-    // Lista de ciudades para inyectar en la DB, en caso de no estar
-    private List<CityModel> buildCities() {
-        List<CityModel> cityList = new ArrayList<>();
-        cityList.add(new CityModel("Arica").addLocation("Arica").addLocation("Camarones"));
-        cityList.add(new CityModel("Parinacota").addLocation("Putre").addLocation("General Lagos"));
-        cityList.add(new CityModel("Iquique").addLocation("Iquique").addLocation("Alto Hospicio"));
-        cityList.add(new CityModel("Tamarugal").addLocation("Pozo Almonte").addLocation("Camiña")
-                .addLocation("Colchane").addLocation("Huara").addLocation("Pica"));
-        cityList.add(new CityModel("Antofagasta").addLocation("Antofagasta").addLocation("Mejillones")
-                .addLocation("Sierra Gorda").addLocation("Taltal"));
-        cityList.add(new CityModel("El Loa").addLocation("Calama").addLocation("Ollague")
-                .addLocation("San Pedro De Atacama"));
-        cityList.add(new CityModel("Tocopilla").addLocation("Tocopilla").addLocation("María Elena"));
-        cityList.add(
-                new CityModel("Copiapó").addLocation("Copiapó").addLocation("Caldera").addLocation("Tierra Amarilla"));
-        cityList.add(new CityModel("Chañaral").addLocation("Chañaral").addLocation("Diego De Almagro"));
-        cityList.add(new CityModel("Huasco").addLocation("Vallenar").addLocation("Alto Del Carmen")
-                .addLocation("Freirina").addLocation("Huasco"));
-        cityList.add(new CityModel("Elqui").addLocation("La Serena").addLocation("Coquimbo").addLocation("Andacollo")
-                .addLocation("La Higuera").addLocation("Paiguano").addLocation("Vicuña"));
-        cityList.add(new CityModel("Choapa").addLocation("Illapel").addLocation("Canela").addLocation("Los Vilos")
-                .addLocation("Salamanca"));
-        cityList.add(new CityModel("Limarí").addLocation("Ovalle").addLocation("Combarbalá").addLocation("Monte Patria")
-                .addLocation("Punitaqui").addLocation("Río Hurtado"));
-        cityList.add(new CityModel("Valparaíso").addLocation("Valparaíso").addLocation("Casablanca")
-                .addLocation("Concón").addLocation("Juan Fernández").addLocation("Puchuncaví").addLocation("Quintero")
-                .addLocation("Viña Del Mar"));
-        cityList.add(new CityModel("Isla De Pascua").addLocation("Isla De Pascua"));
-        cityList.add(new CityModel("Los Andes").addLocation("Los Andes").addLocation("Calle Larga")
-                .addLocation("Rinconada").addLocation("San Esteban"));
-        cityList.add(new CityModel("Petorca").addLocation("La Ligua").addLocation("Cabildo").addLocation("Papudo")
-                .addLocation("Petorca").addLocation("Zapallar"));
-        cityList.add(new CityModel("Quillota").addLocation("Quillota").addLocation("Calera").addLocation("Hijuelas")
-                .addLocation("La Cruz").addLocation("Nogales"));
-        cityList.add(new CityModel("San Antonio").addLocation("San Antonio").addLocation("Algarrobo")
-                .addLocation("Cartagena").addLocation("El Quisco").addLocation("El Tabo").addLocation("Santo Domingo"));
-        cityList.add(new CityModel("San Felipe").addLocation("San Felipe").addLocation("Catemu").addLocation("Llaillay")
-                .addLocation("Panquehue").addLocation("Putaendo").addLocation("Santa María"));
-        cityList.add(new CityModel("Marga Marga").addLocation("Quilpué").addLocation("Limache").addLocation("Olmué")
-                .addLocation("Villa Alemana"));
-        cityList.add(new CityModel("Santiago").addLocation("Santiago").addLocation("Cerrillos")
-                .addLocation("Cerro Navia").addLocation("Conchalí").addLocation("El Bosque")
-                .addLocation("Estación Central").addLocation("Huechuraba").addLocation("Independencia")
-                .addLocation("La Cisterna").addLocation("La Florida").addLocation("La Granja").addLocation("La Pintana")
-                .addLocation("La Reina").addLocation("Las Condes").addLocation("Lo Barnechea").addLocation("Lo Espejo")
+    // Lista de regiones para inyectar en la DB, en caso de no estar
+    private List<RegionModel> buildRegions() {
+        List<RegionModel> regionList = new ArrayList<>();
+        regionList.add(new RegionModel("Arica y Parinacota").addLocation("Arica").addLocation("Camarones")
+                .addLocation("Putre").addLocation("General Lagos"));
+        regionList.add(new RegionModel("Tarapacá").addLocation("Iquique").addLocation("Alto Hospicio")
+                .addLocation("Pozo Almonte").addLocation("Camiña").addLocation("Colchane")
+                .addLocation("Huara").addLocation("Pica"));
+        regionList.add(new RegionModel("Antofagasta").addLocation("Antofagasta").addLocation("Mejillones")
+                .addLocation("Sierra Gorda").addLocation("Taltal").addLocation("Calama")
+                .addLocation("Ollague").addLocation("San Pedro De Atacama").addLocation("Tocopilla")
+                .addLocation("María Elena"));
+        regionList.add(new RegionModel("Atacama").addLocation("Copiapó").addLocation("Caldera")
+                .addLocation("Tierra Amarilla").addLocation("Chañaral").addLocation("Diego De Almagro")
+                .addLocation("Vallenar").addLocation("Alto Del Carmen").addLocation("Freirina")
+                .addLocation("Huasco"));
+        regionList.add(new RegionModel("Coquimbo").addLocation("La Serena").addLocation("Coquimbo")
+                .addLocation("Andacollo").addLocation("La Higuera").addLocation("Paiguano")
+                .addLocation("Vicuña").addLocation("Illapel").addLocation("Canela")
+                .addLocation("Los Vilos").addLocation("Salamanca").addLocation("Ovalle")
+                .addLocation("Combarbalá").addLocation("Monte Patria").addLocation("Punitaqui")
+                .addLocation("Río Hurtado"));
+        regionList.add(new RegionModel("Valparaiso").addLocation("Valparaíso").addLocation("Casablanca")
+                .addLocation("Concón").addLocation("Juan Fernández").addLocation("Puchuncaví")
+                .addLocation("Quintero").addLocation("Viña Del Mar").addLocation("Isla De Pascua")
+                .addLocation("Los Andes").addLocation("Calle Larga").addLocation("Rinconada")
+                .addLocation("San Esteban").addLocation("La Ligua").addLocation("Cabildo")
+                .addLocation("Papudo").addLocation("Petorca").addLocation("Zapallar")
+                .addLocation("Quillota").addLocation("Calera").addLocation("Hijuelas")
+                .addLocation("La Cruz").addLocation("Nogales").addLocation("San Antonio")
+                .addLocation("Algarrobo").addLocation("Cartagena").addLocation("El Quisco")
+                .addLocation("El Tabo").addLocation("Santo Domingo").addLocation("San Felipe")
+                .addLocation("Catemu").addLocation("Llaillay").addLocation("Panquehue")
+                .addLocation("Putaendo").addLocation("Santa María").addLocation("Quilpué")
+                .addLocation("Limache").addLocation("Olmué").addLocation("Villa Alemana"));
+        regionList.add(new RegionModel("Metropolitana de Santiago").addLocation("Santiago")
+                .addLocation("Cerrillos").addLocation("Cerro Navia").addLocation("Conchalí")
+                .addLocation("El Bosque").addLocation("Estación Central").addLocation("Huechuraba")
+                .addLocation("Independencia").addLocation("La Cisterna").addLocation("La Florida")
+                .addLocation("La Granja").addLocation("La Pintana").addLocation("La Reina")
+                .addLocation("Las Condes").addLocation("Lo Barnechea").addLocation("Lo Espejo")
                 .addLocation("Lo Prado").addLocation("Macul").addLocation("Maipú").addLocation("Ñuñoa")
                 .addLocation("Pedro Aguirre Cerda").addLocation("Peñalolén").addLocation("Providencia")
-                .addLocation("Pudahuel").addLocation("Quilicura").addLocation("Quinta Normal").addLocation("Recoleta")
-                .addLocation("Renca").addLocation("San Joaquín").addLocation("San Miguel").addLocation("San Ramón")
-                .addLocation("Vitacura"));
-        cityList.add(new CityModel("Cordillera").addLocation("Puente Alto").addLocation("Pirque")
-                .addLocation("San José De Maipo"));
-        cityList.add(new CityModel("Chacabuco").addLocation("Colina").addLocation("Lampa").addLocation("Tiltil"));
-        cityList.add(new CityModel("Maipo").addLocation("San Bernardo").addLocation("Buin")
-                .addLocation("Calera De Tango").addLocation("Paine"));
-        cityList.add(new CityModel("Melipilla").addLocation("Melipilla").addLocation("Alhué").addLocation("Curacaví")
-                .addLocation("María Pinto").addLocation("San Pedro"));
-        cityList.add(new CityModel("Talagante").addLocation("Talagante").addLocation("El Monte")
-                .addLocation("Isla De Maipo").addLocation("Padre Hurtado").addLocation("Peñaflor"));
-        cityList.add(new CityModel("Cachapoal").addLocation("Rancagua").addLocation("Codegua").addLocation("Coinco")
-                .addLocation("Coltauco").addLocation("Doñihue").addLocation("Graneros").addLocation("Las Cabras")
-                .addLocation("Machali").addLocation("Malloa").addLocation("Mostazal").addLocation("El Olivar")
-                .addLocation("Peumo").addLocation("Pichidegua").addLocation("Quinta De Tilcoco").addLocation("Rengo")
-                .addLocation("Requinoa").addLocation("San Vicente"));
-        cityList.add(new CityModel("Cardenal Caro").addLocation("Pichilemu").addLocation("La Estrella")
-                .addLocation("Litueche").addLocation("Marchihue").addLocation("Navidad").addLocation("Paredones"));
-        cityList.add(new CityModel("Colchagua").addLocation("San Fernando").addLocation("Chépica")
-                .addLocation("Chimbarongo").addLocation("Lolol").addLocation("Nancagua").addLocation("Palmilla")
-                .addLocation("Peralillo").addLocation("Placilla").addLocation("Pumanque").addLocation("Santa Cruz"));
-        cityList.add(new CityModel("Talca").addLocation("Talca").addLocation("Constitución").addLocation("Curepto")
-                .addLocation("Empedrado").addLocation("Maule").addLocation("Pelarco").addLocation("Pencahue")
-                .addLocation("Río Claro").addLocation("San Clemente").addLocation("San Rafael"));
-        cityList.add(new CityModel("Cauquenes").addLocation("Cauquenes").addLocation("Chanco").addLocation("Pelluhue"));
-        cityList.add(new CityModel("Curicó").addLocation("Curicó").addLocation("Hualañe").addLocation("Licantén")
-                .addLocation("Molina").addLocation("Rauco").addLocation("Romeral").addLocation("Sagrada Familia")
-                .addLocation("Teno").addLocation("Vichuquén"));
-        cityList.add(new CityModel("Linares").addLocation("Linares").addLocation("Colbún").addLocation("Longaví")
-                .addLocation("Parral").addLocation("Retiro").addLocation("San Javier").addLocation("Villa Alegre")
+                .addLocation("Pudahuel").addLocation("Quilicura").addLocation("Quinta Normal")
+                .addLocation("Recoleta").addLocation("Renca").addLocation("San Joaquín")
+                .addLocation("San Miguel").addLocation("San Ramón").addLocation("Vitacura")
+                .addLocation("Puente Alto").addLocation("Pirque").addLocation("San José De Maipo")
+                .addLocation("Colina").addLocation("Lampa").addLocation("Tiltil")
+                .addLocation("San Bernardo").addLocation("Buin").addLocation("Calera De Tango")
+                .addLocation("Paine").addLocation("Melipilla").addLocation("Alhué")
+                .addLocation("Curacaví").addLocation("María Pinto").addLocation("San Pedro")
+                .addLocation("Talagante").addLocation("El Monte").addLocation("Isla De Maipo")
+                .addLocation("Padre Hurtado").addLocation("Peñaflor"));
+        regionList.add(new RegionModel("Libertador General Bernardo O'Higgins").addLocation("Rancagua")
+                .addLocation("Codegua").addLocation("Coinco").addLocation("Coltauco")
+                .addLocation("Doñihue").addLocation("Graneros").addLocation("Las Cabras")
+                .addLocation("Machali").addLocation("Malloa").addLocation("Mostazal")
+                .addLocation("El Olivar").addLocation("Peumo").addLocation("Pichidegua")
+                .addLocation("Quinta De Tilcoco").addLocation("Rengo").addLocation("Requinoa")
+                .addLocation("San Vicente").addLocation("Pichilemu").addLocation("La Estrella")
+                .addLocation("Litueche").addLocation("Marchihue").addLocation("Navidad")
+                .addLocation("Paredones").addLocation("San Fernando").addLocation("Chépica")
+                .addLocation("Chimbarongo").addLocation("Lolol").addLocation("Nancagua")
+                .addLocation("Palmilla").addLocation("Peralillo").addLocation("Placilla")
+                .addLocation("Pumanque").addLocation("Santa Cruz"));
+        regionList.add(new RegionModel("Maule").addLocation("Talca").addLocation("Constitución")
+                .addLocation("Curepto").addLocation("Empedrado").addLocation("Maule")
+                .addLocation("Pelarco").addLocation("Pencahue").addLocation("Río Claro")
+                .addLocation("San Clemente").addLocation("San Rafael").addLocation("Cauquenes")
+                .addLocation("Chanco").addLocation("Pelluhue").addLocation("Curicó")
+                .addLocation("Hualañe").addLocation("Licantén").addLocation("Molina")
+                .addLocation("Rauco").addLocation("Romeral").addLocation("Sagrada Familia")
+                .addLocation("Teno").addLocation("Vichuquén").addLocation("Linares")
+                .addLocation("Colbún").addLocation("Longaví").addLocation("Parral")
+                .addLocation("Retiro").addLocation("San Javier").addLocation("Villa Alegre")
                 .addLocation("Yerbas Buenas"));
-        cityList.add(new CityModel("Diguillín").addLocation("Chillán").addLocation("Bulnes")
-                .addLocation("Chillán Viejo").addLocation("El Carmen").addLocation("Pemuco").addLocation("Pinto")
-                .addLocation("Quillón").addLocation("San Ignacio").addLocation("Yungay"));
-        cityList.add(new CityModel("Itata").addLocation("Quirihue").addLocation("Cobquecura").addLocation("Coelemu")
-                .addLocation("Ninhue").addLocation("Portezuelo").addLocation("Ranquil").addLocation("Treguaco"));
-        cityList.add(new CityModel("Punilla").addLocation("San Carlos").addLocation("Coihueco").addLocation("Ñiquén")
-                .addLocation("San Fabián").addLocation("San Nicolás"));
-        cityList.add(new CityModel("Concepción").addLocation("Concepción").addLocation("Coronel")
-                .addLocation("Chiguayante").addLocation("Florida").addLocation("Hualqui").addLocation("Lota")
-                .addLocation("Penco").addLocation("San Pedro de la Paz").addLocation("Santa Juana")
-                .addLocation("Talcahuano").addLocation("Tomé").addLocation("Hualpén"));
-        cityList.add(new CityModel("Arauco").addLocation("Lebu").addLocation("Arauco").addLocation("Cañete")
-                .addLocation("Contulmo").addLocation("Curanilahue").addLocation("Los Alamos").addLocation("Tirua"));
-        cityList.add(new CityModel("Bío-Bío").addLocation("Los Angeles").addLocation("Antuco").addLocation("Cabrero")
-                .addLocation("Laja").addLocation("Mulchén").addLocation("Nacimiento").addLocation("Negrete")
-                .addLocation("Quilaco").addLocation("Quilleco").addLocation("San Rosendo").addLocation("Santa Bárbara")
+        regionList.add(new RegionModel("Ñuble").addLocation("Chillán").addLocation("Bulnes")
+                .addLocation("Chillán Viejo").addLocation("El Carmen").addLocation("Pemuco")
+                .addLocation("Pinto").addLocation("Quillón").addLocation("San Ignacio")
+                .addLocation("Yungay").addLocation("Quirihue").addLocation("Cobquecura")
+                .addLocation("Coelemu").addLocation("Ninhue").addLocation("Portezuelo")
+                .addLocation("Ranquil").addLocation("Treguaco").addLocation("San Carlos")
+                .addLocation("Coihueco").addLocation("Ñiquén").addLocation("San Fabián")
+                .addLocation("San Nicolás"));
+        regionList.add(new RegionModel("Biobío").addLocation("Concepción").addLocation("Coronel")
+                .addLocation("Chiguayante").addLocation("Florida").addLocation("Hualqui")
+                .addLocation("Lota").addLocation("Penco").addLocation("San Pedro de la Paz")
+                .addLocation("Santa Juana").addLocation("Talcahuano").addLocation("Tomé")
+                .addLocation("Hualpén").addLocation("Lebu").addLocation("Arauco").addLocation("Cañete")
+                .addLocation("Contulmo").addLocation("Curanilahue").addLocation("Los Alamos")
+                .addLocation("Tirua").addLocation("Los Angeles").addLocation("Antuco")
+                .addLocation("Cabrero").addLocation("Laja").addLocation("Mulchén")
+                .addLocation("Nacimiento").addLocation("Negrete").addLocation("Quilaco")
+                .addLocation("Quilleco").addLocation("San Rosendo").addLocation("Santa Bárbara")
                 .addLocation("Tucapel").addLocation("Yumbel").addLocation("Alto Biobío"));
-        cityList.add(new CityModel("Cautín").addLocation("Temuco").addLocation("Carahue").addLocation("Cunco")
-                .addLocation("Curarrehue").addLocation("Freire").addLocation("Galvarino").addLocation("Gorbea")
-                .addLocation("Lautaro").addLocation("Loncoche").addLocation("Melipeuco").addLocation("Nueva Imperial")
-                .addLocation("Padre Las Casas").addLocation("Perquenco").addLocation("Pitrufquén").addLocation("Pucón")
-                .addLocation("Saavedra").addLocation("Teodoro Schmidt").addLocation("Toltén").addLocation("Vilcún")
-                .addLocation("Villarrica").addLocation("Cholchol"));
-        cityList.add(new CityModel("Malleco").addLocation("Angol").addLocation("Collipulli").addLocation("Curacautín")
-                .addLocation("Ercilla").addLocation("Lonquimay").addLocation("Los Sauces").addLocation("Lumaco")
-                .addLocation("Puren").addLocation("Renaico").addLocation("Traiguén").addLocation("Victoria"));
-        cityList.add(new CityModel("Valdivia").addLocation("Valdivia").addLocation("Corral").addLocation("Lanco")
-                .addLocation("Los Lagos").addLocation("Máfil").addLocation("Mariquina").addLocation("Paillaco")
-                .addLocation("Panguipulli"));
-        cityList.add(new CityModel("Ranco").addLocation("La Unión").addLocation("Futrono").addLocation("Lago Ranco")
+        regionList.add(new RegionModel("La Araucanía").addLocation("Temuco").addLocation("Carahue")
+                .addLocation("Cunco").addLocation("Curarrehue").addLocation("Freire")
+                .addLocation("Galvarino").addLocation("Gorbea").addLocation("Lautaro")
+                .addLocation("Loncoche").addLocation("Melipeuco").addLocation("Nueva Imperial")
+                .addLocation("Padre Las Casas").addLocation("Perquenco").addLocation("Pitrufquén")
+                .addLocation("Pucón").addLocation("Saavedra").addLocation("Teodoro Schmidt")
+                .addLocation("Toltén").addLocation("Vilcún").addLocation("Villarrica")
+                .addLocation("Cholchol").addLocation("Angol").addLocation("Collipulli")
+                .addLocation("Curacautín").addLocation("Ercilla").addLocation("Lonquimay")
+                .addLocation("Los Sauces").addLocation("Lumaco").addLocation("Puren")
+                .addLocation("Renaico").addLocation("Traiguén").addLocation("Victoria"));
+        regionList.add(new RegionModel("Los Ríos").addLocation("Valdivia").addLocation("Corral")
+                .addLocation("Lanco").addLocation("Los Lagos").addLocation("Máfil")
+                .addLocation("Mariquina").addLocation("Paillaco").addLocation("Panguipulli")
+                .addLocation("La Unión").addLocation("Futrono").addLocation("Lago Ranco")
                 .addLocation("Río Bueno"));
-        cityList.add(new CityModel("Llanquihue").addLocation("Puerto Montt").addLocation("Calbuco")
-                .addLocation("Cochamó").addLocation("Fresia").addLocation("Frutillar").addLocation("Los Muermos")
-                .addLocation("Llanquihue").addLocation("Maullín").addLocation("Puerto Varas"));
-        cityList.add(new CityModel("Chiloé").addLocation("Castro").addLocation("Ancud").addLocation("Chonchi")
-                .addLocation("Curaco de Velez").addLocation("Dalcahue").addLocation("Puqueldón").addLocation("Queilén")
-                .addLocation("Quellón").addLocation("Quemchi").addLocation("Quinchao"));
-        cityList.add(new CityModel("Osorno").addLocation("Osorno").addLocation("Puerto Octay").addLocation("Purranque")
-                .addLocation("Puyehue").addLocation("Río Negro").addLocation("San Juan de la Costa")
-                .addLocation("San Pablo"));
-        cityList.add(new CityModel("Palena").addLocation("Chaitén").addLocation("Futaleufú").addLocation("Hualaihue")
+        regionList.add(new RegionModel("Los Lagos").addLocation("Puerto Montt").addLocation("Calbuco")
+                .addLocation("Cochamó").addLocation("Fresia").addLocation("Frutillar")
+                .addLocation("Los Muermos").addLocation("Llanquihue").addLocation("Maullín")
+                .addLocation("Puerto Varas").addLocation("Castro").addLocation("Ancud")
+                .addLocation("Chonchi").addLocation("Curaco de Velez").addLocation("Dalcahue")
+                .addLocation("Puqueldón").addLocation("Queilén").addLocation("Quellón")
+                .addLocation("Quemchi").addLocation("Quinchao").addLocation("Osorno")
+                .addLocation("Puerto Octay").addLocation("Purranque").addLocation("Puyehue")
+                .addLocation("Río Negro").addLocation("San Juan de la Costa").addLocation("San Pablo")
+                .addLocation("Chaitén").addLocation("Futaleufú").addLocation("Hualaihue")
                 .addLocation("Palena"));
-        cityList.add(new CityModel("Coihayque").addLocation("Coihayque").addLocation("Lago Verde"));
-        cityList.add(new CityModel("Aisén").addLocation("Aisén").addLocation("Cisnes").addLocation("Guaitecas"));
-        cityList.add(
-                new CityModel("Capitán Prat").addLocation("Cochrane").addLocation("O'Higgins").addLocation("Tortel"));
-        cityList.add(new CityModel("General Carrera").addLocation("Chile Chico").addLocation("Río Ibáñez"));
-        cityList.add(new CityModel("Magallanes").addLocation("Punta Arenas").addLocation("Laguna Blanca")
-                .addLocation("Río Verde").addLocation("San Gregorio"));
-        cityList.add(new CityModel("Antártica Chilena").addLocation("Cabo de Hornos").addLocation("Antártica"));
-        cityList.add(new CityModel("Tierra del Fuego").addLocation("Porvenir").addLocation("Primavera")
-                .addLocation("Timaukel"));
-        cityList.add(new CityModel("Última Esperanza").addLocation("Natales").addLocation("Torres del Paine"));
-        return cityList;
+        regionList.add(new RegionModel("Aisén del General Carlos Ibáñez del Campo").addLocation("Coihayque")
+                .addLocation("Lago Verde").addLocation("Aisén").addLocation("Cisnes")
+                .addLocation("Guaitecas").addLocation("Cochrane").addLocation("O'Higgins")
+                .addLocation("Tortel").addLocation("Chile Chico").addLocation("Río Ibáñez"));
+        regionList.add(new RegionModel("Magallanes y de la Antártica Chilena").addLocation("Punta Arenas")
+                .addLocation("Laguna Blanca").addLocation("Río Verde").addLocation("San Gregorio")
+                .addLocation("Cabo de Hornos").addLocation("Antártica").addLocation("Porvenir")
+                .addLocation("Primavera").addLocation("Timaukel").addLocation("Natales")
+                .addLocation("Torres del Paine"));
+        return regionList;
     }
 
     // Función para actualizar las aseguradoras de la app
@@ -231,7 +230,8 @@ public class SeedHelper {
             String insurerAlias = insurer.getAlias();
             boolean isInsurer = false;
             for (InsurerModel insurerDB : insurersDB) {
-                if (insurerName.equals(insurerDB.getName()) || insurerAlias.equals(insurerDB.getAlias())) {
+                if (insurerName.equals(insurerDB.getName())
+                        || insurerAlias.equals(insurerDB.getAlias())) {
                     isInsurer = true;
                     break;
                 }
@@ -294,7 +294,8 @@ public class SeedHelper {
                             String insurerNameForBrandIdDB = insurerBrandIdDB.getName();
                             if (insurerNameForBrandId.equals(insurerNameForBrandIdDB)) {
                                 isInsurerBrandId = true;
-                                break; // Break para salir de la búsqueda de la aseguradora con id de la marca porque
+                                break; // Break para salir de la búsqueda de la
+                                       // aseguradora con id de la marca porque
                                        // se encontró
                             }
                         }
@@ -311,25 +312,36 @@ public class SeedHelper {
                         for (BrandDataModel modelDB : brandDB.getModels()) {
                             String modelNameDB = modelDB.getModel();
                             if (modelName.equals(modelNameDB)) {
-                                // Existe el modelo y ahora se revisa si están los ids de las aseguradoras que
+                                // Existe el modelo y ahora se revisa si están los ids
+                                // de las aseguradoras que
                                 // hacen referencia al modelo
                                 isModel = true;
-                                for (BrandInsurerModel insurerModelId : model.getInsurersId()) {
-                                    String insurerNameForModelId = insurerModelId.getName();
+                                for (BrandInsurerModel insurerModelId : model
+                                        .getInsurersId()) {
+                                    String insurerNameForModelId = insurerModelId
+                                            .getName();
                                     boolean isInsurerModelId = false;
-                                    for (BrandInsurerModel insurerModelIdDB : modelDB.getInsurersId()) {
-                                        String insurerNameForModelIdDB = insurerModelIdDB.getName();
-                                        if (insurerNameForModelId.equals(insurerNameForModelIdDB)) {
+                                    for (BrandInsurerModel insurerModelIdDB : modelDB
+                                            .getInsurersId()) {
+                                        String insurerNameForModelIdDB = insurerModelIdDB
+                                                .getName();
+                                        if (insurerNameForModelId.equals(
+                                                insurerNameForModelIdDB)) {
                                             isInsurerModelId = true;
-                                            break; // Break para salir de la búsqueda de la aseguradora con id del
-                                                   // modelo porque se encontró
+                                            break; // Break para salir de la
+                                                   // búsqueda de la
+                                                   // aseguradora con id del
+                                                   // modelo porque se
+                                                   // encontró
                                         }
                                     }
                                     if (!isInsurerModelId) {
-                                        modelDB.addInsurerModelId(insurerModelId);
+                                        modelDB.addInsurerModelId(
+                                                insurerModelId);
                                     }
                                 }
-                                break; // Break para salir de la búsqueda del modelo por que se encontró
+                                break; // Break para salir de la búsqueda del modelo por
+                                       // que se encontró
                             }
                         }
                         if (!isModel) {
@@ -361,13 +373,17 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(3130, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GIULIA QV", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3132, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GIULIETTA", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GIULIETTA", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1538, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "STELVIO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "STELVIO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3131, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "STELVIO QV", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "STELVIO QV", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3133, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GIULIETTA QV", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GIULIETTA QV", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3600, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TONALE", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10473, "BCI")))
@@ -379,19 +395,23 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1413, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "A3", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(14, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "A3 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "A3 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2276, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "A4", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(15, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "A4 ALL ROAD", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "A4 ALL ROAD", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2267, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "A5", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(822, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "A5 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "A5 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2275, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "A6", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(17, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "A6 ALL ROAD", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "A6 ALL ROAD", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(18, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "A7", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1567, "BCI")))
@@ -425,19 +445,24 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(9405, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "Q3 SPORTBACK", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3614, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "A3 HIBRIDO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "A3 HIBRIDO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30136, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SQ5 HIBRIDO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30199, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "Q5 HIBRIDO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30144, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "Q5 SPORTBACK HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "Q5 SPORTBACK HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30145, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "A6 SPORTBACK E-TRON ELECTRICO", "SEDAN", new ArrayList<>())
+                        new BrandDataModel(new ObjectId(), "A6 SPORTBACK E-TRON ELECTRICO",
+                                "SEDAN", new ArrayList<>())
                                 .addInsurerModelId(new BrandInsurerModel(30177, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "A6 SB E-TRON PERFORMANCE ELECTRICO", "SEDAN",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(30180, "BCI"))));
+                .addModel(new BrandDataModel(new ObjectId(), "A6 SB E-TRON PERFORMANCE ELECTRICO",
+                        "SEDAN",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(30180, "BCI"))));
         brands.add(new BrandModel("BAIC", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(250, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "PLUS", "FURGON", new ArrayList<>())
@@ -456,11 +481,13 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2519, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "BJ30", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30216, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "BJ30 HEV HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "BJ30 HEV HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30217, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "BJ40 PRO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30218, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "BJ60 MHEV HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "BJ60 MHEV HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30219, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "U5 PLUS", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30226, "BCI")))
@@ -468,7 +495,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(30245, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "X7", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10306, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EU5 EV ELECTRICO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EU5 EV ELECTRICO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10346, "BCI"))));
         brands.add(new BrandModel("BMW", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(3, "BCI"))
@@ -480,13 +508,16 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1767, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "120", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(726, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "218 ACTIVE TOURER", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "218 ACTIVE TOURER", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2604, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "220I", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2211, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "220I CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "220I CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2606, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "3 ACTIVE HYBRID", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "3 ACTIVE HYBRID", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2285, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "316", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(23, "BCI")))
@@ -494,65 +525,84 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(24, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "320", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(25, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "320 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "320 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2764, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "320 COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1156, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "320 GT", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "320 GT", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2280, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "325", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(27, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "325 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "325 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2644, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "328", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(42, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "328 GT", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "328 GT", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2281, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "330", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(44, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "330 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "330 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2282, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "335", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(823, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "335 DESCAPOTABLE", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "335 DESCAPOTABLE", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(824, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "335 GT", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "335 GT", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2283, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "340I", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(110, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "418 GRAN COUPE", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "418 GRAN COUPE", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3121, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "420 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "420 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2653, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "420 COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2197, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "420I GRAN COUPE", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "420I GRAN COUPE", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1095, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "428 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "428 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2284, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "428 COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2148, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "428I GRAN COUPE", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "428I GRAN COUPE", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1125, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "430 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "430 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1591, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "430 COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1387, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "430 GRAN COUPE", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "430 GRAN COUPE", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1579, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "435 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "435 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2286, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "435 COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2149, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "435 GRAN COUPE", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "435 GRAN COUPE", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1142, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "440 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "440 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2742, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "440 COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2741, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "440 GRAN COUPE", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "440 GRAN COUPE", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2740, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "5 ACTIVE HYBRID", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "5 ACTIVE HYBRID", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2289, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "520", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(29, "BCI")))
@@ -564,45 +614,57 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(31, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "530", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(32, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "530E HÃBRIDO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "530E HÃBRIDO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3014, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "535", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(33, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "535 GT", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "535 GT", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2287, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "550 GT", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "550 GT", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2288, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "M135", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2278, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "M235I", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2212, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "M235I CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "M235I CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2607, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "M240I CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "M240I CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2934, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "M240I COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2807, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "M120", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2912, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "I3 ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "I3 ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2605, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "M440 COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9522, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "X1 XDRIVE 30E HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "X1 XDRIVE 30E HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9968, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "M440 CONVERTIBLE", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "M440 CONVERTIBLE", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9995, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "X1 M35", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10182, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "330 TOURING M SPORT", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "330 TOURING M SPORT", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10080, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "X1 XDRIVE 25E HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "X1 XDRIVE 25E HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10096, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "M220 COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9472, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "M420 GRAN COUPE", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "M420 GRAN COUPE", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9473, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "M440 GRAN COUPE", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "M440 GRAN COUPE", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9474, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "X2", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(651, "BCI")))
@@ -624,11 +686,14 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(3024, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "330E", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3578, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "M235I GRAN COUPE", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "M235I GRAN COUPE", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3579, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "218 GRAN COUPE", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "218 GRAN COUPE", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3622, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "220D GRAN COUPE", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "220D GRAN COUPE", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3660, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "X1", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1360, "BCI")))
@@ -652,13 +717,17 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1672, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "G05", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9994, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "T30 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "T30 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9382, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "T32 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "T32 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9383, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "T50 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "T50 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9384, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "T52 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "T52 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9385, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "X30 FURGON", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9386, "BCI")))
@@ -678,31 +747,42 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2961, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "BYD S6", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1755, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DOLPHIN ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DOLPHIN ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10150, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SEAL ELECTRICO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SEAL ELECTRICO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10163, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "QIN PLUS HIBRIDO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "QIN PLUS HIBRIDO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10208, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "HAN EV ELECTRICO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "HAN EV ELECTRICO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10123, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TANG EV ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TANG EV ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10124, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "YUAN PLUS ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "YUAN PLUS ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10125, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SONG PLUS HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SONG PLUS HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10126, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "F0", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(861, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "F3", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(862, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SONG PRO HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SONG PRO HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10449, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SHARK CAMIONETA HIBRIDO", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SHARK CAMIONETA HIBRIDO", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30112, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DOLPHIN MINI ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DOLPHIN MINI ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10337, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "YUAN PRO ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "YUAN PRO ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10401, "BCI"))));
         brands.add(new BrandModel("CHANGAN", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(48, "BCI"))
@@ -710,9 +790,11 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(564, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "M201 VAN", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2463, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MD201 CARGO", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MD201 CARGO", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2462, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MD201 PICK UP", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MD201 PICK UP", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2461, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "S100", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(830, "BCI")))
@@ -722,7 +804,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1519, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "S300", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(832, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MS201 PICK UP", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MS201 PICK UP", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2710, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "UNI-T", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9537, "BCI")))
@@ -730,14 +813,18 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(10180, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "UNI-K", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10181, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MD301 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MD301 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10183, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "MD301 CARGO BOX CAMIONETA", "CAMIONETA", new ArrayList<>())
+                        new BrandDataModel(new ObjectId(), "MD301 CARGO BOX CAMIONETA",
+                                "CAMIONETA", new ArrayList<>())
                                 .addInsurerModelId(new BrandInsurerModel(10184, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "MD301 CARGO BOX EQUIPO FRIO", "CAMIONETA",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10185, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MS301 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(10185, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "MS301 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10186, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CS55 PLUS", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9890, "BCI")))
@@ -767,37 +854,52 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1753, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CX70", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2874, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DEEPAL S07 HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DEEPAL S07 HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30141, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DEEPAL S07 ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DEEPAL S07 ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30142, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DEEPAL S05 ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DEEPAL S05 ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30186, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CS15 PLUS", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CS15 PLUS", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30193, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "AVATR 11 ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "AVATR 11 ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30202, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EADO PLUS IDD HIBRIDO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EADO PLUS IDD HIBRIDO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30203, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "LUMIN ELECTRICO", "CITYCAR", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "LUMIN ELECTRICO", "CITYCAR",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30208, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CS35 MAX", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30222, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "STAR TRUCK CS/DC", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "STAR TRUCK CS/DC", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30237, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "STAR TRUCK CARGO BOX", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "STAR TRUCK CARGO BOX", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30238, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "STAR TRUCK CARGO BOX EQUIPO FRIO", "CAMIONETA",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(30239, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "HONOR S FURGON", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "STAR TRUCK CARGO BOX EQUIPO FRIO",
+                        "CAMIONETA",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(30239, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "HONOR S FURGON", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30240, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "HONOR S FURGON EQUIPO FRIO", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "HONOR S FURGON EQUIPO FRIO", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30241, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "ALSVIN PLUS", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30242, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CS55 PLUS IDD HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CS55 PLUS IDD HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30151, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "HUNTER REEV ELECTRICO", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "HUNTER REEV ELECTRICO", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30178, "BCI"))));
         brands.add(new BrandModel("CHERY", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(47, "BCI"))
@@ -815,7 +917,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(732, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "FULWIN", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1663, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "FULWIN SPORT", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "FULWIN SPORT", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2614, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SKIN", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1283, "BCI")))
@@ -843,33 +946,45 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2880, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "FACE", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1098, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DESTINY", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DESTINY", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1071, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TIGGO 7 PRO MAX HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TIGGO 7 PRO MAX HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10435, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TIGGO 9", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30189, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TIGGO 9 PHEV HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TIGGO 9 PHEV HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30195, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TIGGO 4 PRO MAX HEV HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TIGGO 4 PRO MAX HEV HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30235, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TIGGO 4 PRO MAX", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TIGGO 4 PRO MAX", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30159, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TIGGO 8 PRO MAX", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TIGGO 8 PRO MAX", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30162, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "HIMLA CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "HIMLA CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30184, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TIGGO 8 PRO PHEV HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TIGGO 8 PRO PHEV HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10354, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TIGGO 2 PRO MAX", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TIGGO 2 PRO MAX", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10392, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TIGGO 7 PRO MAX", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TIGGO 7 PRO MAX", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10434, "BCI"))));
         brands.add(new BrandModel("CHEVROLET", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(4, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "CHE ASTRA", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CHE ASTRA", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(80, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CHE ASTRA OPC", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CHE ASTRA OPC", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(833, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "AVEO", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(92, "BCI")))
@@ -883,13 +998,15 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1669, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SPARK", "CITYCAR", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(97, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SPARK ACTIV", "CITYCAR", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SPARK ACTIV", "CITYCAR",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2995, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SPARK GT", "CITYCAR", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1570, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SPIN", "STATION WAGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2776, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SPIN ACTIV", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SPIN ACTIV", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2996, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SAIL", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1369, "BCI")))
@@ -897,19 +1014,23 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1542, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "ONIX", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2762, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "ONIX ACTIV", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "ONIX ACTIV", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2923, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "OPTRA", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(93, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "OPTRA XL SW", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2262, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "ORLANDO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "ORLANDO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1593, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "PRISMA", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2773, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "BOLT ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "BOLT ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10157, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "ZAFIRA", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "ZAFIRA", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(86, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SPARK SEDAN", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3565, "BCI")))
@@ -941,7 +1062,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1777, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "EQUINOX", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(101, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EXPRESS PASSENGER", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EXPRESS PASSENGER", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2999, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "D-MAX", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(99, "BCI")))
@@ -949,63 +1071,86 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(104, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CAVALIER", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(76, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SPARK EUV ELECTRICO", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SPARK EUV ELECTRICO", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30135, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CAPTIVA ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CAPTIVA ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30190, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CAPTIVA HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CAPTIVA HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30191, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SAIL HATCHBACK", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SAIL HATCHBACK", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10357, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "BLAZER EV ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "BLAZER EV ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10416, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EQUINOX EV ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EQUINOX EV ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10417, "BCI"))));
         brands.add(new BrandModel("CHRYSLER", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(5, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "CHRYSLER 200", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1708, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CHRYSLER 300-C", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CHRYSLER 300-C", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(810, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GRAND TOWN COUNTRY", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GRAND TOWN COUNTRY", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2651, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SEBRING", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(122, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SEBRING DESCAPOTABLE", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SEBRING DESCAPOTABLE", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(130, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GRAND TOWN COUNTRY", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GRAND TOWN COUNTRY", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(123, "BCI"))));
         brands.add(new BrandModel("CITROEN", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(6, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "BERLINGO", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(137, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "BERLINGO (E-BERLINGO) ELECTRICO", "FURGON",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(2890, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "BERLINGO PASAJERO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "BERLINGO (E-BERLINGO) ELECTRICO",
+                        "FURGON",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(2890, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "BERLINGO PASAJERO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3019, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GRAND C-4 PICASSO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GRAND C-4 PICASSO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(150, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "JUMPER", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(143, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "JUMPY FURGON", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "JUMPY FURGON", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(142, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SPACETOURER", "MINIBUS", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SPACETOURER", "MINIBUS",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2853, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "BERLINGO MULTISPACE", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "BERLINGO MULTISPACE", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1438, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "NEMO", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1510, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "C5 AIRCROSS HIBRIDO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "C5 AIRCROSS HIBRIDO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10139, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "JUMPER MINIBUS", "MINIBUS", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "JUMPER MINIBUS", "MINIBUS",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10283, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "JUMPER CHASIS CABINA CAMIONETA", "CAMIONETA",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10284, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "XSARA PICASSO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "JUMPER CHASIS CABINA CAMIONETA",
+                        "CAMIONETA",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(10284, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "XSARA PICASSO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(153, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "DS3", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1367, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DS3 CABRIO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DS3 CABRIO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2272, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "DS4", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1716, "BCI")))
@@ -1015,25 +1160,32 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(147, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C-3", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(141, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "C-3 AIRCROSS", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "C-3 AIRCROSS", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2893, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "C3 PICASSO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "C3 PICASSO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1401, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C-4", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(146, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "C4 CACTUS", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "C4 CACTUS", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2661, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "C-4 PICASSO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "C-4 PICASSO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(152, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C-5", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(140, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "C-5 AIRCROSS", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "C-5 AIRCROSS", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3097, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C-ELYSEE", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2013, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "BASALT", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "BASALT", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30125, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "C4 HIBRIDO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "C4 HIBRIDO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30127, "BCI"))));
         brands.add(new BrandModel("CUPRA", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(717, "BCI"))
@@ -1043,21 +1195,27 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(9798, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "LEON", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10148, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "LEON HIBRIDO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "LEON HIBRIDO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30196, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TAVASCAN ELECTRICO", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TAVASCAN ELECTRICO", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30168, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TERRAMAR HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TERRAMAR HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30106, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "FORMENTOR HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "FORMENTOR HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10395, "BCI"))));
         brands.add(new BrandModel("DAIHATSU", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(8, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "TERIOS", "TODO TERRENO", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TERIOS", "TODO TERRENO",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(178, "BCI"))));
         brands.add(new BrandModel("DFM", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(240, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "AX3 CROSS", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "AX3 CROSS", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2852, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "AX4", "CROSSOVER", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2971, "BCI")))
@@ -1071,19 +1229,26 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(3106, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "H30", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2014, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "H30 CROSS", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "H30 CROSS", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2015, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "JOYEAR", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "JOYEAR", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2085, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "JOYEAR X3", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "JOYEAR X3", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2754, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "M5 FURGON CARGO", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "M5 FURGON CARGO", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2696, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "M5 PASAJERO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "M5 PASAJERO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2695, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MINI STAR", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MINI STAR", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3010, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MINI TRUCK", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MINI TRUCK", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2659, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GLORY 580", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2848, "BCI")))
@@ -1095,45 +1260,59 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2016, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "S50", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(697, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "S50 EV ELECTRICO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "S50 EV ELECTRICO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3148, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "S500", "STATION WAGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3147, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "D1 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "D1 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10142, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "AEOLUS Y3", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10187, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "AEOLUS GS CROSS", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "AEOLUS GS CROSS", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10188, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EC35 EV CARGO VAN FURGON ELECTRICO", "FURGON",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10079, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "EC35 EV CARGO VAN FURGON ELECTRICO",
+                        "FURGON",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(10079, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "T5", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9818, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "T5 EVO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9820, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SUCCE", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SUCCE", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3526, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "RICH", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3527, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "REFRI TRUCK", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "REFRI TRUCK", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3528, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "JOYEAR CROSS", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "JOYEAR CROSS", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3529, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "DFM VAN", "MINIBUS", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3003, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CARGO BOX", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CARGO BOX", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3001, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MAGE - AEOLUS MAGE", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MAGE - AEOLUS MAGE", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10436, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "T5 EVO HIBRIDO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10444, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E70 ELECTRICO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E70 ELECTRICO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10451, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "AEOLUS E70 ELECTRICO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "AEOLUS E70 ELECTRICO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10452, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "HUGE - AEOLUS HUGE", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "HUGE - AEOLUS HUGE", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30194, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MAGE EV ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MAGE EV ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30230, "BCI"))));
         brands.add(new BrandModel("DFSK", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(230, "BCI"))
@@ -1141,29 +1320,38 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(3105, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GLORY 580", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2847, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CARGO_REFRI", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CARGO_REFRI", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1724, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CARGO_REFRI", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CARGO_REFRI", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1723, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "D1 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "D1 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10140, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "C25 CARGO VAN", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "C25 CARGO VAN", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10189, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SUV 600", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10190, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EC35 EV CARGO VAN FURGON ELECTRICO", "FURGON",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10077, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "EC35 EV CARGO VAN FURGON ELECTRICO",
+                        "FURGON",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(10077, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C22", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2930, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SUV 500", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9435, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C21", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2929, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TRUCK V21", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TRUCK V21", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2491, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TRUCK V22", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TRUCK V22", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2492, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CARGO VAN", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CARGO VAN", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1721, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C31", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2755, "BCI")))
@@ -1171,25 +1359,34 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2756, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C35", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2757, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CARGO_REFRI", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CARGO_REFRI", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1725, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CARGO VAN", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1722, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CARGO VAN K05S", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CARGO VAN K05S", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2873, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PICK UP Z9 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PICK UP Z9 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30175, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PICK UP Z9 HIBRIDO CAMIONETA", "CAMIONETA",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(30176, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SERES 3 ELECTRICO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PICK UP Z9 HIBRIDO CAMIONETA",
+                        "CAMIONETA",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(30176, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "SERES 3 ELECTRICO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10379, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SUV 600 PHEV HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SUV 600 PHEV HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10399, "BCI"))));
         brands.add(new BrandModel("DODGE", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(9, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "JOURNEY", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "JOURNEY", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(875, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GRAN CARAVAN", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GRAN CARAVAN", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(191, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "RAM", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2254, "BCI")))
@@ -1205,7 +1402,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(708, "BCI"))));
         brands.add(new BrandModel("DONGFENG", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(54, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "AX3 CROSS", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "AX3 CROSS", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2953, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "AX4", "CROSSOVER", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2972, "BCI")))
@@ -1215,23 +1413,29 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2954, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "560", "STATION WAGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3107, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EQ 1020 MINI TRUCK", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EQ 1020 MINI TRUCK", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(870, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MINI_VAN_STAR_BOX", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MINI_VAN_STAR_BOX", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(871, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MINI_VAN_STAR_BOX", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MINI_VAN_STAR_BOX", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(869, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "H30", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1977, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "H30 CROSS", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "H30 CROSS", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1978, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GLORY 580", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2849, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "REFRITRUCK", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "REFRITRUCK", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1362, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "RICH", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1101, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SUCCE", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SUCCE", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1746, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SX5", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(701, "BCI")))
@@ -1241,44 +1445,58 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1979, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "S50", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(700, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "S50 EV ELECTRICO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "S50 EV ELECTRICO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3150, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "S500", "STATION WAGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3149, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "D1 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "D1 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10141, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DF-212 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DF-212 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10151, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DF-212 CAMIONETA EQUIPO DE FRIO", "CAMIONETA",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10152, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DF-212 PLUS CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DF-212 CAMIONETA EQUIPO DE FRIO",
+                        "CAMIONETA",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(10152, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "DF-212 PLUS CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10153, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "DF-212 PLUS EQUIPO DE FRIO", "CAMIONETA", new ArrayList<>())
+                        new BrandDataModel(new ObjectId(), "DF-212 PLUS EQUIPO DE FRIO",
+                                "CAMIONETA", new ArrayList<>())
                                 .addInsurerModelId(new BrandInsurerModel(10154, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "AEOLUS Y3", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10160, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "AEOLUS GS CROSS", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "AEOLUS GS CROSS", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10161, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SUV 600", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10191, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EC35 EV CARGO VAN FURGON ELECTRICO", "FURGON",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10078, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "EC35 EV CARGO VAN FURGON ELECTRICO",
+                        "FURGON",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(10078, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "T5", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9817, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "T5 EVO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9819, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DF-412 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DF-412 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9891, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "DF6", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9017, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "JOYEAR X3", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "JOYEAR X3", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3525, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TRUCK", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1521, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TRUCK V21", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TRUCK V21", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3011, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TRUCK V22", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TRUCK V22", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3012, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "E-CARGO", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2271, "BCI")))
@@ -1288,43 +1506,54 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2020, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "DF 2900", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2019, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CARGO BOX", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CARGO BOX", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1363, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CARGO VAN", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1520, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MAGE - AEOLUS MAGE", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MAGE - AEOLUS MAGE", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10437, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "T5 EVO HIBRIDO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10445, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E70 ELECTRICO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E70 ELECTRICO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10453, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "AEOLUS E70 ELECTRICO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "AEOLUS E70 ELECTRICO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10454, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "VIGO ELECTRICO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30198, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MAGE EV ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MAGE EV ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30231, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "HUGE - AEOLUS HUGE", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "HUGE - AEOLUS HUGE", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30183, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SUV 600 PHEV HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SUV 600 PHEV HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10400, "BCI"))));
         brands.add(new BrandModel("DS", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(61, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "DS3 CROSSBACK ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DS3 CROSSBACK ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9500, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "DS7", "STATION WAGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10082, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DS4 CROSS", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DS4 CROSS", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9892, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "DS3 CROSSBACK", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3534, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "DS3", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2817, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DS3 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DS3 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2818, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "DS4", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2819, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DS4 CROSSBACK", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DS4 CROSSBACK", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3102, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "DS5", "STATION WAGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2820, "BCI")))
@@ -1346,11 +1575,14 @@ public class SeedHelper {
                 .addInsurerBrandId(new BrandInsurerModel(236, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "B50", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2163, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MAMUT T80 CARGO BOX", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MAMUT T80 CARGO BOX", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2706, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MAMUT T80 PICK UP", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MAMUT T80 PICK UP", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2655, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MAMUT V80 CARGO VAN", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MAMUT V80 CARGO VAN", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2656, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "R7", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2968, "BCI")))
@@ -1380,11 +1612,13 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2772, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "500 CABRIO", "CITYCAR", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2489, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "FIAT 500L", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "FIAT 500L", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2533, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "500X", "CROSSOVER", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(112, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GRANDE PUNTO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GRANDE PUNTO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(740, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "LINEA", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1407, "BCI")))
@@ -1400,11 +1634,13 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(194, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "PUNTO", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(198, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PUNTO EVO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PUNTO EVO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1543, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "PULSE", "CROSSOVER", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9534, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "FASTBACK", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "FASTBACK", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10084, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "MOBI", "CROSSOVER", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3619, "BCI")))
@@ -1412,11 +1648,13 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(196, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "UNO CARGO", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2698, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "UNO SPORTING", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "UNO SPORTING", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2708, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "UNO WAY", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2622, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "WEEKEND", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "WEEKEND", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2834, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CRONOS", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(704, "BCI")))
@@ -1426,37 +1664,48 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(206, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "DUCATO", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(835, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CINQUECENTO", "CITYCAR", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CINQUECENTO", "CITYCAR",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(199, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "FIORINO CITY", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "FIORINO CITY", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2765, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "600 HIBRIDO", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "600 HIBRIDO", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30148, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "500E ELECTRICO", "CITYCAR", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "500E ELECTRICO", "CITYCAR",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10371, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "600E ELECTRICO", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "600E ELECTRICO", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10386, "BCI"))));
         brands.add(new BrandModel("FORD", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(11, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "FUSION", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2187, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "FUSION HIBRIDO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "FUSION HIBRIDO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3095, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "MAVERICK", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9545, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MAVERICK HIBRIDO", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MAVERICK HIBRIDO", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10127, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "BRONCO SPORT", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9059, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TRANSIT CHASIS CABINA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TRANSIT CHASIS CABINA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9126, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TRANSIT CUSTOM FURGON", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TRANSIT CUSTOM FURGON", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9132, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "EXPLORER ST", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3557, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "RANGER RAPTOR", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "RANGER RAPTOR", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3584, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TRANSIT MINIBUS", "MINIBUS", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TRANSIT MINIBUS", "MINIBUS",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3631, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TERRITORY", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3630, "BCI")))
@@ -1464,7 +1713,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(8999, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "EDGE ST", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3512, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TRANSIT FURGON", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TRANSIT FURGON", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1440, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "ECOSPORT", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(741, "BCI")))
@@ -1480,17 +1730,22 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(231, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "FOCUS RS", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2892, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E-TRANSIT FURGON ELECTRICO", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E-TRANSIT FURGON ELECTRICO", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10461, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E-TRANSIT CHASIS CABINA ELECTRICO", "CAMIONETA",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10462, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TERRITORY HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E-TRANSIT CHASIS CABINA ELECTRICO",
+                        "CAMIONETA",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(10462, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "TERRITORY HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30210, "BCI"))));
         brands.add(new BrandModel("FOTON", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(215, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "MIDI", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1533, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MIDI TRUCK", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MIDI TRUCK", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2709, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "K1", "MINIBUS", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2183, "BCI")))
@@ -1500,19 +1755,25 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(653, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "FT-CREW", "MINIBUS", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(652, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TERRACOTA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TERRACOTA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1981, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TM3 CARGO BOX CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TM3 CARGO BOX CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10192, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "TM3 CARGO BOX EQUIPO FRIO", "CAMIONETA", new ArrayList<>())
+                        new BrandDataModel(new ObjectId(), "TM3 CARGO BOX EQUIPO FRIO",
+                                "CAMIONETA", new ArrayList<>())
                                 .addInsurerModelId(new BrandInsurerModel(10193, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TM5 PICK UP", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TM5 PICK UP", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10085, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TM5 CARGO BOX", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TM5 CARGO BOX", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10086, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "TM5 CARGO BOX EQUIPO FRIO", "CAMIONETA", new ArrayList<>())
+                        new BrandDataModel(new ObjectId(), "TM5 CARGO BOX EQUIPO FRIO",
+                                "CAMIONETA", new ArrayList<>())
                                 .addInsurerModelId(new BrandInsurerModel(10087, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TM3", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9018, "BCI")))
@@ -1520,26 +1781,38 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(9283, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "VIEW", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1994, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "V7 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "V7 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10467, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "V9 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "V9 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10468, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "WONDER PICK UP CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "WONDER PICK UP CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10475, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "WONDER CARGO BOX CAMIONETA", "CAMIONETA", new ArrayList<>())
+                        new BrandDataModel(new ObjectId(), "WONDER CARGO BOX CAMIONETA",
+                                "CAMIONETA", new ArrayList<>())
                                 .addInsurerModelId(new BrandInsurerModel(10476, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "WONDER CARGO BOX EQUIPO FRIO", "CAMIONETA",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10477, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MILER 314 CAMIONETA EQUIPO FRIO", "CAMIONETA",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(30109, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MILER - CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "WONDER CARGO BOX EQUIPO FRIO",
+                        "CAMIONETA",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(10477, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "MILER 314 CAMIONETA EQUIPO FRIO",
+                        "CAMIONETA",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(30109, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "MILER - CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10353, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "G9 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "G9 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10407, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "MIDI CARGO BOX REFRIGERADO", "CAMIONETA", new ArrayList<>())
-                                .addInsurerModelId(new BrandInsurerModel(10408, "BCI"))));
+                        new BrandDataModel(new ObjectId(), "MIDI CARGO BOX REFRIGERADO",
+                                "CAMIONETA", new ArrayList<>())
+                                .addInsurerModelId(
+                                        new BrandInsurerModel(10408, "BCI"))));
         brands.add(new BrandModel("GAC GONOW", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(246, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "GS4", "STATION WAGON", new ArrayList<>())
@@ -1564,19 +1837,25 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(8996, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GA4", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(8997, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "WAY CABINA DOBLE", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "WAY CABINA DOBLE", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1963, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "WAY CABINA SIMPLE", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "WAY CABINA SIMPLE", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1665, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "WAY CARGO", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "WAY CARGO", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2456, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "WAY CITYVAN", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "WAY CITYVAN", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2670, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "EMKOO HIBRIDO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10438, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "AION Y ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "AION Y ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10447, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "AION ES ELECTRICO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "AION ES ELECTRICO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10448, "BCI"))));
         brands.add(new BrandModel("GEELY", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(56, "BCI"))
@@ -1592,7 +1871,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2565, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GEELY SL", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1709, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GEOMETRY C ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GEOMETRY C ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9966, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "COOLRAY", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9465, "BCI")))
@@ -1642,15 +1922,18 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(10205, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "POER", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(8992, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "FLORID CROSS", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "FLORID CROSS", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3530, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "3", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(716, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "WINGLE 7", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3548, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "VOLEEX C10", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "VOLEEX C10", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1764, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "VOLEEX C20", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "VOLEEX C20", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1971, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "VOLEEX C30", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1550, "BCI")))
@@ -1666,23 +1949,28 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1284, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C30", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2952, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "HAVAL H6 HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "HAVAL H6 HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30192, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "HAVAL H6", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30147, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "HAVAL H7", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30149, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "POER 500 HIBRIDO", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "POER 500 HIBRIDO", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30174, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "HAVAL H7 HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "HAVAL H7 HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30108, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TANK 500", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10384, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "HAVAL JOLION", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10394, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "HAVAL JOLION PRO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "HAVAL JOLION PRO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10402, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "HAVAL JOLION PRO HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "HAVAL JOLION PRO HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10403, "BCI"))));
         brands.add(new BrandModel("HAFEI", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(49, "BCI"))
@@ -1690,7 +1978,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(838, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "ZHONGYI", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(839, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CARGO BOX", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CARGO BOX", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2017, "BCI"))));
         brands.add(new BrandModel("HAIMA", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(222, "BCI"))
@@ -1730,11 +2019,13 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(234, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "HR-V", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(242, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "RIDGELINE", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "RIDGELINE", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1077, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "PILOT", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(244, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CITY HATCHBACK", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CITY HATCHBACK", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9796, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "ZR-V", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10162, "BCI")))
@@ -1752,7 +2043,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(235, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CIVIC COUPE", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2207, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CIVIC COUPE SI", "COUPE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CIVIC COUPE SI", "COUPE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3009, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CIVIC HYBRID", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1594, "BCI")))
@@ -1768,15 +2060,18 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1662, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GRAND I10", "CITYCAR", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2205, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GRAND I10 SEDAN", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GRAND I10 SEDAN", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2728, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GRAND SANTA FE", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2209, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "H1 FURGON", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1595, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "IONIQ ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "IONIQ ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2843, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "IONIQ HIBRIDO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "IONIQ HIBRIDO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2842, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "MATRIX", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(264, "BCI")))
@@ -1784,7 +2079,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(841, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "I-20", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(324, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "I-20 ACTIVE", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "I-20 ACTIVE", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(498, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "I-30", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(842, "BCI")))
@@ -1792,19 +2088,23 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2979, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "I 40", "STATION WAGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1760, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GENESIS COUPE", "COUPE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GENESIS COUPE", "COUPE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2047, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GETZ", "CITYCAR", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(266, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "H1", "MINIBUS", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(257, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SOLATI FURGON", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SOLATI FURGON", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2798, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SOLATI H350 PASAJEROS", "MINIBUS", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SOLATI H350 PASAJEROS", "MINIBUS",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2941, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SONATA", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(252, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SONATA HIBRIDO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SONATA HIBRIDO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2784, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TERRACAN", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(263, "BCI")))
@@ -1814,20 +2114,26 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(250, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CRETA GRAND", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9530, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "KONA ELECTRICO", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "KONA ELECTRICO", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9554, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "KONA HIBRIDO", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "KONA HIBRIDO", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9991, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TUCSON HIBRIDO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9996, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "IONIQ 5 ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "IONIQ 5 ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10102, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "STARIA MINIBUS", "MINIBUS", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "STARIA MINIBUS", "MINIBUS",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9437, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "STARIA FURGON", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "STARIA FURGON", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9438, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "SOLATI H350 CHASIS CABINA", "CAMIONETA", new ArrayList<>())
+                        new BrandDataModel(new ObjectId(), "SOLATI H350 CHASIS CABINA",
+                                "CAMIONETA", new ArrayList<>())
                                 .addInsurerModelId(new BrandInsurerModel(9444, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "PALISADE", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3562, "BCI")))
@@ -1843,7 +2149,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(268, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "VELOSTER", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1661, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "VELOSTER N", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "VELOSTER N", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2980, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "VERACRUZ", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(270, "BCI")))
@@ -1851,17 +2158,21 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2714, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "ELANTRA", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(247, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "ELANTRA COUPE", "COUPE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "ELANTRA COUPE", "COUPE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2087, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "EON", "CITYCAR", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1968, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PALISADE HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PALISADE HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30173, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "INSTER ELECTRICO", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "INSTER ELECTRICO", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30117, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "KONA", "CROSSOVER", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10381, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SANTA FE HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SANTA FE HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10385, "BCI"))));
         brands.add(new BrandModel("INFINITI", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(60, "BCI"))
@@ -1871,7 +2182,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2034, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "G25", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2028, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "G37 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "G37 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2031, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "G37 COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2030, "BCI")))
@@ -1881,9 +2193,11 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(3033, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "Q50 HIBRIDO", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2493, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "Q60 3.0 COUPE", "COUPE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "Q60 3.0 COUPE", "COUPE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3034, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "Q60 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "Q60 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2217, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "Q60 COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2216, "BCI")))
@@ -1905,12 +2219,15 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2033, "BCI"))));
         brands.add(new BrandModel("IVECO", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(45, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "POWER DAILY MINIBUS", "MINIBUS", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "POWER DAILY MINIBUS", "MINIBUS",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3007, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "DAILY CHASIS CABINA 35-150", "CAMIONETA", new ArrayList<>())
+                        new BrandDataModel(new ObjectId(), "DAILY CHASIS CABINA 35-150",
+                                "CAMIONETA", new ArrayList<>())
                                 .addInsurerModelId(new BrandInsurerModel(9788, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DAILY FURGON 30-130", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DAILY FURGON 30-130", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9789, "BCI"))));
         brands.add(new BrandModel("JAC", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(57, "BCI"))
@@ -1948,8 +2265,10 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2657, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "S5", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2227, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SUNRAY CARGO TRIPLE CAMIONETA", "CAMIONETA",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10195, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "SUNRAY CARGO TRIPLE CAMIONETA",
+                        "CAMIONETA",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(10195, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "JS6", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9893, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "JS2", "HATCHBACK", new ArrayList<>())
@@ -1964,7 +2283,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(9463, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "X200", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2758, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "REFINE MINIBUS", "MINIBUS", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "REFINE MINIBUS", "MINIBUS",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3632, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "J3 CROSS", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3531, "BCI")))
@@ -1974,32 +2294,43 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(3552, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TRIP", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1554, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "IGNITE 30X ELECTRICO", "CITYCAR", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "IGNITE 30X ELECTRICO", "CITYCAR",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10478, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "T9 EV CAMIONETA ELECTRICO", "CAMIONETA", new ArrayList<>())
+                        new BrandDataModel(new ObjectId(), "T9 EV CAMIONETA ELECTRICO",
+                                "CAMIONETA", new ArrayList<>())
                                 .addInsurerModelId(new BrandInsurerModel(30188, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "JS6 PHEV HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "JS6 PHEV HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30150, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "JS2 PRO", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30103, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "JS8 PRO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30113, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "REFINE FURGON CARGO EV ELECTRICO", "FURGON",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(30118, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E-JS4 ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "REFINE FURGON CARGO EV ELECTRICO",
+                        "FURGON",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(30118, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "E-JS4 ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10341, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E-JS1 ELECTRICO", "CITYCAR", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E-JS1 ELECTRICO", "CITYCAR",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10342, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "REFINE CARGO EV ELECTRICO", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "REFINE CARGO EV ELECTRICO", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10343, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "T9 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "T9 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10398, "BCI"))));
         brands.add(new BrandModel("JAECOO", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(732, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "JAECOO 6 ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "JAECOO 6 ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10471, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "JAECOO 7 HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "JAECOO 7 HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30101, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "JAECOO 5", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30143, "BCI")))
@@ -2027,49 +2358,62 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2628, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "XF 2.0", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2504, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "XF 2.2 DIESEL", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "XF 2.2 DIESEL", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2652, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "XF 3.0", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1191, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "XJ", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(645, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E-PACE FIRST EDITION", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E-PACE FIRST EDITION", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(507, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E-PACE R-DYNAMIC", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E-PACE R-DYNAMIC", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(506, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "E-PACE S", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(505, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E-PACE MHEV HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E-PACE MHEV HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10358, "BCI"))));
         brands.add(new BrandModel("JEEP", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(14, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "RENEGADE", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1090, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GRAND CHEROKEE SRT-8", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GRAND CHEROKEE SRT-8", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2226, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GRAND CHEROKEE", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(278, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PATRIOT", "TODO TERRENO", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PATRIOT", "TODO TERRENO",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(749, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GLADIATOR", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GLADIATOR", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9024, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GRAND CHEROKEE TRACKHAWK", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GRAND CHEROKEE TRACKHAWK", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3620, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "WRANGLER", "TODO TERRENO", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "WRANGLER", "TODO TERRENO",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(279, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "COMANDER", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(710, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COMPASS", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COMPASS", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(283, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CHEROKEE", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(277, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CHEROKEE TRAILHAWK", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CHEROKEE TRAILHAWK", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2645, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "AVENGER", "CROSSOVER", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30110, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "AVENGER HIBRIDO", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "AVENGER HIBRIDO", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30111, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COMPASS 4XE HIBRIDO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COMPASS 4XE HIBRIDO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10380, "BCI"))));
         brands.add(new BrandModel("JETOUR", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(709, "BCI"))
@@ -2085,7 +2429,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(30165, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "T1", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30166, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "T2 PHEV HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "T2 PHEV HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30167, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "T2", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10391, "BCI"))));
@@ -2109,13 +2454,17 @@ public class SeedHelper {
                 .addInsurerBrandId(new BrandInsurerModel(212, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "BOARDING", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1308, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "VIGUS EV ELECTRICO", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "VIGUS EV ELECTRICO", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9528, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TOURING FURGON EV ELECTRICO", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TOURING FURGON EV ELECTRICO", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9551, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GRAND AVENUE", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GRAND AVENUE", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10176, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "VIGUS PRO", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "VIGUS PRO", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9894, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TOURING", "MINIBUS", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3553, "BCI")))
@@ -2135,35 +2484,42 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(10425, "BCI"))));
         brands.add(new BrandModel("KARRY", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(712, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "Q51 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "Q51 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10196, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "Q52 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "Q52 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10197, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "Q22", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10065, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "Q22 CARGO BOX", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "Q22 CARGO BOX", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10066, "BCI"))));
         brands.add(new BrandModel("KGM", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(744, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "REXTON", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30204, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MUSSO CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MUSSO CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30227, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TORRES", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30228, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TORRES EVX ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TORRES EVX ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30229, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "ACTYON SUV", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30179, "BCI"))));
         brands.add(new BrandModel("KIA MOTORS", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(15, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "GRAND CARNIVAL", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GRAND CARNIVAL", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(316, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "MOHAVE", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1079, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "MORNING", "CITYCAR", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(306, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MORNING GT LINE", "CITYCAR", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MORNING GT LINE", "CITYCAR",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2809, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "KOUP", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1365, "BCI")))
@@ -2171,7 +2527,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(303, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SOUL", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(913, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SOUL GT LINE", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SOUL GT LINE", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3127, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SPORTAGE", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(290, "BCI")))
@@ -2189,12 +2546,15 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2909, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "OPTIMA", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(304, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "OPTIMA HIBRIDO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "OPTIMA HIBRIDO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1980, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EV6 ELECTRICO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EV6 ELECTRICO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9793, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "EV6 GT LINE ELECTRICO", "STATION WAGON", new ArrayList<>())
+                        new BrandDataModel(new ObjectId(), "EV6 GT LINE ELECTRICO",
+                                "STATION WAGON", new ArrayList<>())
                                 .addInsurerModelId(new BrandInsurerModel(9794, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "NIRO ELECTRICO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9973, "BCI")))
@@ -2210,7 +2570,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1250, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CARENS", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(296, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CARNIVAL", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CARNIVAL", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(297, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CERATO", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(307, "BCI")))
@@ -2218,90 +2579,131 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(317, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CERATO", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2210, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SPORTAGE X-LINE", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SPORTAGE X-LINE", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30128, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SPORTAGE HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SPORTAGE HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30243, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TASMAN CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TASMAN CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30115, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "K3 SEDAN", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10302, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "K3 CROSS", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "K3 CROSS", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10303, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "EV5 ELECTRICO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10389, "BCI"))));
         brands.add(new BrandModel("KYC", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(708, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "X5 PICK UP", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "X5 PICK UP", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10057, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "V3 CARGO VAN", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "V3 CARGO VAN", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10281, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "V5 CARGO VAN", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "V5 CARGO VAN", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10282, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "X5 PLUS", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10058, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "X5 PLUS CARGO BOX", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "X5 PLUS CARGO BOX", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10059, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "X5 PLUS CARGO BOX EQUIPO FRIO", "CAMIONETA",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10060, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GRAN MAMUT", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "X5 PLUS CARGO BOX EQUIPO FRIO",
+                        "CAMIONETA",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(10060, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "GRAN MAMUT", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10061, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GRAN MAMUT CARGO BOX", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GRAN MAMUT CARGO BOX", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10062, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "X7 PICK UP CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "X7 PICK UP CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10410, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "X7 CARGO BOX CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "X7 CARGO BOX CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10411, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "X7 CARGO BOX REFRIGERADO", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "X7 CARGO BOX REFRIGERADO", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10412, "BCI"))));
         brands.add(new BrandModel("LAND ROVER", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(17, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "FREELANDER", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1599, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "RANGE ROVER EVOQUE", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "RANGE ROVER EVOQUE", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1756, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "RANGE ROVER EVOQUE CABRIO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "RANGE ROVER EVOQUE CABRIO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2845, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "RANGE ROVER EVOQUE MHEV HIBRIDO", "SUV", new ArrayList<>())
+                        new BrandDataModel(new ObjectId(), "RANGE ROVER EVOQUE MHEV HIBRIDO",
+                                "SUV", new ArrayList<>())
                                 .addInsurerModelId(new BrandInsurerModel(3554, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DISCOVERY SPORT R-DINAMIC HSE", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DISCOVERY SPORT R-DINAMIC HSE", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3555, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DEFENDER FIRST EDITION", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DEFENDER FIRST EDITION", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(8993, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "DEFENDER", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(325, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "DISCOVERY", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(326, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DISCOVERY FIRST EDITION", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DISCOVERY FIRST EDITION", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2846, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DISCOVERY SPORT", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DISCOVERY SPORT", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2624, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "RANGE ROVER EVOQUE PHEV HIBRIDO", "SUV", new ArrayList<>())
-                                .addInsurerModelId(new BrandInsurerModel(10351, "BCI"))));
+                        new BrandDataModel(new ObjectId(), "RANGE ROVER EVOQUE PHEV HIBRIDO",
+                                "SUV", new ArrayList<>())
+                                .addInsurerModelId(
+                                        new BrandInsurerModel(10351, "BCI"))));
         brands.add(
                 new BrandModel("LANDKING", new ArrayList<>(), new ArrayList<>())
                         .addInsurerBrandId(new BrandInsurerModel(739, "BCI"))
-                        .addModel(new BrandDataModel(new ObjectId(), "LK5 CARGO BOX EV ELECTRICO", "CAMIONETA",
-                                new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(30104, "BCI")))
-                        .addModel(new BrandDataModel(new ObjectId(), "LK5 CARGO BOX EQUIPO FRIO EV ELECTRICO",
-                                "CAMIONETA", new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(30105, "BCI")))
-                        .addModel(new BrandDataModel(new ObjectId(), "LK3 PICK UP C/S C/D", "CAMIONETA",
-                                new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10426, "BCI")))
-                        .addModel(new BrandDataModel(new ObjectId(), "LK3 CARGO BOX C/S C/D", "CAMIONETA",
-                                new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10427, "BCI")))
-                        .addModel(new BrandDataModel(new ObjectId(), "LK3 CARGO BOX C/S C/D EQUIPO FRIO", "CAMIONETA",
-                                new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10428, "BCI")))
-                        .addModel(new BrandDataModel(new ObjectId(), "LK5 PICK UP C/S C/D", "CAMIONETA",
-                                new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10429, "BCI")))
-                        .addModel(new BrandDataModel(new ObjectId(), "LK5 CARGO BOX C/S C/D", "CAMIONETA",
-                                new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10430, "BCI")))
-                        .addModel(new BrandDataModel(new ObjectId(), "LK5 CARGO BOX C/S C/D EQUIPO FRIO", "CAMIONETA",
-                                new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10431, "BCI"))));
+                        .addModel(new BrandDataModel(new ObjectId(),
+                                "LK5 CARGO BOX EV ELECTRICO", "CAMIONETA",
+                                new ArrayList<>())
+                                .addInsurerModelId(new BrandInsurerModel(30104, "BCI")))
+                        .addModel(new BrandDataModel(new ObjectId(),
+                                "LK5 CARGO BOX EQUIPO FRIO EV ELECTRICO",
+                                "CAMIONETA", new ArrayList<>())
+                                .addInsurerModelId(new BrandInsurerModel(30105, "BCI")))
+                        .addModel(new BrandDataModel(new ObjectId(), "LK3 PICK UP C/S C/D",
+                                "CAMIONETA",
+                                new ArrayList<>())
+                                .addInsurerModelId(new BrandInsurerModel(10426, "BCI")))
+                        .addModel(new BrandDataModel(new ObjectId(), "LK3 CARGO BOX C/S C/D",
+                                "CAMIONETA",
+                                new ArrayList<>())
+                                .addInsurerModelId(new BrandInsurerModel(10427, "BCI")))
+                        .addModel(new BrandDataModel(new ObjectId(),
+                                "LK3 CARGO BOX C/S C/D EQUIPO FRIO", "CAMIONETA",
+                                new ArrayList<>())
+                                .addInsurerModelId(new BrandInsurerModel(10428, "BCI")))
+                        .addModel(new BrandDataModel(new ObjectId(), "LK5 PICK UP C/S C/D",
+                                "CAMIONETA",
+                                new ArrayList<>())
+                                .addInsurerModelId(new BrandInsurerModel(10429, "BCI")))
+                        .addModel(new BrandDataModel(new ObjectId(), "LK5 CARGO BOX C/S C/D",
+                                "CAMIONETA",
+                                new ArrayList<>())
+                                .addInsurerModelId(new BrandInsurerModel(10430, "BCI")))
+                        .addModel(new BrandDataModel(new ObjectId(),
+                                "LK5 CARGO BOX C/S C/D EQUIPO FRIO", "CAMIONETA",
+                                new ArrayList<>()).addInsurerModelId(
+                                        new BrandInsurerModel(10431, "BCI"))));
         brands.add(new BrandModel("LEAP MOTOR", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(730, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "T03 ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "T03 ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10289, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C10 ELECTRICO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30182, "BCI"))));
@@ -2325,7 +2727,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2639, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "IS 250", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2000, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "IS 250 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "IS 250 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2793, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "IS 250 F", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2301, "BCI")))
@@ -2367,23 +2770,27 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(9552, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "NX 350 HIBRIDO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9555, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "NX 350 HIBRIDO F-SPORT", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "NX 350 HIBRIDO F-SPORT", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9556, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "LX 500D", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9974, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "RX 350 HIBRIDO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10067, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "RX 500 HIBRIDO F-SPORT", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "RX 500 HIBRIDO F-SPORT", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10068, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "ES 300 H", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9266, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "IS 300 F SPORT", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "IS 300 F SPORT", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9395, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "UX 200", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3080, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "UX 250 H", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3090, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "UX 250 H F SPORT", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "UX 250 H F SPORT", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3091, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "ES 250", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2844, "BCI")))
@@ -2393,11 +2800,14 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1759, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "NX 450 HIBRIDO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10472, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "IS 300 HIBRIDO F-SPORT", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "IS 300 HIBRIDO F-SPORT", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30129, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "RZ 450 ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "RZ 450 ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30120, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "LBX HIBRIDO", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "LBX HIBRIDO", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10344, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "UX 300 HIBRIDO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10345, "BCI"))));
@@ -2411,15 +2821,19 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1301, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "530", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2193, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "LF CARGO BOX", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "LF CARGO BOX", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1574, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "LF TRUCK BOX", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "LF TRUCK BOX", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1573, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "LIFAN 330", "CITYCAR", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2221, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "FOISON ONE", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "FOISON ONE", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2829, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "FOISON VAN", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "FOISON VAN", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2832, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "X50", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2631, "BCI")))
@@ -2431,9 +2845,11 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2969, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "VAN", "MINIBUS", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1575, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "FOISON BOX", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "FOISON BOX", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2831, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "FOISON CARGO", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "FOISON CARGO", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2830, "BCI"))));
         brands.add(new BrandModel("LYNK Y CO", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(738, "BCI"))
@@ -2451,11 +2867,13 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2044, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "QUANTO", "CROSSOVER", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2629, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SCORPIO", "TODO TERRENO", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SCORPIO", "TODO TERRENO",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(849, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "PIK UP", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1370, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "XUV 300", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "XUV 300", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10103, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "XUV", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1975, "BCI")))
@@ -2465,59 +2883,80 @@ public class SeedHelper {
                 .addInsurerBrandId(new BrandInsurerModel(245, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "G10 CARGO", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1726, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "G10 PASAJERO", "MINIBUS", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "G10 PASAJERO", "MINIBUS",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1727, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "T60", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2856, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EDELIVER 3 FURGON ELECTRICO", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EDELIVER 3 FURGON ELECTRICO", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9787, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "ET90 ELECTRICO", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "ET90 ELECTRICO", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9993, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EV T90 ELECTRICO", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EV T90 ELECTRICO", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10001, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "G90 MINIBUS", "MINIBUS", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "G90 MINIBUS", "MINIBUS",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10177, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "D90 SUV", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10202, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "D60 SUV", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10203, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MIFA 9 ELECTRICO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MIFA 9 ELECTRICO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10204, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "V90 CARGO", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9033, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EV80 MINIBUS ELECTRICO", "MINIBUS", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EV80 MINIBUS ELECTRICO", "MINIBUS",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9430, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DELIVER 9 CARGO FURGON", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DELIVER 9 CARGO FURGON", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9431, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DELIVER 9 MINIBUS", "MINIBUS", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DELIVER 9 MINIBUS", "MINIBUS",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9432, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EDELIVER 9 CARGO FURGON ELECTRICO", "FURGON",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(9433, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "EDELIVER 9 CARGO FURGON ELECTRICO",
+                        "FURGON",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(9433, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "T90", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9469, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "V90 MINIBUS", "MINIBUS", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "V90 MINIBUS", "MINIBUS",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3623, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C35", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3629, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "EV30 FURGON", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9000, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EV80 CARGO FURGON", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EV80 CARGO FURGON", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9001, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EV80 CHASIS CABINA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EV80 CHASIS CABINA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9002, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "V80 FURGON", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2141, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "V80 MINIBUS", "MINIBUS", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "V80 MINIBUS", "MINIBUS",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2142, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "EDELIVER 9 MINIBUS ELECTRICO", "MINIBUS", new ArrayList<>())
+                        new BrandDataModel(new ObjectId(), "EDELIVER 9 MINIBUS ELECTRICO",
+                                "MINIBUS", new ArrayList<>())
                                 .addInsurerModelId(new BrandInsurerModel(10463, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EDELIVER 9 CHASIS CABINA ELECTRICO", "CAMIONETA",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10464, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EUNIQ 5 ELECTRICO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EDELIVER 9 CHASIS CABINA ELECTRICO",
+                        "CAMIONETA",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(10464, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "EUNIQ 5 ELECTRICO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30134, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DELIVER 9 CHASIS CABINA - CAMIONETA", "CAMIONETA",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10339, "BCI"))));
+                .addModel(new BrandDataModel(new ObjectId(), "DELIVER 9 CHASIS CABINA - CAMIONETA",
+                        "CAMIONETA",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(10339, "BCI"))));
         brands.add(new BrandModel("MAZDA", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(18, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "BT-50", "CAMIONETA", new ArrayList<>())
@@ -2526,17 +2965,21 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(340, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "MAZDA2", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(344, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MAZDA 2 SEDAN", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MAZDA 2 SEDAN", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3040, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MAZDA 3 SEDAN", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MAZDA 3 SEDAN", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3041, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MAZDA 5", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MAZDA 5", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(342, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "MAZDA6", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(339, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "MX-5", "CONVERTIBLE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1560, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MX-5 RF", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MX-5 RF", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3103, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CX90 HIBRIDO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10170, "BCI")))
@@ -2566,11 +3009,13 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(788, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C 180 COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1010, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "C 180 SPORT COUPE", "COUPE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "C 180 SPORT COUPE", "COUPE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1323, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C 200", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(792, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "C 200 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "C 200 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2783, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C 200 COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2319, "BCI")))
@@ -2580,15 +3025,18 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(785, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "A 200", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1322, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "A 200 AMG", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "A 200 AMG", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3136, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "A 200 SEDAN", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3118, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "A 200 SEDAN AMG", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "A 200 SEDAN AMG", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3119, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "A 250", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1993, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "A 250 SEDAN AMG", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "A 250 SEDAN AMG", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3120, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "A 45 AMG", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2155, "BCI")))
@@ -2634,9 +3082,11 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(657, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GLC 350D COUPE", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3049, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GLC 350E HYBRID", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GLC 350E HYBRID", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2899, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GLC 350E HYBRID COUPE", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GLC 350E HYBRID COUPE", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2900, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GLE 250D", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3052, "BCI")))
@@ -2654,27 +3104,35 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1348, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GLK 350", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1349, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SLC 200", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SLC 200", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2799, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SLC 300", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SLC 300", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2800, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SLK 200", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SLK 200", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(799, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SLK 350", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SLK 350", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(821, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SPRINTER", "MINIBUS", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(366, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "S 350", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(809, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EQA 350 ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EQA 350 ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9970, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GLC 220D COUPE AMG", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GLC 220D COUPE AMG", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10198, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C300E", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9019, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E 200 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E 200 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9268, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GLC 300E HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GLC 300E HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9464, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GLB 220D", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3558, "BCI")))
@@ -2686,7 +3144,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(3605, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GLB 180D", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3607, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "A 45S AMG", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "A 45S AMG", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3609, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GLC 200", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3639, "BCI")))
@@ -2706,17 +3165,21 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(3502, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "A 35 AMG", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3510, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "A 35 AMG SEDAN", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "A 35 AMG SEDAN", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3513, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GLE 300D", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3515, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GLE 400D", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3516, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E 200D ALL TERRAIN", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E 200D ALL TERRAIN", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3523, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "V 200", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "V 200", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(687, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "V 220", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "V 220", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2681, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "VIANO", "MINIBUS", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(752, "BCI")))
@@ -2736,9 +3199,11 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2050, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CLA 45 AMG", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2052, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CLC 180 K", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CLC 180 K", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1333, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CLC 200 K", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CLC 200 K", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1289, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CLC 350", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2318, "BCI")))
@@ -2746,29 +3211,35 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1523, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "E 220", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1603, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E 220 ALL TERRAIN", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E 220 ALL TERRAIN", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3046, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "E 250", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1342, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E 250 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E 250 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2307, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "E 250 COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1604, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "E 300", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(793, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E 300 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E 300 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2894, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "E 300 COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2867, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "E 350", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(784, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E 350 ALL TERRAIN", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E 350 ALL TERRAIN", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3047, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E 350 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E 350 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2309, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "E 350 COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2308, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E 350E HYBRID", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E 350E HYBRID", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2927, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "E 400", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2154, "BCI")))
@@ -2782,7 +3253,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2107, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C 300", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1326, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "C 300 CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "C 300 CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3042, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C 300 COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1025, "BCI")))
@@ -2790,7 +3262,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1328, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C 350 COUPE", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2321, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "C 350E HYBRID", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "C 350E HYBRID", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2928, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C 400", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2618, "BCI")))
@@ -2808,25 +3281,34 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(30140, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CLA 35S AMG", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30154, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EQE 350 ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EQE 350 ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30155, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E-SPRINTER 320 FURGON ELECTRICO", "FURGON",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(30171, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E-VITO 112 FURGON ELECTRICO", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E-SPRINTER 320 FURGON ELECTRICO",
+                        "FURGON",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(30171, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "E-VITO 112 FURGON ELECTRICO", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30172, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GLE 300D COUPE", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10347, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GLE 450D COUPE", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10348, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "V 250", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "V 250", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10355, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "V 300", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "V 300", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10356, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CLE 300 COUPE", "COUPE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CLE 300 COUPE", "COUPE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10382, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "VITO CARGO FURGON LIVIANO", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "VITO CARGO FURGON LIVIANO", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10387, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CLE 300 CONVERTIBLE", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CLE 300 CONVERTIBLE", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10404, "BCI"))));
         brands.add(new BrandModel("MG", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(58, "BCI"))
@@ -2842,7 +3324,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1032, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GT", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2701, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MG 3 CROSS", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MG 3 CROSS", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2957, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "MG 360", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2851, "BCI")))
@@ -2854,7 +3337,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(690, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "MG ONE", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10120, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MARVEL R - ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MARVEL R - ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9964, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "ZX", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9047, "BCI")))
@@ -2864,76 +3348,109 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(3560, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "HS", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3616, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CYBERSTER CONVERTIBLE ELECTRICO", "CONVERTIBLE",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10446, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "CYBERSTER CONVERTIBLE ELECTRICO",
+                        "CONVERTIBLE",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(10446, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "RX9", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10466, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "ZS HEV HIBRIDO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30185, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MG 3 HIBRIDO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MG 3 HIBRIDO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30119, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MG 4 ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MG 4 ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10304, "BCI"))));
         brands.add(new BrandModel("MINI", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(37, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "MINI COOPER CLUBMAN", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MINI COOPER CLUBMAN", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1516, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "MINI COOPER COUNTRYMAN", "STATION WAGON", new ArrayList<>())
+                        new BrandDataModel(new ObjectId(), "MINI COOPER COUNTRYMAN",
+                                "STATION WAGON", new ArrayList<>())
                                 .addInsurerModelId(new BrandInsurerModel(1961, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PACEMAN", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PACEMAN", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2478, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PACEMAN JCW", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PACEMAN JCW", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3144, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PACEMAN S", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PACEMAN S", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2479, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COUNTRYMAN COOPER HIBRIDO", "STATION WAGON",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(9496, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COOPER E-ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COUNTRYMAN COOPER HIBRIDO",
+                        "STATION WAGON",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(9496, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "COOPER E-ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9130, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "JOHN COOPER WORKS GP", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "JOHN COOPER WORKS GP", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3661, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CLUBMAN JCW", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CLUBMAN JCW", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3141, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "COOPER", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(372, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COOPER CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COOPER CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2554, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COOPER COUPE JCW", "COUPE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COOPER COUPE JCW", "COUPE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3140, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COUNTRYMAN JCW", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COUNTRYMAN JCW", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3143, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COUNTRYMAN S JCW PACKAGE", "STATION WAGON",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(3142, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COOPER COUPE S", "COUPE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COUNTRYMAN S JCW PACKAGE",
+                        "STATION WAGON",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(3142, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "COOPER COUPE S", "COUPE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2095, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COOPER JCW CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COOPER JCW CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2761, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COOPER JOHN COOPER WORKS", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COOPER JOHN COOPER WORKS", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2245, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COOPER ROADSTER JCW", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COOPER ROADSTER JCW", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3146, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COOPER ROADSTER S", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COOPER ROADSTER S", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3145, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "COOPER S", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1517, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COOPER S CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COOPER S CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2555, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COOPER S CLUBMAN", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COOPER S CLUBMAN", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2556, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COOPER S COUNTRYMAN", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COOPER S COUNTRYMAN", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2513, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COOPER S JCW PACKAGE", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COOPER S JCW PACKAGE", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3139, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "ACEMAN E-ELECTRICO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "ACEMAN E-ELECTRICO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10442, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "ACEMAN SE-ELECTRICO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "ACEMAN SE-ELECTRICO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10443, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COOPER SE-ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COOPER SE-ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10418, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COUNTRYMAN COOPER E-ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COUNTRYMAN COOPER E-ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10419, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COUNTRYMAN COOPER SE-ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COUNTRYMAN COOPER SE-ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10420, "BCI"))));
         brands.add(new BrandModel("MITSUBISHI", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(20, "BCI"))
@@ -2941,39 +3458,48 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1361, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "MIRAGE", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2109, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MONTERO", "TODO TERRENO", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MONTERO", "TODO TERRENO",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(378, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "MONTERO SPORT", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2615, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "L200", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(375, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "L200 DAKAR", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "L200 DAKAR", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3093, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "L300", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(376, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "LANCER", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(377, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "LANCER EVOLUTION", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "LANCER EVOLUTION", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(184, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "OUTLANDER", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(380, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "OUTLANDER PHEV", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2536, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "XPANDER", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "XPANDER", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10098, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "XPANDER CROSS", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "XPANDER CROSS", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10099, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CANTER 413 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CANTER 413 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9462, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "ECLIPSE CROSS", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "ECLIPSE CROSS", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2951, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "DESTINATOR", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30225, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "OUTLANDER SPORT", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "OUTLANDER SPORT", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10415, "BCI"))));
         brands.add(new BrandModel("NAMMI", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(741, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "001 EV ELECTRICO", "CITYCAR", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "001 EV ELECTRICO", "CITYCAR",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10450, "BCI"))));
         brands.add(new BrandModel("NISSAN", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(21, "BCI"))
@@ -3009,11 +3535,14 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2164, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "PATHFINDER", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(406, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "X-TRAIL E-POWER ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "X-TRAIL E-POWER ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9999, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "URVAN CARGO FURGON", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "URVAN CARGO FURGON", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9445, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "NP300 NAVARA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "NP300 NAVARA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3544, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "V-DRIVE", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3551, "BCI")))
@@ -3021,7 +3550,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(419, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TIIDA SPORT", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3000, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "URVAN MINIBUS", "MINIBUS", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "URVAN MINIBUS", "MINIBUS",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(402, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "VERSA", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1698, "BCI"))));
@@ -3035,17 +3565,21 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(10179, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C7", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30169, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "E5 EV ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "E5 EV ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10390, "BCI"))));
         brands.add(new BrandModel("OPEL", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(43, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "ANTARA", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1973, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "OPEL ASTRA", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "OPEL ASTRA", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(760, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "ASTRA GTC", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "ASTRA GTC", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2660, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "OPEL ASTRA OPC", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "OPEL ASTRA OPC", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1985, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "ASTRA SEDAN", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3005, "BCI")))
@@ -3061,31 +3595,43 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1751, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "MOKKA", "CROSSOVER", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2694, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MOVANO CARGO FURGON", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MOVANO CARGO FURGON", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10199, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MOVANO CHASIS CABINA CAMIONETA", "CAMIONETA",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(10200, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "VIVARO FURGON", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MOVANO CHASIS CABINA CAMIONETA",
+                        "CAMIONETA",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(10200, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "VIVARO FURGON", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3610, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "COMBO", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(764, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "OPEL_CORSA", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "OPEL_CORSA", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(759, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CROSSLAND X", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CROSSLAND X", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(685, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CASCADA", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CASCADA", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2153, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GRANDLAND HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GRANDLAND HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30132, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CROSSLAND HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CROSSLAND HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30205, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CROSSLAND ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CROSSLAND ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30206, "BCI"))));
         brands.add(new BrandModel("ORA", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(729, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "03 ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "03 ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10285, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "03 GT ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "03 GT ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10286, "BCI"))));
         brands.add(new BrandModel("PEUGEOT", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(22, "BCI"))
@@ -3093,35 +3639,44 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1409, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "BOXER", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(433, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "BOXER CHASIS CABINA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "BOXER CHASIS CABINA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3008, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 107", "CITYCAR", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 107", "CITYCAR",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(443, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 208", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 208", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1765, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 301", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1983, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 308", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 308", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(854, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 508", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1664, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 2008", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 2008", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2108, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 3008", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1279, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 4008", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 4008", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1982, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 5008", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1707, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "108", "CITYCAR", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2703, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 207", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 207", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(444, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 207 DESCAPOTABLE A/M", "CONVERTIBLE",
+                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 207 DESCAPOTABLE A/M",
+                        "CONVERTIBLE",
                         new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(852, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "208 GTI", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3006, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 308 CC", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 308 CC", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1278, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "308 GT", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2613, "BCI")))
@@ -3129,21 +3684,27 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1768, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 407", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(440, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 508 GT", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PEUGEOT 508 GT", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1769, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "508 RXH", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "508 RXH", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2685, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TEPEE", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(436, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TEPEE ELECTRICO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TEPEE ELECTRICO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2956, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "RIFTER", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "RIFTER", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3094, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "PARTNER", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(442, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PARTNER ELECTRICO", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PARTNER ELECTRICO", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2955, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "2008 (E-2008) ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "2008 (E-2008) ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9501, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "3008 HIBRIDO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9502, "BCI")))
@@ -3161,15 +3722,19 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(435, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "EXPERT", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1402, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "208 (E-208) ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "208 (E-208) ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30220, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "308 HIBRIDO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "308 HIBRIDO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30160, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "308 GT HIBRIDO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "308 GT HIBRIDO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30161, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "5008 HIBRIDO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30122, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "208 HIBRIDO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "208 HIBRIDO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10432, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "2008 HIBRIDO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10433, "BCI"))));
@@ -3177,7 +3742,8 @@ public class SeedHelper {
                 .addInsurerBrandId(new BrandInsurerModel(44, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "1500", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1157, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "1500 REBEL", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "1500 REBEL", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2994, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "RAM 1000", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3104, "BCI")))
@@ -3185,7 +3751,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(650, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "RAM 700", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(601, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "RAM VAN 1000", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "RAM VAN 1000", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(670, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "RAM VAN 700", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(571, "BCI")))
@@ -3193,7 +3760,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(9527, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "RAMPAGE", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10201, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "1500 HIBRIDO", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "1500 HIBRIDO", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9427, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "1500 RHO", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30244, "BCI"))));
@@ -3205,11 +3773,13 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2562, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "MEGANE", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(468, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MEGANE RS", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MEGANE RS", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2584, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "KANGOO", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(469, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "KANGOO ZE ELECTRICO", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "KANGOO ZE ELECTRICO", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3137, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "KOLEOS", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1085, "BCI")))
@@ -3225,7 +3795,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1087, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "OROCH", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2882, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EXPRESS FURGON", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EXPRESS FURGON", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9553, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "KWID", "CROSSOVER", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9048, "BCI")))
@@ -3237,7 +3808,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2585, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "FLUENCE", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1522, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "FLUENCE ZE ELECTRICO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "FLUENCE ZE ELECTRICO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(745, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "DOKKER", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2561, "BCI")))
@@ -3249,7 +3821,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(10469, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "KOLEOS HIBRIDO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30170, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "KWID E-TECH ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "KWID E-TECH ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10338, "BCI"))));
         brands.add(new BrandModel("RENAULT BRILLIANCE", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(62, "BCI"))
@@ -3257,25 +3830,32 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(3503, "BCI"))));
         brands.add(new BrandModel("RIDDARA", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(737, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "RD6 HIBRIDO", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "RD6 HIBRIDO", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30207, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "RD6 ELECTRICO", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "RD6 ELECTRICO", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10421, "BCI"))));
         brands.add(new BrandModel("SEAT", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(28, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "ATECA", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "ATECA", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3151, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "ARONA", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "ARONA", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3152, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "IBIZA", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(493, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "LEON", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3154, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "LEON CUPRA", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "LEON CUPRA", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3153, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "LEON SW", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "LEON SW", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3171, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "LEON CUPRA SW", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "LEON CUPRA SW", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3172, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CUPRA ATECA", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3602, "BCI")))
@@ -3285,65 +3865,84 @@ public class SeedHelper {
                 .addInsurerBrandId(new BrandInsurerModel(724, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "X30 FURGON", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10164, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "T30 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "T30 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10165, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "T32 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "T32 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10166, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "T50 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "T50 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10167, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "T52 CAMIONETA", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "T52 CAMIONETA", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10168, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "X30L EV FURGON ELECTRICO", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "X30L EV FURGON ELECTRICO", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30201, "BCI"))));
         brands.add(new BrandModel("SKODA", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(29, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "KAROQ", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2960, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "KODIAQ", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "KODIAQ", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2896, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "RAPID", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2192, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SPACEBACK", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SPACEBACK", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2261, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SUPERB", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2808, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "OCTAVIA", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(504, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "OCTAVIA RS / VRS", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "OCTAVIA RS / VRS", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1964, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "OCTAVIA SCOUT", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "OCTAVIA SCOUT", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2768, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "YETI", "STATION WAGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1657, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "FABIA RS", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2012, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SCALA", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SCALA", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(8994, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "KAMIQ", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "KAMIQ", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(8995, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "FABIA", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(503, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "ELROQ ELECTRICO", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "ELROQ ELECTRICO", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30137, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "KODIAQ HIBRIDO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "KODIAQ HIBRIDO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30138, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "ENYAQ ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "ENYAQ ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30187, "BCI"))));
         brands.add(new BrandModel("SMART", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(746, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "SMART 1 ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SMART 1 ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30211, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SMART 1 BRABUS ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SMART 1 BRABUS ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30212, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SMART 3 ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SMART 3 ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30213, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SMART 3 BRABUS ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SMART 3 BRABUS ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30214, "BCI"))));
         brands.add(new BrandModel("SSANGYONG", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(27, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "ACTYON", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(514, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "ACTYON SPORT", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "ACTYON SPORT", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(515, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "KORANDO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(509, "BCI")))
@@ -3351,25 +3950,29 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1641, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "REXTON", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(511, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "STAVIC", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "STAVIC", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(512, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "MUSSO", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(510, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TORRES", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9969, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GRAND MUSSO", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GRAND MUSSO", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3533, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "XLV", "STATION WAGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2751, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TIVOLI", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2608, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TORRES EVX ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TORRES EVX ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10352, "BCI"))));
         brands.add(new BrandModel("SUBARU", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(30, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "LEGACY", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(526, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "OUTBACK", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "OUTBACK", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(528, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TRIBECA", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1210, "BCI")))
@@ -3381,21 +3984,29 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(997, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "IMPREZA STI", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(982, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "FORESTER", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "FORESTER", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(529, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SUBARU XV", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SUBARU XV", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1280, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "IMPREZA SPORT", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "IMPREZA SPORT", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2712, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "WRX SPORT WAGON", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "WRX SPORT WAGON", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9792, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CROSSTREK HIBRIDO", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CROSSTREK HIBRIDO", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10279, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CROSSTREK", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CROSSTREK", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10094, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "XV HIBRIDO", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "XV HIBRIDO", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9022, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "FORESTER HIBRIDO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "FORESTER HIBRIDO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9023, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "EVOLTIS", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3627, "BCI")))
@@ -3409,9 +4020,11 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(562, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "BALENO", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(549, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GRAND NOMADE", "TODO TERRENO", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GRAND NOMADE", "TODO TERRENO",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(554, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GRAND VITARA", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GRAND VITARA", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(553, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "JIMNY", "TODO TERRENO", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(555, "BCI")))
@@ -3423,31 +4036,40 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(544, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SWIFT D-ZIRE", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1758, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SWIFT SPORT", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SWIFT SPORT", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2247, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SX4", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(563, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "S-CROSS", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2539, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "ERTIGA HIBRIDO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "ERTIGA HIBRIDO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9998, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GRAND VITARA HIBRIDO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GRAND VITARA HIBRIDO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10137, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "FRONX HIBRIDO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "FRONX HIBRIDO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10158, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SWIFT HIBRIDO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SWIFT HIBRIDO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9397, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "S-PRESSO", "CROSSOVER", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3608, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CARRY PICK UP", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CARRY PICK UP", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3624, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CARRY FURGON", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CARRY FURGON", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3625, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "XL7", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(561, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "VITARA", "TODO TERRENO", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "VITARA", "TODO TERRENO",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(546, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "ERTIGA", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "ERTIGA", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(691, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "DZIRE", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2974, "BCI")))
@@ -3455,11 +4077,14 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1089, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CIAZ", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2691, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "A-CROSS HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "A-CROSS HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30221, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "DZIRE HIBRIDO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "DZIRE HIBRIDO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30146, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "XL7 HIBRIDO", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "XL7 HIBRIDO", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10363, "BCI"))));
         brands.add(new BrandModel("SWM", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(725, "BCI"))
@@ -3473,15 +4098,18 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1303, "BCI"))));
         brands.add(new BrandModel("TESLA", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(731, "BCI"))
-                .addModel(new BrandDataModel(new ObjectId(), "MODEL 3 ELECTRICO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MODEL 3 ELECTRICO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10290, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "MODEL Y ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "MODEL Y ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10291, "BCI"))));
         brands.add(new BrandModel("TOYOTA", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(32, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "AURIS", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(594, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "AURIS HIBRIDO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "AURIS HIBRIDO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2895, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "AVENSIS", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(588, "BCI")))
@@ -3491,13 +4119,15 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(586, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "4 RUNNER", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(572, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "LAND CRUISER PRADO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "LAND CRUISER PRADO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(596, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TOY HIACE", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(579, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "HILUX", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(578, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "HI-LUX GR SPORT", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "HI-LUX GR SPORT", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3117, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "FORTUNER", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(591, "BCI")))
@@ -3512,19 +4142,26 @@ public class SeedHelper {
                 .addModel(new BrandDataModel(new ObjectId(), "PRIUS C", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2248, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "COROLLA CROSS GR SPORT", "STATION WAGON", new ArrayList<>())
+                        new BrandDataModel(new ObjectId(), "COROLLA CROSS GR SPORT",
+                                "STATION WAGON", new ArrayList<>())
                                 .addInsurerModelId(new BrandInsurerModel(9546, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "FORTUNER GR SPORT", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "FORTUNER GR SPORT", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9547, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "YARIS CROSS", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "YARIS CROSS", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10144, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "YARIS CROSS HIBRIDO", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "YARIS CROSS HIBRIDO", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10145, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "HIACE FURGON CARGO", "FURGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "HIACE FURGON CARGO", "FURGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10146, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COROLLA CROSS", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COROLLA CROSS", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9049, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COROLLA CROSS HIBRIDO", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COROLLA CROSS HIBRIDO", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9050, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "YARIS GR", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9380, "BCI")))
@@ -3532,31 +4169,42 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(9467, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "ZELAS", "COUPE", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1389, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "C-HR HIBRIDO", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "C-HR HIBRIDO", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3601, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COROLLA HIBRIDO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COROLLA HIBRIDO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3621, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "YARIS SPORT", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "YARIS SPORT", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(600, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "URBAN CRUISER", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "URBAN CRUISER", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(924, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "FJ CRUISER", "TODO TERRENO", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "FJ CRUISER", "TODO TERRENO",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(595, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "COROLLA", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(575, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COROLLA HATCHBACK", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COROLLA HATCHBACK", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3115, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COROLLA HATCHBACK HYBRID", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COROLLA HATCHBACK HYBRID", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3116, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CAMRY", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(573, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CAMRY HIBRIDO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CAMRY HIBRIDO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2500, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "BZ4X ELECTRICO", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "BZ4X ELECTRICO", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30197, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "YARIS HIBRIDO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "YARIS HIBRIDO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30215, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "COROLLA GR", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "COROLLA GR", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10370, "BCI"))));
         brands.add(new BrandModel("VOLKSWAGEN", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(33, "BCI"))
@@ -3566,7 +4214,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2925, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "BEETLE", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(613, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "BEETLE CABRIO", "CONVERTIBLE", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "BEETLE CABRIO", "CONVERTIBLE",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(858, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "BORA", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(614, "BCI")))
@@ -3582,9 +4231,11 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2009, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "GOLF R", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2913, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "GOLF VARIANT", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "GOLF VARIANT", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2811, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SURAN", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SURAN", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(859, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "T-CROSS", "CROSSOVER", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3125, "BCI")))
@@ -3594,7 +4245,8 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(2662, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "SAVEIRO", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(610, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "PANAMERICANA", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "PANAMERICANA", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2162, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "PASSAT", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(608, "BCI")))
@@ -3612,11 +4264,14 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(9057, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TAOS", "STATION WAGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9381, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SAVEIRO CROSS", "CAMIONETA", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SAVEIRO CROSS", "CAMIONETA",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9428, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TIGUAN R-LINE", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TIGUAN R-LINE", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3501, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "TIGUAN", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "TIGUAN", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(860, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TRANSPORTER", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2175, "BCI")))
@@ -3634,11 +4289,13 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1644, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CADDY", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(615, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "CADDY KOMBI", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "CADDY KOMBI", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2814, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "CARAVELLE", "FURGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1091, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "ID.4 ELECTRICO", "CROSSOVER", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "ID.4 ELECTRICO", "CROSSOVER",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30130, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "TERA", "CROSSOVER", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(30157, "BCI"))));
@@ -3650,11 +4307,13 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1646, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "S-60", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(635, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "S-60 CROSS COUNTRY", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "S-60 CROSS COUNTRY", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1034, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "S-60 T6", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1648, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "S-60 T6 POLESTAR", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "S-60 T6 POLESTAR", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(516, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "S-80", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(632, "BCI")))
@@ -3664,23 +4323,32 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(630, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "S-90 T8", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3077, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "V-60 CROSS COUNTRY B5 SEMI HIBRIDO", "STATION WAGON",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(9526, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "XC-40 B4 SEMI HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "V-60 CROSS COUNTRY B5 SEMI HIBRIDO",
+                        "STATION WAGON",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(9526, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "XC-40 B4 SEMI HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9548, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "XC-40 B5 SEMI HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "XC-40 B5 SEMI HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9549, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C-40 ELECTRICO", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9786, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EX-30 ELECTRICO", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EX-30 ELECTRICO", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10159, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "XC-40 P8 ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "XC-40 P8 ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9128, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "XC-40 T5 PLUG-IN HYBRID", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "XC-40 T5 PLUG-IN HYBRID", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9131, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "XC-60 B5 SEMI HIBRIDO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "XC-60 B5 SEMI HIBRIDO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9494, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "S-60 B4 SEMI HIBRIDO", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "S-60 B4 SEMI HIBRIDO", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(9495, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "XC-40", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2922, "BCI")))
@@ -3690,11 +4358,14 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1652, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "XC-60 T6", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1653, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "XC-60 T8 PLUG-IN HYBRID", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "XC-60 T8 PLUG-IN HYBRID", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2949, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "XC-70", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "XC-70", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(639, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "XC-70 T6", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "XC-70 T6", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2341, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "XC-90", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(637, "BCI")))
@@ -3702,47 +4373,61 @@ public class SeedHelper {
                         .addInsurerModelId(new BrandInsurerModel(1655, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "S-60 T5", "SEDAN", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3508, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "S-60 T8 PLUG-IN HYBRID", "SEDAN", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "S-60 T8 PLUG-IN HYBRID", "SEDAN",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3509, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "V-40", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(629, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "V-40 CROSS COUNTRY", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "V-40 CROSS COUNTRY", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2339, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "V-40 CROSS COUNTRY T5", "HATCHBACK", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "V-40 CROSS COUNTRY T5", "HATCHBACK",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2340, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "V-40 T5", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2338, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "V-50", "STATION WAGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1139, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "V-50 T5", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "V-50 T5", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(640, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "V-60", "STATION WAGON", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1504, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "V-60 CROSS COUNTRY", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "V-60 CROSS COUNTRY", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1033, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "V-60 T6 POLESTAR", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "V-60 T6 POLESTAR", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(3078, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "V-90 CROSS COUNTRY", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "V-90 CROSS COUNTRY", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(2810, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "V-90 CROSS COUNTRY D5", "STATION WAGON", new ArrayList<>())
+                        new BrandDataModel(new ObjectId(), "V-90 CROSS COUNTRY D5",
+                                "STATION WAGON", new ArrayList<>())
                                 .addInsurerModelId(new BrandInsurerModel(3079, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "C 30 T5", "HATCHBACK", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1138, "BCI")))
                 .addModel(
-                        new BrandDataModel(new ObjectId(), "XC-60 T8 PLUG-IN HYBRID POLESTAR", "SUV", new ArrayList<>())
+                        new BrandDataModel(new ObjectId(), "XC-60 T8 PLUG-IN HYBRID POLESTAR",
+                                "SUV", new ArrayList<>())
                                 .addInsurerModelId(new BrandInsurerModel(30158, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EX-30 CROSS COUNTRY ELECTRICO", "CROSSOVER",
-                        new ArrayList<>()).addInsurerModelId(new BrandInsurerModel(30164, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EX-40 ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EX-30 CROSS COUNTRY ELECTRICO",
+                        "CROSSOVER",
+                        new ArrayList<>())
+                        .addInsurerModelId(new BrandInsurerModel(30164, "BCI")))
+                .addModel(new BrandDataModel(new ObjectId(), "EX-40 ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10396, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "EC-40 ELECTRICO", "SUV", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "EC-40 ELECTRICO", "SUV",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(10397, "BCI"))));
         brands.add(new BrandModel("ZNA", new ArrayList<>(), new ArrayList<>())
                 .addInsurerBrandId(new BrandInsurerModel(224, "BCI"))
                 .addModel(new BrandDataModel(new ObjectId(), "RICH", "CAMIONETA", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1562, "BCI")))
-                .addModel(new BrandDataModel(new ObjectId(), "SUCCE", "STATION WAGON", new ArrayList<>())
+                .addModel(new BrandDataModel(new ObjectId(), "SUCCE", "STATION WAGON",
+                        new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1563, "BCI")))
                 .addModel(new BrandDataModel(new ObjectId(), "OTING", "SUV", new ArrayList<>())
                         .addInsurerModelId(new BrandInsurerModel(1974, "BCI"))));

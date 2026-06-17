@@ -1214,7 +1214,7 @@
                                 "{{Dev - URL}}"
                             ],
                             "path": [
-                                "cities",
+                                "regions",
                                 "find",
                                 "all"
                             ]
@@ -1228,7 +1228,7 @@
             "name": "Seed",
             "item": [
                 {
-                    "name": "seed cities",
+                    "name": "seed regions",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -1248,13 +1248,13 @@
                             }
                         },
                         "url": {
-                            "raw": "{{Dev - URL}}/seed/cities",
+                            "raw": "{{Dev - URL}}/seed/regions",
                             "host": [
                                 "{{Dev - URL}}"
                             ],
                             "path": [
                                 "seed",
-                                "cities"
+                                "regions"
                             ]
                         }
                     },
@@ -1461,6 +1461,36 @@
                                     "description": "Filter by Quote Status",
                                     "disabled": true
                                 }
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Region Controller",
+            "item": [
+                {
+                    "name": "findAll Regions",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Refresh-Token",
+                                "value": "{{refresh_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Dev - URL}}/regions/find/all",
+                            "host": [
+                                "{{Dev - URL}}"
+                            ],
+                            "path": [
+                                "regions",
+                                "find",
+                                "all"
                             ]
                         }
                     },

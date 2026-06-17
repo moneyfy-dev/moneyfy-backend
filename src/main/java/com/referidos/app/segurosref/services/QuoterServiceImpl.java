@@ -453,7 +453,8 @@ public class QuoterServiceImpl implements QuoterService {
             if (optionalPlan.isEmpty()) {
                 PlanModel novaPlan = new PlanModel(insurerPlanId, insurerPlan.getInsurer(), insurerPlan.getPlanName(),
                         insurerPlan.getDeductibleDesc(), insurerPlan.getStolenVehicle(), insurerPlan.getTotalLoss(),
-                        insurerPlan.getDamageThirdParty(), insurerPlan.getWorkshopType(), insurerPlan.getCoverages(), insurerPlan.getDetails(),
+                        insurerPlan.getDamageThirdParty(), insurerPlan.getWorkshopType(), insurerPlan.getCoverages(),
+                        insurerPlan.getDetails(),
                         currentDateTime, currentDateTime);
                 planRepository.save(novaPlan);
             }
@@ -559,8 +560,7 @@ public class QuoterServiceImpl implements QuoterService {
 
     @Transactional
     @Override
-    public ResponseEntity<?> generateTransaction(GenerateTransactionRequest generateTransaction, String emailAuth,
-            String requestEndpoint) {
+    public ResponseEntity<?> generateTransaction(GenerateTransactionRequest generateTransaction, String emailAuth) {
         UserModel userC = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         String userCId = userC.getUserId();
         String quoterId = generateTransaction.quoterId();
@@ -673,7 +673,8 @@ public class QuoterServiceImpl implements QuoterService {
     @SuppressWarnings("null")
     @Transactional
     @Override
-    public ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote, String requestEndpoint, HttpServletRequest request) {
+    public ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote, String requestEndpoint,
+            HttpServletRequest request) {
         if (!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("X-Moneyfy-Api-Key"))) {
             return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
         }

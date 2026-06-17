@@ -1206,7 +1206,7 @@
                                 "{{Prod - URL}}"
                             ],
                             "path": [
-                                "cities",
+                                "regions",
                                 "find",
                                 "all"
                             ]
@@ -1220,7 +1220,7 @@
             "name": "Seed",
             "item": [
                 {
-                    "name": "seed cities",
+                    "name": "seed regions",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -1240,13 +1240,13 @@
                             }
                         },
                         "url": {
-                            "raw": "{{Prod - URL}}/seed/cities",
+                            "raw": "{{Prod - URL}}/seed/regions",
                             "host": [
                                 "{{Prod - URL}}"
                             ],
                             "path": [
                                 "seed",
-                                "cities"
+                                "regions"
                             ]
                         }
                     },
@@ -1429,6 +1429,36 @@
                                 "manager",
                                 "dashboard",
                                 "quotes"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Region Controller",
+            "item": [
+                {
+                    "name": "findAll Regions",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Refresh-Token",
+                                "value": "{{refresh_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Prod - URL}}/regions/find/all",
+                            "host": [
+                                "{{Prod - URL}}"
+                            ],
+                            "path": [
+                                "regions",
+                                "find",
+                                "all"
                             ]
                         }
                     },
