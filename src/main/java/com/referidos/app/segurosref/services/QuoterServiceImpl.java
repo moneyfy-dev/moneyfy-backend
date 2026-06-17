@@ -617,7 +617,7 @@ public class QuoterServiceImpl implements QuoterService {
                             commissionScope = 2;
                             commissionTotal += commissionUserB;
                             novaTransaction.addCommission(new TransactionComissionModel(userB.getUserId(),
-                                    commissionUserB, pointOfCurrentStatus));
+                                    commissionUserB, pointOfCurrentStatus, DataHelper.deprecatedDateTime()));
                             // IMPORTANTE: Se busca un userA que haya referido al userB, para agregar la
                             // comisión correspondiente.
                             Optional<ReferredModel> referredByUserA = referredRepository.findByReferred(emailUserB);
@@ -635,7 +635,7 @@ public class QuoterServiceImpl implements QuoterService {
                                 commissionScope = 3;
                                 commissionTotal += commissionUserA;
                                 novaTransaction.addCommission(new TransactionComissionModel(userA.getUserId(),
-                                        commissionUserA, pointOfCurrentStatus));
+                                        commissionUserA, pointOfCurrentStatus, DataHelper.deprecatedDateTime()));
                             }
                         }
                     } catch (NoSuchElementException e) {

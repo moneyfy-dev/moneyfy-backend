@@ -13,7 +13,7 @@ import lombok.Data;
 
 @Data
 @JsonPropertyOrder(value = {"transactionId", "planId", "userId", "quoterId", "status", "commissionTotal", "commissionScope",
-        "userReferringFound", "observation", "commissions", "createdDate", "updatedDate", "approvalDate"})
+        "userReferringFound", "observation", "commissions", "createdDate", "updatedDate", "approvalDate", "paymentDate"})
 @Document(collection = "transactions")
 public class TransactionModel {
 
@@ -31,11 +31,12 @@ public class TransactionModel {
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
     private LocalDateTime approvalDate;
+    private LocalDateTime paymentDate;
 
     // Constructor personalizado
     public TransactionModel(String transactionId, String planId, String userId, String quoterId, String status,
             int commissionTotal, int commissionScope, boolean userReferringFound, String observation, LocalDateTime createdDate,
-            LocalDateTime updatedDate, LocalDateTime approvalDate) {
+            LocalDateTime updatedDate, LocalDateTime approvalDate, LocalDateTime paymentDate) {
         this.commissions = new ArrayList<>();
         this.transactionId = transactionId;
         this.planId = planId;
@@ -49,6 +50,7 @@ public class TransactionModel {
         this.createdDate = createdDate;
         this.updatedDate = updatedDate;
         this.approvalDate = approvalDate;
+        this.paymentDate = paymentDate;
     }
 
     // Métodos de lógica, propios de la clase
