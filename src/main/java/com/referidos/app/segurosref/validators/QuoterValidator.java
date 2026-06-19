@@ -1,5 +1,3 @@
-package com.referidos.app.segurosref.validators;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BindingResult;
@@ -7,9 +5,9 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
 import com.referidos.app.segurosref.helpers.ValidateInputHelper;
+import com.referidos.app.segurosref.requests.SearchPlanRequest;
 import com.referidos.app.segurosref.requests.SearchVehicleRequest;
 import com.referidos.app.segurosref.requests.SelectPlanRequest;
-import com.referidos.app.segurosref.requests.SearchPlanRequest;
 
 @Component
 @RequiredArgsConstructor
@@ -20,11 +18,9 @@ public class QuoterValidator implements Validator {
     @SuppressWarnings("null")
     @Override
     public boolean supports(Class<?> clazz) {
-        // Lo que se debería colocar es un objeto que se va utilizar para las
-        // validaciones, no específicamente el modelo
-        return clazz.isAssignableFrom(SearchVehicleRequest.class) ||
-                clazz.isAssignableFrom(SearchPlanRequest.class) ||
-                clazz.isAssignableFrom(SelectPlanRequest.class);
+        return clazz.isAssignableFrom(SearchVehicleRequest.class)
+                || clazz.isAssignableFrom(SearchPlanRequest.class)
+                || clazz.isAssignableFrom(SelectPlanRequest.class);
     }
 
     @SuppressWarnings("null")
@@ -58,13 +54,24 @@ public class QuoterValidator implements Validator {
         String purchaserPhone = this.validateInput.verifyPhoneOptional(searchPlan.purchaserPhone());
         String ownerRelationOption = this.validateInput.verifyOwnerOption(searchPlan.ownerRelationOption());
 
-        this.verifyPlanFinderData(quoterId, ppu, brand, model, year, insurerAlias, purchaserId, purchaserName,
-                purchaserPaternalSur, purchaserMaternalSur, purchaserEmail, purchaserPhone, ownerRelationOption,
+        this.verifyPlanFinderData(
+                quoterId,
+                ppu,
+                brand,
+                model,
+                year,
+                insurerAlias,
+                purchaserId,
+                purchaserName,
+                purchaserPaternalSur,
+                purchaserMaternalSur,
+                purchaserEmail,
+                purchaserPhone,
+                ownerRelationOption,
                 bindingResult);
     }
 
     public void validateSelectedPlan(SelectPlanRequest selectPlan, BindingResult bindingResult) {
-        // Datos del plan
         String quoterId = this.validateInput.verifyQuoterId(selectPlan.quoterId());
         String planId = this.validateInput.verifyPlanId(selectPlan.planId());
         String insurer = this.validateInput.verifyInsurer(selectPlan.insurer());
@@ -74,35 +81,60 @@ public class QuoterValidator implements Validator {
         String grossPriceUF = this.validateInput
                 .verifyNumberValue((selectPlan.grossPriceUF() != null ? selectPlan.grossPriceUF().doubleValue() : 0.0));
         String totalMonths = this.validateInput.verifyNumberValue(selectPlan.totalMonths());
-        String monthlyPriceUF = this.validateInput.verifyNumberValue(
-                (selectPlan.monthlyPriceUF() != null ? selectPlan.monthlyPriceUF().doubleValue() : 0.0));
+        String monthlyPriceUF = this.validateInput
+                .verifyNumberValue((selectPlan.monthlyPriceUF() != null ? selectPlan.monthlyPriceUF().doubleValue() : 0.0));
         String monthlyPrice = this.validateInput
                 .verifyNumberValue((selectPlan.monthlyPrice() != null ? selectPlan.monthlyPrice().doubleValue() : 0.0));
         String deductibleDesc = this.validateInput.verifyDeductibleDesc(selectPlan.deductibleDesc());
         String discount = this.validateInput
                 .verifyNumberValue((selectPlan.discount() != null ? selectPlan.discount().doubleValue() : 0.0));
-        // Datos del dueño del vehículo
         String ownerName = this.validateInput.verifyName(selectPlan.ownerName());
         String ownerPaternalSur = this.validateInput.verifySurname(selectPlan.ownerPaternalSur());
         String ownerMaternalSur = this.validateInput.verifySurname(selectPlan.ownerMaternalSur());
-        // Datos para la inspección
         String street = this.validateInput.verifyStreet(selectPlan.street());
         String streetNumber = this.validateInput.verifyStreetNumber(selectPlan.streetNumber());
         String department = this.validateInput.verifyDepartment(selectPlan.department());
-        // Validar siguientes campos y verificar si tienen error los demás campos
-        this.validatePlanData(quoterId, planId, insurer, planName, valueUF, grossPriceUF, totalMonths, monthlyPriceUF,
-                monthlyPrice, deductibleDesc, discount, ownerName, ownerPaternalSur, ownerMaternalSur, street,
+        String region = this.validateInput.verifyLocationOptional(selectPlan.region());
+        String commune = this.validateInput.verifyLocationOptional(selectPlan.commune());
+
+        this.validatePlanData(
+                quoterId,
+                planId,
+                insurer,
+                planName,
+                valueUF,
+                grossPriceUF,
+                totalMonths,
+                monthlyPriceUF,
+                monthlyPrice,
+                deductibleDesc,
+                discount,
+                ownerName,
+                ownerPaternalSur,
+                ownerMaternalSur,
+                street,
                 streetNumber,
-                department, bindingResult);
+                department,
+                region,
+                commune,
+                bindingResult);
     }
 
-    // Verificar si existen errores en caso de haberlos, se asignan al objeto
-    // vinculante
     @SuppressWarnings("null")
-    private void verifyPlanFinderData(String quoterId, String ppu, String brand, String model, String year,
+    private void verifyPlanFinderData(
+            String quoterId,
+            String ppu,
+            String brand,
+            String model,
+            String year,
             String insurerAlias,
-            String purchaserId, String purchaserName, String purchaserPaternalSur,
-            String purchaserMaternalSur, String purchaserEmail, String purchaserPhone, String ownerRelationOption,
+            String purchaserId,
+            String purchaserName,
+            String purchaserPaternalSur,
+            String purchaserMaternalSur,
+            String purchaserEmail,
+            String purchaserPhone,
+            String ownerRelationOption,
             Errors errors) {
         if (!quoterId.equals("")) {
             errors.rejectValue("quoterId", null, quoterId);
@@ -146,10 +178,27 @@ public class QuoterValidator implements Validator {
     }
 
     @SuppressWarnings("null")
-    private void validatePlanData(String quoterId, String planId, String insurer, String planName, String valueUF,
-            String grossPriceUF, String totalMonths, String monthlyPriceUF, String monthlyPrice, String deductibleDesc,
-            String discount, String ownerName, String ownerPaternalSur, String ownerMaternalSur, String street,
-            String streetNumber, String department, BindingResult errors) {
+    private void validatePlanData(
+            String quoterId,
+            String planId,
+            String insurer,
+            String planName,
+            String valueUF,
+            String grossPriceUF,
+            String totalMonths,
+            String monthlyPriceUF,
+            String monthlyPrice,
+            String deductibleDesc,
+            String discount,
+            String ownerName,
+            String ownerPaternalSur,
+            String ownerMaternalSur,
+            String street,
+            String streetNumber,
+            String department,
+            String region,
+            String commune,
+            BindingResult errors) {
         if (!quoterId.equals("")) {
             errors.rejectValue("quoterId", null, quoterId);
         }
@@ -201,6 +250,11 @@ public class QuoterValidator implements Validator {
         if (!department.equals("")) {
             errors.rejectValue("department", null, department);
         }
+        if (!region.equals("")) {
+            errors.rejectValue("region", null, region);
+        }
+        if (!commune.equals("")) {
+            errors.rejectValue("commune", null, commune);
+        }
     }
-
 }

@@ -19,6 +19,8 @@ public record SelectPlanRequest(
         String ownerMaternalSur,
         String street,
         String streetNumber,
-        String department) {
+        String department,
+        String region,
+        String commune) {
 
 }

@@ -10,5 +10,7 @@ public class QuoterAddressModel {
     private String street;
     private String streetNumber;
     private String department;
+    private String region;
+    private String commune;
     
 }
