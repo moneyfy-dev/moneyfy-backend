@@ -144,4 +144,17 @@ public class UserController {
                 return userService.weeklyEarnings(auth.getPrincipal().toString());
         }
 
+        @PostMapping(value = "/monthly/earnings")
+        @PreAuthorize(value = "hasRole('USER')")
+        @Operation(summary = "Obtain the monthly earnings of the user", description = "Obtain the monthly earnings of the user", tags = {
+                        "User" }, responses = {
+                                        @ApiResponse(responseCode = "200", description = "The monthly earnings of the user have been recovered", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                                        @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+                        }, parameters = {
+                                        @Parameter(name = "Refresh-Token", in = ParameterIn.HEADER, description = "Token that allow you to update the credentials", required = true)
+                        })
+        public ResponseEntity<GeneralResponse> monthlyEarnings(Authentication auth) {
+                return userService.monthlyEarnings(auth.getPrincipal().toString());
+        }
+
 }

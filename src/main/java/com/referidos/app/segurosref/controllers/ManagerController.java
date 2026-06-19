@@ -52,6 +52,19 @@ public class ManagerController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
+    @GetMapping("/dashboard/summary")
+    public ResponseEntity<?> getDashboardSummary(
+            @RequestHeader(value = "X-Moneyfy-Api-Key", required = true) String apiKey) {
+
+        if (apiKey == null || !apiKey.equals(moneyfyApiKey)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new DashboardPaginatedResponseDto("No autorizado",
+                            HttpStatus.UNAUTHORIZED.value(), null));
+        }
+
+        return managerService.getDashboardSummary();
+    }
+
     @PutMapping("/finalize/quote")
     public ResponseEntity<?> finalizeQuote(@RequestBody FinalizeQuoteRequest finalizeQuote,
             HttpServletRequest request) {

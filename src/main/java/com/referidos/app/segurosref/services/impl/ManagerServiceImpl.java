@@ -17,7 +17,9 @@ import java.util.NoSuchElementException;
 import org.springframework.http.ResponseEntity;
 
 import com.referidos.app.segurosref.dtos.manager.FailedPaymentDto;
+import com.referidos.app.segurosref.dtos.manager.DashboardMetricPointDto;
 import com.referidos.app.segurosref.dtos.manager.PayQuotesRequest;
+import com.referidos.app.segurosref.dtos.manager.DashboardSummaryDto;
 import com.referidos.app.segurosref.dtos.manager.UserQuotePaymentDto;
 import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
@@ -306,6 +308,106 @@ public class ManagerServiceImpl implements ManagerService {
         DashboardPaginatedResponseDto.PaginatedData paginatedData = new DashboardPaginatedResponseDto.PaginatedData(
                 dashboardQuotes, page, size, totalElements, totalPages);
         return new DashboardPaginatedResponseDto("Cotizaciones recuperadas exitosamente", 200, paginatedData);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> getDashboardSummary() {
+        List<UserModel> users = userRepository.findAll();
+        List<TransactionModel> transactions = transactionRepository.findAll();
+
+        LocalDateTime todayStart = LocalDateTime.now()
+                .withHour(0)
+                .withMinute(0)
+                .withSecond(0)
+                .withNano(0);
+        LocalDateTime firstDay = todayStart.minusDays(6);
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter labelFormatter = DateTimeFormatter.ofPattern("dd/MM");
+
+        List<DashboardMetricPointDto> weeklyMetrics = new ArrayList<>();
+        Map<String, DashboardMetricPointDto> bucketByDate = new HashMap<>();
+        Map<String, Set<String>> usersByDay = new HashMap<>();
+
+        for (int i = 0; i < 7; i++) {
+            LocalDateTime bucketDate = firstDay.plusDays(i);
+            String dateKey = bucketDate.toLocalDate().format(dateFormatter);
+            DashboardMetricPointDto point = new DashboardMetricPointDto(
+                    dateKey,
+                    bucketDate.toLocalDate().format(labelFormatter),
+                    0,
+                    0,
+                    0);
+            weeklyMetrics.add(point);
+            bucketByDate.put(dateKey, point);
+            usersByDay.put(dateKey, new java.util.HashSet<>());
+        }
+
+        int activeUsers = 0;
+        for (UserModel user : users) {
+            if (user.getQuoters() == null || user.getQuoters().isEmpty()) {
+                continue;
+            }
+
+            activeUsers += 1;
+            for (QuoterModel quoter : user.getQuoters()) {
+                if (quoter.getCreatedDate() == null || quoter.getCreatedDate().isBefore(firstDay)) {
+                    continue;
+                }
+
+                String dateKey = quoter.getCreatedDate().toLocalDate().format(dateFormatter);
+                Set<String> bucketUsers = usersByDay.get(dateKey);
+                if (bucketUsers != null) {
+                    bucketUsers.add(user.getUserId());
+                }
+            }
+        }
+
+        int paidCommissions = 0;
+        int pendingCommissions = 0;
+
+        for (TransactionModel transaction : transactions) {
+            String status = transaction.getStatus();
+            int amount = transaction.getCommissionTotal();
+
+            if ("Pagado".equals(status)) {
+                paidCommissions += amount;
+            }
+
+            if ("Pendiente".equals(status) || "Aprobado".equals(status)) {
+                pendingCommissions += amount;
+            }
+
+            if (transaction.getApprovalDate() == null || transaction.getApprovalDate().isBefore(firstDay)) {
+                continue;
+            }
+
+            if (!"Aprobado".equals(status) && !"Pagado".equals(status)) {
+                continue;
+            }
+
+            String dateKey = transaction.getApprovalDate().toLocalDate().format(dateFormatter);
+            DashboardMetricPointDto point = bucketByDate.get(dateKey);
+            if (point == null) {
+                continue;
+            }
+
+            point.setCommissions(point.getCommissions() + amount);
+            point.setSales(point.getSales() + 1);
+        }
+
+        weeklyMetrics.forEach((point) -> {
+            Set<String> bucketUsers = usersByDay.get(point.getDate());
+            point.setUsers(bucketUsers != null ? bucketUsers.size() : 0);
+        });
+
+        DashboardSummaryDto summary = new DashboardSummaryDto(
+                activeUsers,
+                paidCommissions,
+                pendingCommissions,
+                weeklyMetrics);
+
+        return ResponseHelper.response("Solicitud realizada: Resumen dashboard generado", 200, summary);
     }
 
     @SuppressWarnings("null")
