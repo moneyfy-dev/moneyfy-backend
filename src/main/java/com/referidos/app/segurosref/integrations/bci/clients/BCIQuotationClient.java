@@ -34,7 +34,6 @@ import com.referidos.app.segurosref.dtos.quotation.QuotationPlanCoverDto;
 import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.integrations.bci.dtos.BCIQuotationDto;
 import com.referidos.app.segurosref.integrations.bci.dtos.BCIQuotationPlanDto;
-import com.referidos.app.segurosref.integrations.bci.dtos.BCIQuotationPlanCoverDto;
 import com.referidos.app.segurosref.integrations.bci.pojos.BCIQuoteCarPojo;
 import com.referidos.app.segurosref.models.BrandDataModel;
 import com.referidos.app.segurosref.models.BrandInsurerModel;
@@ -219,9 +218,15 @@ public class BCIQuotationClient {
 
                 for (BCIQuoteCarPojo.Tarifa t : tv.getLstTarifa()) {
                     Integer deductibleId = t.getIntIdDeducible();
-                    Integer deductibleValue = this.getDeductible(deductibleId);
+                    Integer deductibleValue = t.getIntUfDeducible() != null ? t.getIntUfDeducible()
+                            : this.getDeductible(deductibleId);
                     String uniqueValue = planIdStr + "_" + deductibleValue;
-                    String deductibleDescription = t.getStrDeducible();
+                    String deductibleDescription = "No definido";
+                    if (deductibleValue != null && deductibleValue != -1) {
+                        deductibleDescription = deductibleValue == 0 ? "Sin Deducible"
+                                : "Deducible " + deductibleValue + " UF";
+                    }
+
                     BigDecimal netValueUF = t.getDecValorNetoUfConInteres();
                     BigDecimal grossValueUF = t.getDecValorBrutoUfConInteres();
                     BigDecimal taxValueUF = t.getDecImpuestoConInteres();
@@ -251,17 +256,9 @@ public class BCIQuotationClient {
     private Object[] buildResponseQuotationBCI(BCIQuotationDto bciQuotationDto) {
         List<QuotationPlanDto> plansDto = new ArrayList<>();
         for (BCIQuotationPlanDto bciQuotationPlan : bciQuotationDto.getPlans()) {
-            Set<QuotationPlanCoverDto> coveragesDto = new java.util.HashSet<>();
-            if (bciQuotationPlan.getCoverages() != null) {
-                for (BCIQuotationPlanCoverDto coverageDtoBCI : bciQuotationPlan.getCoverages()) {
-                    coveragesDto.add(new QuotationPlanCoverDto(
-                            coverageDtoBCI.getId(),
-                            coverageDtoBCI.getName(),
-                            coverageDtoBCI.getGeneralDescription(),
-                            coverageDtoBCI.getPolCad(),
-                            coverageDtoBCI.getValue()));
-                }
-            }
+            Set<QuotationPlanCoverDto> coveragesDto = com.referidos.app.segurosref.integrations.bci.docs.BCIDocsHelper
+                    .buildCoveragesForSolucionMovil2(bciQuotationPlan.getDeductible());
+
             plansDto.add(new QuotationPlanDto(
                     bciQuotationPlan.getUniquePlan(),
                     bciQuotationPlan.getPlanId(),
@@ -275,10 +272,10 @@ public class BCIQuotationClient {
                     bciQuotationPlan.getDeductible(),
                     bciQuotationPlan.getDeductibleDesc(),
                     BigDecimal.ZERO, // descuento
-                    "Valor comercial",
-                    "Valor comercial",
-                    "Hasta UF 500 entre daño emergente, moral y lucro cesante",
-                    "Multimarca",
+                    com.referidos.app.segurosref.integrations.bci.docs.BCIDocsHelper.getStolenVehicle(),
+                    com.referidos.app.segurosref.integrations.bci.docs.BCIDocsHelper.getTotalLoss(),
+                    com.referidos.app.segurosref.integrations.bci.docs.BCIDocsHelper.getDamageThirdParty(),
+                    com.referidos.app.segurosref.integrations.bci.docs.BCIDocsHelper.getWorkshopType(),
                     bciQuotationDto.getIdCotizacion(),
                     bciQuotationDto.getVigenciaCotizacion(),
                     "", // dealTokenFDI
@@ -293,8 +290,7 @@ public class BCIQuotationClient {
                     "", // paymentPlanFDI
                     "", // quotationPeriodFDI
                     "", // paymentWayFDI
-                    coveragesDto,
-                    new ArrayList<>()));
+                    coveragesDto));
         }
         return new Object[] { -1, null, plansDto };
     }

@@ -3,13 +3,11 @@ package com.referidos.app.segurosref.services;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 
-import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
 import com.referidos.app.segurosref.requests.GenerateTransactionRequest;
 import com.referidos.app.segurosref.requests.SelectPlanRequest;
 
 import com.referidos.app.segurosref.requests.SearchVehicleRequest;
 import com.referidos.app.segurosref.requests.SearchPlanRequest;
-import jakarta.servlet.http.HttpServletRequest;
 
 public interface QuoterService {
 
@@ -27,9 +25,6 @@ public interface QuoterService {
     ResponseEntity<?> selectPlan(SelectPlanRequest planSelected, String emailAuth);
 
     ResponseEntity<?> generateTransaction(GenerateTransactionRequest generateTransaction, String emailAuth);
-
-    ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote, String requestEndpoint,
-            HttpServletRequest request);
 
     // Servicios para validaciones de datos
     void validateVehicleFinder(SearchVehicleRequest searchVehicle, BindingResult bindingResult);

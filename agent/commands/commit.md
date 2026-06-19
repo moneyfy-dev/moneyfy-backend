@@ -26,3 +26,8 @@ Al recibir este comando o cuando se recomiende su ejecución, debes asumir el ro
    - Se debe revisar si hay cambios pendientes en la rama `eliu` tras la aplicación de comandos como `$/endpoint`, `$/target`, `$/review` o `$/refactor`.
    - Si se detecta que se realizaron cambios de código, se debe **sugerir y recomendar** al usuario la ejecución del comando `$/commit`.
    - **REGLA ESTRICTA**: Está TOTALMENTE PROHIBIDO ejecutar el comando `$/commit` de forma proactiva. Solo se debe ejecutar cuando el usuario lo pida explícitamente o luego de que confirme tu sugerencia tras finalizar una tarea.
+
+7. **Sugerencia de Descripción para Pull Request (PR)**:
+   - Independientemente de si el usuario decide hacer una PR inmediatamente o no, después de ejecutar exitosamente el flujo de este comando (`$/c`), debes generar y **sugerirle al usuario una descripción estructurada y profesional para una Pull Request**.
+   - Esta descripción debe abarcar los cambios más relevantes que se encuentran actualmente en la rama `eliu` y que aún no han sido integrados a `master`.
+   - **Propósito**: Facilitar la vida del usuario entregándole un borrador listo de PR (título, qué cambió, por qué cambió, y consideraciones especiales) para que él mismo lo utilice cuando inicie su proceso de PR.

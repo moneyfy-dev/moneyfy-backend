@@ -9,12 +9,12 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-@JsonPropertyOrder(value = {"months", "finalCommissions", "finalAmount", "lastMonth"})
-public class MonthlyEarningDto {
+@JsonPropertyOrder(value = {"days", "finalCommissions", "finalAmount", "lastDay"})
+public class LastDaysEarningDto {
 
-    private List<MonthlyDataDto> months;
+    private List<DailyDataDto> days;
     private int finalCommissions;
     private int finalAmount;
-    private String lastMonth;
+    private String lastDay;
 
 }

@@ -1,0 +1,19 @@
+{
+    "bool_Estado": true,
+    "codigo": 200,
+    "resultado": {
+        "str_Patente": "KWRW90",
+        "str_DvPAtente": "1",
+        "str_Marca": "VOLKSWAGEN",
+        "str_Modelo": "TIGUAN 4X4 2.0 AT",
+        "str_Color": "BLANCO",
+        "str_TipoVehiculo": "STATION WAGON",
+        "int_AnioFabricacion": 2019,
+        "str_NumeroMotor": "DBG020926",
+        "str_NumeroChasis": "3VVJD65N0JM202529",
+        "dec_Tasacion": "14255862",
+        "int_CodMarcaBci": 33,
+        "int_CodModeloBci": 860
+    },
+    "str_Mensaje": ""
+}

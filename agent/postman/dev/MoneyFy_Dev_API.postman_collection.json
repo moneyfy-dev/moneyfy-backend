@@ -286,7 +286,7 @@
                         "header": [],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\r\n    \"email\": \"{{Dev - userEmail}}\",\r\n    \"type\": \"changeDevice\" // Tambi\u00e9n, pueder ser => changeDevice o restorePassword o registerUser\r\n}",
+                            "raw": "{\r\n    \"email\": \"{{Dev - userEmail}}\",\r\n    \"type\": \"changeDevice\" // También, pueder ser => changeDevice o restorePassword o registerUser\r\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -617,7 +617,7 @@
                     "response": []
                 },
                 {
-                    "name": "monthly earnings",
+                    "name": "weekly earnings",
                     "request": {
                         "auth": {
                             "type": "bearer",
@@ -638,13 +638,13 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{Dev - URL}}/users/monthly/earnings",
+                            "raw": "{{Dev - URL}}/users/weekly/earnings",
                             "host": [
                                 "{{Dev - URL}}"
                             ],
                             "path": [
                                 "users",
-                                "monthly",
+                                "weekly",
                                 "earnings"
                             ]
                         }
@@ -1026,7 +1026,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\r\n    \"quoterId\": \"69d89cee802c263065b3d40a\",\r\n    \"planId\": \"TRACTOR123456789\",\r\n    \"insurer\": \"Tractor Seguros Automotriz\",\r\n    \"planName\": \"Seguro auto completo\",\r\n    \"valueUF\": 37000.0,\r\n    \"grossPriceUF\": 22.72,\r\n    \"totalMonths\": 11,\r\n    \"monthlyPriceUF\": 2.0654,\r\n    \"monthlyPrice\": 76421.81,\r\n    \"deductibleDesc\": \"Deducible 5 UF\",\r\n    \"discount\": 0.0,\r\n    \"ownerName\": \"Ramiro\",\r\n    \"ownerPaternalSur\": \"Riquelme\",\r\n    \"ownerMaternalSur\": \"Gonz\u00e1lez\",\r\n    \"street\": \"San Antonio\",\r\n    \"streetNumber\": \"190#D\",\r\n    \"department\": \"\"\r\n}",
+                            "raw": "{\r\n    \"quoterId\": \"69d89cee802c263065b3d40a\",\r\n    \"planId\": \"TRACTOR123456789\",\r\n    \"insurer\": \"Tractor Seguros Automotriz\",\r\n    \"planName\": \"Seguro auto completo\",\r\n    \"valueUF\": 37000.0,\r\n    \"grossPriceUF\": 22.72,\r\n    \"totalMonths\": 11,\r\n    \"monthlyPriceUF\": 2.0654,\r\n    \"monthlyPrice\": 76421.81,\r\n    \"deductibleDesc\": \"Deducible 5 UF\",\r\n    \"discount\": 0.0,\r\n    \"ownerName\": \"Ramiro\",\r\n    \"ownerPaternalSur\": \"Riquelme\",\r\n    \"ownerMaternalSur\": \"González\",\r\n    \"street\": \"San Antonio\",\r\n    \"streetNumber\": \"190#D\",\r\n    \"department\": \"\"\r\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -1089,53 +1089,6 @@
                                 "quoter",
                                 "generate",
                                 "transaction"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "finalize quote",
-                    "protocolProfileBehavior": {
-                        "strictSSL": true
-                    },
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{Dev - Session Token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "PUT",
-                        "header": [
-                            {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Dev - API Key MoneyFy}}",
-                                "type": "text"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"usersQuotes\": [\n        {\n            \"userId\": \"user-id-1\",\n            \"quotes\": [\n                {\n                    \"quoterId\": \"quoter-1-a\",\n                    \"transactionStatus\": \"Aprobado\"\n                },\n                {\n                    \"quoterId\": \"quoter-1-b\",\n                    \"transactionStatus\": \"Rechazado\"\n                },\n                {\n                    \"quoterId\": \"quoter-1-c\",\n                    \"transactionStatus\": \"Aprobado\"\n                }\n            ]\n        },\n        {\n            \"userId\": \"user-id-2\",\n            \"quotes\": [\n                {\n                    \"quoterId\": \"quoter-2-a\",\n                    \"transactionStatus\": \"Aprobado\"\n                },\n                {\n                    \"quoterId\": \"quoter-2-b\",\n                    \"transactionStatus\": \"Aprobado\"\n                },\n                {\n                    \"quoterId\": \"quoter-2-c\",\n                    \"transactionStatus\": \"Caducado\"\n                }\n            ]\n        }\n    ]\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        },
-                        "url": {
-                            "raw": "{{Dev - URL}}/quoter/finalize/quote",
-                            "host": [
-                                "{{Dev - URL}}"
-                            ],
-                            "path": [
-                                "quoter",
-                                "finalize",
-                                "quote"
                             ]
                         }
                     },
@@ -1458,6 +1411,90 @@
                                     "description": "Filter by Quote Status",
                                     "disabled": true
                                 }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "finalize quote",
+                    "protocolProfileBehavior": {
+                        "strictSSL": true
+                    },
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{Dev - Session Token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "X-Moneyfy-Api-Key",
+                                "value": "{{Dev - API Key MoneyFy}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"usersQuotes\": [\n        {\n            \"userId\": \"user-id-1\",\n            \"quotes\": [\n                {\n                    \"quoterId\": \"quoter-1-a\",\n                    \"transactionStatus\": \"Aprobado\"\n                },\n                {\n                    \"quoterId\": \"quoter-1-b\",\n                    \"transactionStatus\": \"Rechazado\"\n                },\n                {\n                    \"quoterId\": \"quoter-1-c\",\n                    \"transactionStatus\": \"Aprobado\"\n                }\n            ]\n        },\n        {\n            \"userId\": \"user-id-2\",\n            \"quotes\": [\n                {\n                    \"quoterId\": \"quoter-2-a\",\n                    \"transactionStatus\": \"Aprobado\"\n                },\n                {\n                    \"quoterId\": \"quoter-2-b\",\n                    \"transactionStatus\": \"Aprobado\"\n                },\n                {\n                    \"quoterId\": \"quoter-2-c\",\n                    \"transactionStatus\": \"Caducado\"\n                }\n            ]\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{Dev - URL}}/api/v1/manager/finalize/quote",
+                            "host": [
+                                "{{Dev - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "finalize",
+                                "quote"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "pay quotes",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "X-Moneyfy-Api-Key",
+                                "value": "{{Dev - X-Moneyfy-Api-Key}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"transactions\": [\"replace-id-1\", \"replace-id-2\"]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{Dev - URL}}/api/v1/manager/pay-quotes",
+                            "host": [
+                                "{{Dev - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "pay-quotes"
                             ]
                         }
                     },

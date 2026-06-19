@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
-import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
+
 import com.referidos.app.segurosref.requests.GenerateTransactionRequest;
 import com.referidos.app.segurosref.requests.SelectPlanRequest;
 import com.referidos.app.segurosref.responses.GeneralResponse;
@@ -28,7 +28,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -140,20 +139,6 @@ public class QuoterController {
         public ResponseEntity<?> generateTransaction(@RequestBody GenerateTransactionRequest generateTransaction,
                         Authentication auth) {
                 return quoterService.generateTransaction(generateTransaction, auth.getPrincipal().toString());
-        }
-
-        @PutMapping(value = "/finalize/quote")
-        @PreAuthorize(value = "permitAll()")
-        @Operation(summary = "Massive finalize of quotes that are Pending", description = "Massive finalize of quotes that are Pending and it needs to be ended", tags = {
-                        "Quoter Controller" }, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Provide the data to finalize the quote", required = true, content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = FinalizeQuoteRequest.class))), responses = {
-                                        @ApiResponse(responseCode = "200", description = "The user's quote was finalized successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
-                                        @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
-                        }, parameters = {
-                                        @Parameter(name = "X-Moneyfy-Api-Key", in = ParameterIn.HEADER, description = "Security parameter for some public endpoints", required = true)
-                        })
-        public ResponseEntity<?> finalizeQuote(@RequestBody FinalizeQuoteRequest finalizeQuote,
-                        HttpServletRequest request) {
-                return quoterService.finalizeQuote(finalizeQuote, request.getRequestURI(), request);
         }
 
 }

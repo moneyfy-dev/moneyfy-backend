@@ -8,6 +8,34 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.Set;
+import java.util.NoSuchElementException;
+
+import org.springframework.http.ResponseEntity;
+
+import com.referidos.app.segurosref.dtos.manager.FailedPaymentDto;
+import com.referidos.app.segurosref.dtos.manager.PayQuotesRequest;
+import com.referidos.app.segurosref.dtos.manager.UserQuotePaymentDto;
+import com.referidos.app.segurosref.helpers.DataHelper;
+import com.referidos.app.segurosref.helpers.ResponseHelper;
+import com.referidos.app.segurosref.models.PaymentModel;
+import com.referidos.app.segurosref.models.TransactionComissionModel;
+import com.referidos.app.segurosref.models.UserModel;
+import com.referidos.app.segurosref.models.WalletModel;
+import com.referidos.app.segurosref.repositories.PaymentRepository;
+import com.referidos.app.segurosref.repositories.UserRepository;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.transaction.annotation.Transactional;
+import jakarta.servlet.http.HttpServletRequest;
+import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
+import com.referidos.app.segurosref.helpers.ValidateInputHelper;
+import com.referidos.app.segurosref.models.ReferredModel;
+import com.referidos.app.segurosref.repositories.ReferredRepository;
+import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
 import org.springframework.stereotype.Service;
 
 import com.referidos.app.segurosref.dtos.manager.DashboardQuoteDto;
@@ -32,8 +60,22 @@ import org.springframework.data.mongodb.core.query.Criteria;
 public class ManagerServiceImpl implements ManagerService {
 
     private final TransactionRepository transactionRepository;
-
+    private final UserRepository userRepository;
+    private final PaymentRepository paymentRepository;
     private final MongoTemplate mongoTemplate;
+    private final ReferredRepository referredRepository;
+
+    @Value("${moneyfy.api-key}")
+    private String apiKeyMF;
+
+    @Value("${moneyfy.commissions.level1}")
+    private int commissionUserC;
+
+    @Value("${moneyfy.commissions.level2}")
+    private int commissionUserB;
+
+    @Value("${moneyfy.commissions.level3}")
+    private int commissionUserA;
 
     @Override
     public DashboardPaginatedResponseDto getQuotesDashboard(int page, int size, String userId, String quoteStatus) {
@@ -225,9 +267,25 @@ public class ManagerServiceImpl implements ManagerService {
             if (trans != null) {
                 dto.setTransactionId(trans.getTransactionId());
                 dto.setTransactionStatus(trans.getStatus() != null ? trans.getStatus() : "N/A");
-                dto.setCommissionStatus(trans.getCommissions() != null && !trans.getCommissions().isEmpty()
-                        ? trans.getCommissions().get(0).getCommissionStatus()
-                        : "N/A");
+                String commStatus = "N/A";
+                String paymentDateStr = "N/A";
+                if (trans.getCommissions() != null) {
+                    for (TransactionComissionModel comm : trans.getCommissions()) {
+                        if (comm.getUserId().equals(idUser)) {
+                            commStatus = comm.getCommissionStatus();
+                            if (comm.getPaymentDate() != null
+                                    && !comm.getPaymentDate().equals(DataHelper.deprecatedDateTime())) {
+                                paymentDateStr = comm.getPaymentDate().format(formatter);
+                            } else if (trans.getPaymentDate() != null
+                                    && !trans.getPaymentDate().equals(DataHelper.deprecatedDateTime())) {
+                                paymentDateStr = trans.getPaymentDate().format(formatter);
+                            }
+                            break;
+                        }
+                    }
+                }
+                dto.setCommissionStatus(commStatus);
+                dto.setPaymentDate(paymentDateStr);
                 dto.setApprovalDate(
                         trans.getApprovalDate() != null ? trans.getApprovalDate().format(formatter) : "N/A");
                 dto.setTransactionTotalCommission(trans.getCommissionTotal());
@@ -236,6 +294,7 @@ public class ManagerServiceImpl implements ManagerService {
                 dto.setTransactionId("N/A");
                 dto.setTransactionStatus("N/A");
                 dto.setCommissionStatus("N/A");
+                dto.setPaymentDate("N/A");
                 dto.setApprovalDate("N/A");
                 dto.setTransactionTotalCommission(0);
                 dto.setTransactionTotalScope(0);
@@ -248,4 +307,378 @@ public class ManagerServiceImpl implements ManagerService {
                 dashboardQuotes, page, size, totalElements, totalPages);
         return new DashboardPaginatedResponseDto("Cotizaciones recuperadas exitosamente", 200, paginatedData);
     }
+
+    @SuppressWarnings("null")
+    @Transactional
+    @Override
+    public ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote, HttpServletRequest request) {
+        if (!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("X-Moneyfy-Api-Key"))) {
+            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
+        }
+
+        if (finalizeQuote == null || finalizeQuote.usersQuotes() == null) {
+            return ResponseHelper.failedDependency("la data proporcionada no es correcta", "failed dependency");
+        }
+
+        List<Map<String, Object>> usersResultList = new ArrayList<>();
+        Map<String, UserModel> usersToSave = new HashMap<>();
+        Map<String, TransactionModel> transactionsToSave = new HashMap<>();
+        LocalDateTime currentDateTime = LocalDateTime.now();
+
+        for (FinalizeQuoteRequest.UserQuoteUpdate userQuoteUpdate : finalizeQuote.usersQuotes()) {
+            String userId = userQuoteUpdate.userId();
+            if (DataHelper.isNull(userId) || !ObjectId.isValid(userId)) {
+                LOGGER_MESSAGES.info("El ID de usuario proporcionado no es válido: " + userId);
+                continue;
+            }
+
+            Optional<UserModel> userOptional = userRepository.findById(new ObjectId(userId));
+            if (userOptional.isEmpty()) {
+                LOGGER_MESSAGES.info("Usuario no encontrado en la base de datos con id: " + userId);
+                continue;
+            }
+
+            UserModel userC = userOptional.get();
+            // If the user was already modified in previous iterations, get from map to
+            // persist latest states
+            if (usersToSave.containsKey(userC.getUserId())) {
+                userC = usersToSave.get(userC.getUserId());
+            }
+            List<Map<String, Object>> quotesResultList = new ArrayList<>();
+
+            for (FinalizeQuoteRequest.QuoteUpdate quoteUpdate : userQuoteUpdate.quotes()) {
+                String quoterId = quoteUpdate.quoterId();
+                String pointOfTransactionStatus = quoteUpdate.transactionStatus();
+                String message = "";
+
+                if (DataHelper.isNull(quoterId) || !ObjectId.isValid(quoterId)
+                        || DataHelper.isNull(pointOfTransactionStatus) ||
+                        (!pointOfTransactionStatus.equals("Aprobado") && !pointOfTransactionStatus.equals("Rechazado")
+                                &&
+                                !pointOfTransactionStatus.equals("Caducado"))) {
+                    message = "Estado o ID de cotización inválido";
+                    LOGGER_MESSAGES.info("Usuario " + userId + " - Cotización " + quoterId + ": " + message);
+                    quotesResultList.add(Map.of("quoterId", quoterId, "message", message));
+                    continue;
+                }
+
+                QuoterModel quoterDB = null;
+                for (QuoterModel q : userC.getQuoters()) {
+                    if (q.getQuoterId().equals(quoterId)) {
+                        quoterDB = q;
+                        break;
+                    }
+                }
+
+                if (quoterDB == null || !quoterDB.getQuoterStatus().equals("Pendiente")) {
+                    message = "Cotización no encontrada o no está en estado Pendiente";
+                    LOGGER_MESSAGES.info("Usuario " + userId + " - Cotización " + quoterId + ": " + message);
+                    quotesResultList.add(Map.of("quoterId", quoterId, "message", message));
+                    continue;
+                }
+
+                Optional<TransactionModel> transactionOpt = transactionRepository
+                        .findByUserIdAndQuoterIdAndStatus(userId, quoterId, "Pendiente");
+                if (transactionOpt.isEmpty()) {
+                    message = "Transacción Pendiente no encontrada para la cotización";
+                    LOGGER_MESSAGES.info("Usuario " + userId + " - Cotización " + quoterId + ": " + message);
+                    quotesResultList.add(Map.of("quoterId", quoterId, "message", message));
+                    continue;
+                }
+
+                TransactionModel transactionDB = transactionOpt.get();
+                if (!transactionDB.getUserReferringFound()) {
+                    message = "Se necesita revisar transacción por referidor no encontrado previamente";
+                    LOGGER_MESSAGES.info("Usuario " + userId + " - Cotización " + quoterId + ": " + message);
+                    quotesResultList.add(Map.of("quoterId", quoterId, "message", message));
+                    continue;
+                }
+
+                String transactionId = transactionDB.getTransactionId();
+                int commissionScope = transactionDB.getCommissionScope();
+                boolean isTrasactionApproved = pointOfTransactionStatus.equals("Aprobado");
+                List<UserModel> updateUsers = new ArrayList<>();
+                boolean errorEnReferidos = false;
+
+                UserModel userB = null;
+                UserModel userA = null;
+
+                // Buscamos a los referidores PRIMERO, para no ensuciar la wallet en caso de
+                // fallo
+                try {
+                    String currentUserEmail = userC.getPersonalData().getEmail();
+                    if (commissionScope > 1) {
+                        ReferredModel referredByUserB = referredRepository.findByReferred(currentUserEmail)
+                                .orElseThrow();
+                        String emailUserB = referredByUserB.getUserReferring();
+                        String codeToReferB = referredByUserB.getCodeToRefer();
+                        userB = userRepository.findByPersonalData_EmailAndCodeToRefer(emailUserB, codeToReferB)
+                                .orElseThrow();
+                        if (usersToSave.containsKey(userB.getUserId()))
+                            userB = usersToSave.get(userB.getUserId());
+
+                        if (commissionScope > 2) {
+                            ReferredModel referredByUserA = referredRepository.findByReferred(emailUserB).orElseThrow();
+                            String emailUserA = referredByUserA.getUserReferring();
+                            String codeToReferA = referredByUserA.getCodeToRefer();
+                            userA = userRepository.findByPersonalData_EmailAndCodeToRefer(emailUserA, codeToReferA)
+                                    .orElseThrow();
+                            if (usersToSave.containsKey(userA.getUserId()))
+                                userA = usersToSave.get(userA.getUserId());
+                        }
+                    }
+                } catch (NoSuchElementException e) {
+                    errorEnReferidos = true;
+                    message = "Ha ocurrido un excepción en la transacción N°" + transactionId
+                            + ", el alcance de la comisión es " + commissionScope + ", y ";
+                    if (userB == null) {
+                        message += "no se ha podido encontrar el usuario referidor B";
+                        message += (commissionScope == 2) ? "" : " y por lo tanto, tampoco el usuario referidor A";
+                    } else {
+                        message += "no se ha podido encontrar el usuario referidor A";
+                    }
+                    LOGGER_MESSAGES.info("Usuario " + userId + " - Cotización " + quoterId + ": " + message);
+                }
+
+                if (errorEnReferidos) {
+                    // Si hay error en referidos, NO actualizamos wallets ni cotizaciones, solo el
+                    // flag de la transaccion
+                    transactionDB.setUserReferringFound(false);
+                    transactionsToSave.put(transactionDB.getTransactionId(), transactionDB);
+                    quotesResultList.add(Map.of("quoterId", quoterId, "message", message + " - Requiere revisión"));
+                    continue;
+                }
+
+                // Sin error, ahora SI actualizamos Wallets
+                WalletModel walletC = userC.getWallet();
+                int outstandingBalanceC = walletC.getOutstandingBalance() - commissionUserC;
+                walletC.setOutstandingBalance(outstandingBalanceC);
+                int availableBalanceC = walletC.getAvailableBalance();
+                walletC.setAvailableBalance(
+                        (isTrasactionApproved) ? (availableBalanceC + commissionUserC) : availableBalanceC);
+                walletC.setTotalBalance(walletC.getOutstandingBalance() + walletC.getAvailableBalance());
+                updateUsers.add(userC);
+
+                if (userB != null) {
+                    WalletModel walletB = userB.getWallet();
+                    int outstandingBalanceB = walletB.getOutstandingBalance() - commissionUserB;
+                    walletB.setOutstandingBalance(outstandingBalanceB);
+                    int availableBalanceB = walletB.getAvailableBalance();
+                    walletB.setAvailableBalance(
+                            (isTrasactionApproved) ? (availableBalanceB + commissionUserB) : availableBalanceB);
+                    walletB.setTotalBalance(walletB.getOutstandingBalance() + walletB.getAvailableBalance());
+                    updateUsers.add(userB);
+                }
+
+                if (userA != null) {
+                    WalletModel walletA = userA.getWallet();
+                    int outstandingBalanceA = walletA.getOutstandingBalance() - commissionUserA;
+                    walletA.setOutstandingBalance(outstandingBalanceA);
+                    int availableBalanceA = walletA.getAvailableBalance();
+                    walletA.setAvailableBalance(
+                            (isTrasactionApproved) ? (availableBalanceA + commissionUserA) : availableBalanceA);
+                    walletA.setTotalBalance(walletA.getOutstandingBalance() + walletA.getAvailableBalance());
+                    updateUsers.add(userA);
+                }
+
+                // Actualizamos estados y fechas
+                quoterDB.setQuoterStatus(pointOfTransactionStatus);
+                quoterDB.setUpdatedDate(currentDateTime);
+                transactionDB.setStatus(pointOfTransactionStatus);
+                transactionDB.setUpdatedDate(currentDateTime);
+                transactionDB
+                        .setApprovalDate((isTrasactionApproved) ? currentDateTime : transactionDB.getApprovalDate());
+
+                for (TransactionComissionModel transactionCommission : transactionDB.getCommissions()) {
+                    transactionCommission.setCommissionStatus(pointOfTransactionStatus);
+                }
+                transactionDB.setObservation("La comisión ha sido " + pointOfTransactionStatus);
+
+                for (UserModel u : updateUsers) {
+                    usersToSave.put(u.getUserId(), u);
+                }
+                transactionsToSave.put(transactionDB.getTransactionId(), transactionDB);
+
+                message = "La transacción se ha finalizado correctamente (" + pointOfTransactionStatus + ")";
+                LOGGER_MESSAGES.info("Usuario " + userId + " - Cotización " + quoterId + ": " + message);
+                quotesResultList.add(Map.of("quoterId", quoterId, "message", message));
+            }
+
+            usersResultList.add(Map.of("userId", userId, "quotes", quotesResultList));
+        }
+
+        // Realizamos el guardado en bloque en Base de Datos
+        if (!usersToSave.isEmpty()) {
+            userRepository.saveAll(usersToSave.values());
+        }
+        if (!transactionsToSave.isEmpty()) {
+            transactionRepository.saveAll(transactionsToSave.values());
+        }
+
+        Map<String, Object> finalResult = new HashMap<>();
+        finalResult.put("generalMessage", "Actualización masiva procesada con éxito");
+        finalResult.put("status", 200);
+        finalResult.put("users", usersResultList);
+
+        return ResponseHelper.ok("la actualización masiva de cotizaciones se ha completado", finalResult);
+    }
+
+    @SuppressWarnings("null")
+    @Override
+    public ResponseEntity<?> payQuotes(PayQuotesRequest request) {
+        if (request == null || request.getUsersQuotes() == null || request.getUsersQuotes().isEmpty()) {
+            return ResponseHelper.failedDependency("La solicitud no contiene usuarios a procesar", "failed dependency");
+        }
+
+        List<FailedPaymentDto> failedPayments = new ArrayList<>();
+        Map<String, UserModel> usersToSave = new HashMap<>();
+        Map<String, TransactionModel> transactionsToSave = new HashMap<>();
+        List<PaymentModel> paymentsToSave = new ArrayList<>();
+
+        LocalDateTime now = LocalDateTime.now();
+
+        for (UserQuotePaymentDto userQuote : request.getUsersQuotes()) {
+            String userId = userQuote.getUserId();
+            Set<String> transactionIds = userQuote.getTransactions();
+
+            if (userId == null || !ObjectId.isValid(userId) || transactionIds == null || transactionIds.isEmpty()) {
+                failedPayments
+                        .add(new FailedPaymentDto(userId, transactionIds, "ID de usuario o transacciones no válidos"));
+                continue;
+            }
+
+            Optional<UserModel> userOpt = userRepository.findById(new ObjectId(userId));
+            if (userOpt.isEmpty()) {
+                failedPayments.add(new FailedPaymentDto(userId, transactionIds, "Usuario no encontrado"));
+                continue;
+            }
+
+            UserModel user = userOpt.get();
+            if (usersToSave.containsKey(userId)) {
+                user = usersToSave.get(userId);
+            }
+
+            // Validar que todas las transacciones existan y esten en Aprobado
+            boolean validTransactions = true;
+            List<TransactionModel> userTransactions = new ArrayList<>();
+            for (String txId : transactionIds) {
+                TransactionModel tx = null;
+                if (transactionsToSave.containsKey(txId)) {
+                    tx = transactionsToSave.get(txId);
+                } else {
+                    Optional<TransactionModel> txOpt = transactionRepository.findById(txId);
+                    if (txOpt.isPresent()) {
+                        tx = txOpt.get();
+                    }
+                }
+
+                if (tx == null || !"Aprobado".equals(tx.getStatus())) {
+                    validTransactions = false;
+                    break;
+                }
+                userTransactions.add(tx);
+            }
+
+            if (!validTransactions || userTransactions.size() != transactionIds.size()) {
+                failedPayments.add(new FailedPaymentDto(userId, transactionIds,
+                        "Una o más transacciones no existen o no están en estado Aprobado (Todo o Nada)"));
+                continue; // Todo o Nada
+            }
+
+            // Actualizar Wallet
+            WalletModel wallet = user.getWallet();
+            int currentAvailable = wallet.getAvailableBalance();
+            wallet.setAvailableBalance(currentAvailable - userQuote.getUserPayment());
+            wallet.setTotalBalance(wallet.getAvailableBalance() + wallet.getOutstandingBalance());
+            wallet.setPaymentBalance(wallet.getPaymentBalance() + userQuote.getUserPayment());
+
+            // Crear Payment
+            ObjectId newPaymentId = new ObjectId();
+            PaymentModel payment = new PaymentModel(newPaymentId, userId, userQuote.getUserAccount(),
+                    userQuote.getUserPayment(),
+                    userQuote.getUserVoucher(), transactionIds, now, now);
+            paymentsToSave.add(payment);
+
+            wallet.addPaymentId(newPaymentId.toString());
+
+            // Actualizar Transacciones y Comisiones
+            for (TransactionModel tx : userTransactions) {
+                if (tx.getCommissions() != null) {
+                    for (TransactionComissionModel comm : tx.getCommissions()) {
+                        if (comm.getUserId().equals(userId)) {
+                            comm.setCommissionStatus("Pagado");
+                            comm.setPaymentDate(now);
+                            break;
+                        }
+                    }
+                }
+                tx.setUpdatedDate(now);
+                transactionsToSave.put(tx.getTransactionId(), tx);
+            }
+
+            usersToSave.put(userId, user);
+        }
+
+        // Revisión posterior: Actualizar transacciones generales y cotizaciones si
+        // todas las comisiones estan Pagadas
+        for (TransactionModel tx : transactionsToSave.values()) {
+            boolean allPaid = true;
+            if (tx.getCommissions() != null && !tx.getCommissions().isEmpty()) {
+                for (TransactionComissionModel comm : tx.getCommissions()) {
+                    if (!"Pagado".equals(comm.getCommissionStatus())) {
+                        allPaid = false;
+                        break;
+                    }
+                }
+            } else {
+                allPaid = false;
+            }
+
+            if (allPaid) {
+                tx.setStatus("Pagado");
+                tx.setPaymentDate(now);
+
+                // Buscar al dueño del quoter y actualizar el quoterStatus a Pagado
+                String ownerId = tx.getUserId();
+                if (ownerId != null && ObjectId.isValid(ownerId)) {
+                    UserModel owner;
+                    if (usersToSave.containsKey(ownerId)) {
+                        owner = usersToSave.get(ownerId);
+                    } else {
+                        Optional<UserModel> ownerOpt = userRepository.findById(new ObjectId(ownerId));
+                        if (ownerOpt.isPresent()) {
+                            owner = ownerOpt.get();
+                            usersToSave.put(ownerId, owner);
+                        } else {
+                            continue; // Owner not found
+                        }
+                    }
+
+                    if (owner.getQuoters() != null) {
+                        for (com.referidos.app.segurosref.models.QuoterModel q : owner.getQuoters()) {
+                            if (q.getQuoterId().equals(tx.getQuoterId())) {
+                                q.setQuoterStatus("Pagado");
+                                q.setUpdatedDate(now);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Guardado Batch
+        if (!usersToSave.isEmpty()) {
+            userRepository.saveAll(usersToSave.values());
+        }
+        if (!transactionsToSave.isEmpty()) {
+            transactionRepository.saveAll(transactionsToSave.values());
+        }
+        if (!paymentsToSave.isEmpty()) {
+            paymentRepository.saveAll(paymentsToSave);
+        }
+
+        return ResponseHelper.ok("Proceso de pagos completado", Map.of("failedPayments", failedPayments));
+    }
+
 }

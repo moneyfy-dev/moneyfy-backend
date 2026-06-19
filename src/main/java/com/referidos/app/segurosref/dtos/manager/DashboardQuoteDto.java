@@ -53,4 +53,5 @@ public class DashboardQuoteDto {
     private String approvalDate;
     private int transactionTotalCommission;
     private int transactionTotalScope;
+    private String paymentDate;
 }

@@ -13,6 +13,13 @@ import com.referidos.app.segurosref.services.ManagerService;
 import com.referidos.app.segurosref.dtos.manager.DashboardPaginatedResponseDto;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import com.referidos.app.segurosref.dtos.manager.PayQuotesRequest;
+import jakarta.servlet.http.HttpServletRequest;
+import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
+
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -44,4 +51,25 @@ public class ManagerController {
         DashboardPaginatedResponseDto response = managerService.getQuotesDashboard(page, size, userId, quoteStatus);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
+
+    @PutMapping("/finalize/quote")
+    public ResponseEntity<?> finalizeQuote(@RequestBody FinalizeQuoteRequest finalizeQuote,
+            HttpServletRequest request) {
+        return managerService.finalizeQuote(finalizeQuote, request);
+    }
+
+    @PostMapping("/pay-quotes")
+    public ResponseEntity<?> payQuotes(
+            @RequestHeader(value = "X-Moneyfy-Api-Key", required = true) String apiKey,
+            @RequestBody PayQuotesRequest request) {
+
+        if (apiKey == null || !apiKey.equals(moneyfyApiKey)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new DashboardPaginatedResponseDto("No autorizado",
+                            HttpStatus.UNAUTHORIZED.value(), null));
+        }
+
+        return managerService.payQuotes(request);
+    }
+
 }

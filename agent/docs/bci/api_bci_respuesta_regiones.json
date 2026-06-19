@@ -1,0 +1,73 @@
+{
+    "bool_Estado": true,
+    "codigo": 200,
+    "str_Mensaje": "OK",
+    "resultado": {
+        "regiones": [
+            {
+                "int_Id": 15,
+                "str_Nombre": "REGION ARICA Y PARINACOTA"
+            },
+            {
+                "int_Id": 2,
+                "str_Nombre": "REGION DE ANTOFAGASTA"
+            },
+            {
+                "int_Id": 9,
+                "str_Nombre": "REGION DE ARAUCANIA"
+            },
+            {
+                "int_Id": 3,
+                "str_Nombre": "REGION DE ATACAMA"
+            },
+            {
+                "int_Id": 11,
+                "str_Nombre": "REGION DE AYSEN"
+            },
+            {
+                "int_Id": 8,
+                "str_Nombre": "REGION DE BIO BIO"
+            },
+            {
+                "int_Id": 4,
+                "str_Nombre": "REGION DE COQUIMBO"
+            },
+            {
+                "int_Id": 6,
+                "str_Nombre": "REGION DE LIB.GRAL.BDO.O'HIGGINS"
+            },
+            {
+                "int_Id": 10,
+                "str_Nombre": "REGION DE LOS LAGOS"
+            },
+            {
+                "int_Id": 14,
+                "str_Nombre": "REGION DE LOS RIOS"
+            },
+            {
+                "int_Id": 12,
+                "str_Nombre": "REGION DE MAGALLANES"
+            },
+            {
+                "int_Id": 7,
+                "str_Nombre": "REGION DE MAULE"
+            },
+            {
+                "int_Id": 16,
+                "str_Nombre": "REGION DE NUBLE"
+            },
+            {
+                "int_Id": 1,
+                "str_Nombre": "REGIÓN DE TARAPACA"
+            },
+            {
+                "int_Id": 5,
+                "str_Nombre": "REGION DE VALPARAISO"
+            },
+            {
+                "int_Id": 13,
+                "str_Nombre": "REGION METROPOLITANA"
+            }
+        ]
+    }
+}

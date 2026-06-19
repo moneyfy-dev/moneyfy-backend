@@ -1,0 +1,2580 @@
+{
+    "items": [
+        {
+            "itemId": 0,
+            "quotations": [
+                {
+                    "planId": "317",
+                    "id": 0,
+                    "FIDId": "0000311067",
+                    "expiryDate": "2026-07-02",
+                    "policyInceptionDate": "2026-06-18",
+                    "policyExpiryDate": "2027-06-18",
+                    "policyPeriodVigency": 365,
+                    "deductible": 0,
+                    "netPremium": 4.67,
+                    "grossWrittenPremium": 5.56,
+                    "brokerage": 0.6535,
+                    "liabilityAmount": 1000,
+                    "garageType": "Multimarca",
+                    "vehicleReplacement": "Sin reposicion",
+                    "inspectionRequired": 1,
+                    "monthlyPremium": 22473.019963761497,
+                    "valueUf": 39754.84,
+                    "plan": {
+                        "id": 17,
+                        "siseId": 317,
+                        "name": "AUTO SIMPLE.IA",
+                        "paymentPlan": "PAGO AUTOMATICO FLOW 12",
+                        "paymentPipeline": "FLOW PAT",
+                        "quotationPeriod": "ANUAL",
+                        "paymentWay": "PAT",
+                        "parameters": [
+                            {
+                                "id": 1,
+                                "name": "Daños materiales al vehículo",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "dano materiales"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 241,
+                                        "name": "dano materiales",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 3,
+                                "name": "Robo, hurto y uso no autorizado",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "robo, hurto y uso no autorizado"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 242,
+                                        "name": "robo, hurto y uso no autorizado",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 4,
+                                "name": "Responsabilidad Civil Emergente, Moral y Cesante",
+                                "type": "Cobertura",
+                                "value_0": "UF 500",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "rc emergente, moral y cesante"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 243,
+                                        "name": "rc emergente, moral y cesante",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "UF 500"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 6,
+                                "name": "Actos maliciosos",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "actos maliciosos"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 244,
+                                        "name": "actos maliciosos",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 7,
+                                "name": "Huelga y terrorismo",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "huelga y terrorismo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 245,
+                                        "name": "huelga y terrorismo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 8,
+                                "name": "Riesgo de la naturaleza",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "riesgo de la naturaleza"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 246,
+                                        "name": "riesgo de la naturaleza",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 9,
+                                "name": "Granizo",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "granizo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 247,
+                                        "name": "granizo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 10,
+                                "name": "Sismo",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "sismo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 248,
+                                        "name": "sismo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 11,
+                                "name": "Defensa penal y constitución de fianzas",
+                                "type": "Cobertura",
+                                "value_0": "UF 150",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "defensa penal y constitucion de fianzas"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 249,
+                                        "name": "defensa penal y constitucion de fianzas",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "UF 150"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 13,
+                                "name": "Deducible Inteligente",
+                                "type": "Cobertura",
+                                "value_0": "Incluído",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "deducible inteligente"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 250,
+                                        "name": "deducible inteligente",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Incluído"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 21,
+                                "name": "Deducible",
+                                "type": "Deducible",
+                                "value_0": 0,
+                                "valueType_0": "UF",
+                                "rangeDescriptions": [
+                                    "deducible"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 251,
+                                        "name": "deducible",
+                                        "values": [
+                                            {
+                                                "type": "UF",
+                                                "value": 0
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 3
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 5
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 7
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 10
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 15
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 20
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 30
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 50
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 60
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 34,
+                                "name": "Asistencia a persona en viaje",
+                                "type": "Cobertura",
+                                "value_0": "UF 10000",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "asistencia persona viaje"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 252,
+                                        "name": "asistencia persona viaje",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "UF 10000"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 35,
+                                "name": "Asistencia al vehículo europ",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "asistencia vehiculo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 253,
+                                        "name": "asistencia vehiculo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ],
+                        "coverages": [
+                            {
+                                "id": 1,
+                                "name": "Daños materiales al vehículo",
+                                "mainDescription": "Daño que sufre vehículo hasta valor comercial",
+                                "generalDescription": "Cubre los gastos en reparaciones, mano de obra y refacciones que necesite el vehículo en caso de que resulte dañado en algún siniestro vial o de cualquier tipo.",
+                                "isMain": 1,
+                                "isParam": 1,
+                                "valueDescription": "{dano materiales}",
+                                "polCad": "POL120130368",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 3,
+                                "name": "Robo, hurto y uso no autorizado",
+                                "mainDescription": "Hasta el valor comercial del vehículo",
+                                "generalDescription": "Cubre el robo total o las partes robadas del vehículo, además de los daños en ruta durante su uso indebido.",
+                                "isMain": 1,
+                                "isParam": 1,
+                                "valueDescription": "{robo, hurto y uso no autorizado}",
+                                "polCad": "POL120130368",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 4,
+                                "name": "Responsabilidad Civil Emergente, Moral y Cesante",
+                                "mainDescription": "Hasta UF 500 entre daño emergente, moral y lucro cesante",
+                                "generalDescription": "Existen 3 tipos de daño: \n- El Daño Emergente corresponde a los daños materiales, lesiones o muerte de terceros. \n- El Daño Moral corresponde a los daños psicológicos de terceros. \n- El Daño Lucro Cesante corresponde a los daños que afectan la producción de la herramienta de trabajo de terceros.",
+                                "isMain": 1,
+                                "isParam": 1,
+                                "valueDescription": "{rc emergente, moral y cesante}",
+                                "polCad": "POL120130368",
+                                "value": "UF 500"
+                            },
+                            {
+                                "id": 6,
+                                "name": "Actos maliciosos",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre frente a los daños generados por actos voluntarios de terceros.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{actos maliciosos}",
+                                "polCad": "CAD120130390",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 7,
+                                "name": "Huelga y terrorismo",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre los daños que tengan origen o fueren consecuencia de huelga, desórdenes públicos o de delitos contra el orden público o de terrorismo.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{huelga y terrorismo}",
+                                "polCad": "CAD120130391",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 8,
+                                "name": "Riesgo de la naturaleza",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre frente a incendios y daños materiales como consecuencia directa e inmediata de erupción volcánica, salida de mar, inundación, huracán, ciclón, avalanchas, aluvión o deslizamiento, producidos o desencadenados por fenómenos de la naturaleza a excepción de sismo, o de caídas de rayos.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{riesgo de la naturaleza}",
+                                "polCad": "CAD120130395",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 9,
+                                "name": "Granizo",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre los daños que directa o indirectamente tengan por origen o fueren una consecuencia de granizo.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{granizo}",
+                                "polCad": "CAD120130398",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 10,
+                                "name": "Sismo",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre los daños que se produzcan o que ocurran como consecuencia de sismo y salida de mar de origen sísmico; así como los daños que ocurran a causa de la situación anormal provocada por el mismo.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{sismo}",
+                                "polCad": "CAD120130400",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 11,
+                                "name": "Defensa penal y constitución de fianzas",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre honorarios de abogados y procuradores, costas judiciales y monto de las fianzas por algún siniestro.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{defensa penal y constitucion de fianzas}",
+                                "polCad": "CAD120130794",
+                                "value": "UF 150"
+                            },
+                            {
+                                "id": 13,
+                                "name": "Deducible Inteligente",
+                                "mainDescription": null,
+                                "generalDescription": "Permite eximir el pago del deducible acordado en la póliza en el caso de que un tercero involucrado sea culpable del siniestro en cuestión.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{deducible inteligente}",
+                                "polCad": null,
+                                "value": "Incluído"
+                            },
+                            {
+                                "id": 34,
+                                "name": "Asistencia a persona en viaje",
+                                "mainDescription": null,
+                                "generalDescription": "Póliza de seguro de asistencia a personas en viaje",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{asistencia persona viaje}",
+                                "polCad": "POL320180121",
+                                "value": "UF 10000"
+                            },
+                            {
+                                "id": 35,
+                                "name": "Asistencia al vehículo europ",
+                                "mainDescription": null,
+                                "generalDescription": null,
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{asistencia vehiculo}",
+                                "polCad": "POL120130194",
+                                "value": "Valor comercial"
+                            }
+                        ],
+                        "benefits": [],
+                        "exclusions": []
+                    }
+                },
+                {
+                    "planId": "318",
+                    "id": 1,
+                    "FIDId": "0000311067",
+                    "expiryDate": "2026-07-02",
+                    "policyInceptionDate": "2026-06-18",
+                    "policyExpiryDate": "2027-06-18",
+                    "policyPeriodVigency": 365,
+                    "deductible": 0,
+                    "netPremium": 7.58,
+                    "grossWrittenPremium": 9.02,
+                    "brokerage": 1.061,
+                    "liabilityAmount": 1000,
+                    "garageType": "Multimarca",
+                    "vehicleReplacement": "Sin reposicion",
+                    "inspectionRequired": 1,
+                    "monthlyPremium": 36523.71893209526,
+                    "valueUf": 39754.84,
+                    "plan": {
+                        "id": 19,
+                        "siseId": 318,
+                        "name": "AUTO CONVENIENTE.IA",
+                        "paymentPlan": "PAGO AUTOMATICO FLOW 12",
+                        "paymentPipeline": "FLOW PAT",
+                        "quotationPeriod": "ANUAL",
+                        "paymentWay": "PAT",
+                        "parameters": [
+                            {
+                                "id": 1,
+                                "name": "Daños materiales al vehículo",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "dano materiales"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 287,
+                                        "name": "dano materiales",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 3,
+                                "name": "Robo, hurto y uso no autorizado",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "robo, hurto y uso no autorizado"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 288,
+                                        "name": "robo, hurto y uso no autorizado",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 4,
+                                "name": "Responsabilidad Civil Emergente, Moral y Cesante",
+                                "type": "Cobertura",
+                                "value_0": "UF 500",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "rc emergente, moral y cesante"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 289,
+                                        "name": "rc emergente, moral y cesante",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "UF 500"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 5,
+                                "name": "Robo de accesorios",
+                                "type": "Cobertura",
+                                "value_0": "15% valor comercial. Max UF 80",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "robo de accesorios"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 290,
+                                        "name": "robo de accesorios",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "15% valor comercial. Max UF 80"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 6,
+                                "name": "Actos maliciosos",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "actos maliciosos"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 291,
+                                        "name": "actos maliciosos",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 7,
+                                "name": "Huelga y terrorismo",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "huelga y terrorismo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 292,
+                                        "name": "huelga y terrorismo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 8,
+                                "name": "Riesgo de la naturaleza",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "riesgo de la naturaleza"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 293,
+                                        "name": "riesgo de la naturaleza",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 9,
+                                "name": "Granizo",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "granizo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 294,
+                                        "name": "granizo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 10,
+                                "name": "Sismo",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "sismo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 295,
+                                        "name": "sismo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 11,
+                                "name": "Defensa penal y constitución de fianzas",
+                                "type": "Cobertura",
+                                "value_0": "UF 150",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "defensa penal y constitucion de fianzas"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 296,
+                                        "name": "defensa penal y constitucion de fianzas",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "UF 150"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 12,
+                                "name": "Tipo taller",
+                                "type": "Cobertura",
+                                "value_0": "Multimarca",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "tipo taller"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 297,
+                                        "name": "tipo taller",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Multimarca"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 13,
+                                "name": "Deducible Inteligente",
+                                "type": "Cobertura",
+                                "value_0": "Incluído",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "deducible inteligente"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 298,
+                                        "name": "deducible inteligente",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Incluído"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 21,
+                                "name": "Deducible",
+                                "type": "Deducible",
+                                "value_0": 0,
+                                "valueType_0": "UF",
+                                "rangeDescriptions": [
+                                    "deducible"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 299,
+                                        "name": "deducible",
+                                        "values": [
+                                            {
+                                                "type": "UF",
+                                                "value": 0
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 3
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 5
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 7
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 10
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 15
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 20
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 30
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 50
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 60
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 26,
+                                "name": "Seguro de Movilidad",
+                                "type": "Cobertura",
+                                "value_0": "5 días perdida parcial/30 días pt con copago",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "seguro movilidad"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 300,
+                                        "name": "seguro movilidad",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "5 días perdida parcial/30 días pt con copago"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 34,
+                                "name": "Asistencia a persona en viaje",
+                                "type": "Cobertura",
+                                "value_0": "UF 10000",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "asistencia persona viaje"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 301,
+                                        "name": "asistencia persona viaje",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "UF 10000"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 35,
+                                "name": "Asistencia al vehículo europ",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "asistencia vehiculo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 302,
+                                        "name": "asistencia vehiculo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ],
+                        "coverages": [
+                            {
+                                "id": 1,
+                                "name": "Daños materiales al vehículo",
+                                "mainDescription": "Daño que sufre vehículo hasta valor comercial",
+                                "generalDescription": "Cubre los gastos en reparaciones, mano de obra y refacciones que necesite el vehículo en caso de que resulte dañado en algún siniestro vial o de cualquier tipo.",
+                                "isMain": 1,
+                                "isParam": 1,
+                                "valueDescription": "{dano materiales}",
+                                "polCad": "POL120130368",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 3,
+                                "name": "Robo, hurto y uso no autorizado",
+                                "mainDescription": "Hasta el valor comercial del vehículo",
+                                "generalDescription": "Cubre el robo total o las partes robadas del vehículo, además de los daños en ruta durante su uso indebido.",
+                                "isMain": 1,
+                                "isParam": 1,
+                                "valueDescription": "{robo, hurto y uso no autorizado}",
+                                "polCad": "POL120130368",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 4,
+                                "name": "Responsabilidad Civil Emergente, Moral y Cesante",
+                                "mainDescription": "Hasta UF 500 entre daño emergente, moral y lucro cesante",
+                                "generalDescription": "Existen 3 tipos de daño: \n- El Daño Emergente corresponde a los daños materiales, lesiones o muerte de terceros. \n- El Daño Moral corresponde a los daños psicológicos de terceros. \n- El Daño Lucro Cesante corresponde a los daños que afectan la producción de la herramienta de trabajo de terceros.",
+                                "isMain": 1,
+                                "isParam": 1,
+                                "valueDescription": "{rc emergente, moral y cesante}",
+                                "polCad": "POL120130368",
+                                "value": "UF 500"
+                            },
+                            {
+                                "id": 5,
+                                "name": "Robo de accesorios",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre frente a los robos de accesorios del vehículo.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{robo de accesorios}",
+                                "polCad": "CAD120130397",
+                                "value": "15% valor comercial. Max UF 80"
+                            },
+                            {
+                                "id": 6,
+                                "name": "Actos maliciosos",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre frente a los daños generados por actos voluntarios de terceros.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{actos maliciosos}",
+                                "polCad": "CAD120130390",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 7,
+                                "name": "Huelga y terrorismo",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre los daños que tengan origen o fueren consecuencia de huelga, desórdenes públicos o de delitos contra el orden público o de terrorismo.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{huelga y terrorismo}",
+                                "polCad": "CAD120130391",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 8,
+                                "name": "Riesgo de la naturaleza",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre frente a incendios y daños materiales como consecuencia directa e inmediata de erupción volcánica, salida de mar, inundación, huracán, ciclón, avalanchas, aluvión o deslizamiento, producidos o desencadenados por fenómenos de la naturaleza a excepción de sismo, o de caídas de rayos.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{riesgo de la naturaleza}",
+                                "polCad": "CAD120130395",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 9,
+                                "name": "Granizo",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre los daños que directa o indirectamente tengan por origen o fueren una consecuencia de granizo.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{granizo}",
+                                "polCad": "CAD120130398",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 10,
+                                "name": "Sismo",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre los daños que se produzcan o que ocurran como consecuencia de sismo y salida de mar de origen sísmico; así como los daños que ocurran a causa de la situación anormal provocada por el mismo.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{sismo}",
+                                "polCad": "CAD120130400",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 11,
+                                "name": "Defensa penal y constitución de fianzas",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre honorarios de abogados y procuradores, costas judiciales y monto de las fianzas por algún siniestro.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{defensa penal y constitucion de fianzas}",
+                                "polCad": "CAD120130794",
+                                "value": "UF 150"
+                            },
+                            {
+                                "id": 12,
+                                "name": "Tipo taller",
+                                "mainDescription": "Multimarca",
+                                "generalDescription": "En caso de reparación, el auto será enviado a Taller Multimarca que es el taller que recibe los vehículos de distintas marcas para su arreglo.",
+                                "isMain": 1,
+                                "isParam": 1,
+                                "valueDescription": "{tipo taller}",
+                                "polCad": null,
+                                "value": "Multimarca"
+                            },
+                            {
+                                "id": 13,
+                                "name": "Deducible Inteligente",
+                                "mainDescription": null,
+                                "generalDescription": "Permite eximir el pago del deducible acordado en la póliza en el caso de que un tercero involucrado sea culpable del siniestro en cuestión.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{deducible inteligente}",
+                                "polCad": null,
+                                "value": "Incluído"
+                            },
+                            {
+                                "id": 26,
+                                "name": "Seguro de Movilidad",
+                                "mainDescription": null,
+                                "generalDescription": "Por motivo de la ocurrencia de un siniestro indemnizable por la compañía de seguros, el asegurado podrá optar por: \n(1) Un vehículo de reemplazo. \n(2) Créditos en la aplicación Cabify proporcionales a los días contratado.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{seguro movilidad}",
+                                "polCad": null,
+                                "value": "5 días perdida parcial/30 días pt con copago"
+                            },
+                            {
+                                "id": 34,
+                                "name": "Asistencia a persona en viaje",
+                                "mainDescription": null,
+                                "generalDescription": "Póliza de seguro de asistencia a personas en viaje",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{asistencia persona viaje}",
+                                "polCad": "POL320180121",
+                                "value": "UF 10000"
+                            },
+                            {
+                                "id": 35,
+                                "name": "Asistencia al vehículo europ",
+                                "mainDescription": null,
+                                "generalDescription": null,
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{asistencia vehiculo}",
+                                "polCad": "POL120130194",
+                                "value": "Valor comercial"
+                            }
+                        ],
+                        "benefits": [],
+                        "exclusions": []
+                    }
+                },
+                {
+                    "planId": "319",
+                    "id": 12,
+                    "FIDId": "0000311067",
+                    "expiryDate": "2026-07-02",
+                    "policyInceptionDate": "2026-06-18",
+                    "policyExpiryDate": "2027-06-18",
+                    "policyPeriodVigency": 365,
+                    "deductible": 0,
+                    "netPremium": 7.77,
+                    "grossWrittenPremium": 9.25,
+                    "brokerage": 1.0885,
+                    "liabilityAmount": 1000,
+                    "garageType": "Multimarca",
+                    "vehicleReplacement": "Sin reposicion",
+                    "inspectionRequired": 1,
+                    "monthlyPremium": 37455.03327293583,
+                    "valueUf": 39754.84,
+                    "plan": {
+                        "id": 18,
+                        "siseId": 319,
+                        "name": "AUTO PREFERENTE.IA SIN/DMExt",
+                        "paymentPlan": "PAGO AUTOMATICO FLOW 12",
+                        "paymentPipeline": "FLOW PAT",
+                        "quotationPeriod": "ANUAL",
+                        "paymentWay": "PAT",
+                        "parameters": [
+                            {
+                                "id": 1,
+                                "name": "Daños materiales al vehículo",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "dano materiales"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 256,
+                                        "name": "dano materiales",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 3,
+                                "name": "Robo, hurto y uso no autorizado",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "robo, hurto y uso no autorizado"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 257,
+                                        "name": "robo, hurto y uso no autorizado",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 4,
+                                "name": "Responsabilidad Civil Emergente, Moral y Cesante",
+                                "type": "Cobertura",
+                                "value_0": "UF 1000",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "rc emergente, moral y cesante"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 258,
+                                        "name": "rc emergente, moral y cesante",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "UF 1000"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 5,
+                                "name": "Robo de accesorios",
+                                "type": "Cobertura",
+                                "value_0": "15% valor comercial. Max UF 80",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "robo de accesorios"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 259,
+                                        "name": "robo de accesorios",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "15% valor comercial. Max UF 80"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 6,
+                                "name": "Actos maliciosos",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "actos maliciosos"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 260,
+                                        "name": "actos maliciosos",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 7,
+                                "name": "Huelga y terrorismo",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "huelga y terrorismo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 261,
+                                        "name": "huelga y terrorismo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 8,
+                                "name": "Riesgo de la naturaleza",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "riesgo de la naturaleza"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 262,
+                                        "name": "riesgo de la naturaleza",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 9,
+                                "name": "Granizo",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "granizo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 263,
+                                        "name": "granizo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 10,
+                                "name": "Sismo",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "sismo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 264,
+                                        "name": "sismo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 11,
+                                "name": "Defensa penal y constitución de fianzas",
+                                "type": "Cobertura",
+                                "value_0": "UF 150",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "defensa penal y constitucion de fianzas"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 265,
+                                        "name": "defensa penal y constitucion de fianzas",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "UF 150"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 12,
+                                "name": "Tipo taller",
+                                "type": "Cobertura",
+                                "value_0": "Multimarca",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "tipo taller"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 266,
+                                        "name": "tipo taller",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Multimarca"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 13,
+                                "name": "Deducible Inteligente",
+                                "type": "Cobertura",
+                                "value_0": "Incluído",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "deducible inteligente"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 267,
+                                        "name": "deducible inteligente",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Incluído"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 21,
+                                "name": "Deducible",
+                                "type": "Deducible",
+                                "value_0": 0,
+                                "valueType_0": "UF",
+                                "rangeDescriptions": [
+                                    "deducible"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 268,
+                                        "name": "deducible",
+                                        "values": [
+                                            {
+                                                "type": "UF",
+                                                "value": 0
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 3
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 5
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 8
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 10
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 12
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 15
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 20
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 25
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 26,
+                                "name": "Seguro de Movilidad",
+                                "type": "Cobertura",
+                                "value_0": "30 días con copago",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "seguro movilidad"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 269,
+                                        "name": "seguro movilidad",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "30 días con copago"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 27,
+                                "name": "Daños a terceros causados por la carga",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "danos terceros por carga"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 270,
+                                        "name": "danos terceros por carga",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 28,
+                                "name": "Asiento de Pasajero Plan A",
+                                "type": "Cobertura",
+                                "value_0": "UF 150",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "asiento pasajero A"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 271,
+                                        "name": "asiento pasajero A",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "UF 150"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 29,
+                                "name": "Asiento de Pasajero Plan B",
+                                "type": "Cobertura",
+                                "value_0": "UF 150",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "asiento pasajero B"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 272,
+                                        "name": "asiento pasajero B",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "UF 150"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 30,
+                                "name": "Reposición a nuevo",
+                                "type": "Cobertura",
+                                "value_0": "12 meses",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "reposicion nuevo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 273,
+                                        "name": "reposicion nuevo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "12 meses"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 33,
+                                "name": "Clausula adicional daño por carga",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "danos materiales carga"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 274,
+                                        "name": "danos materiales carga",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 34,
+                                "name": "Asistencia a persona en viaje",
+                                "type": "Cobertura",
+                                "value_0": "UF 10000",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "asistencia persona viaje"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 275,
+                                        "name": "asistencia persona viaje",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "UF 10000"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 35,
+                                "name": "Asistencia al vehículo europ",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "asistencia vehiculo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 276,
+                                        "name": "asistencia vehiculo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ],
+                        "coverages": [
+                            {
+                                "id": 1,
+                                "name": "Daños materiales al vehículo",
+                                "mainDescription": "Daño que sufre vehículo hasta valor comercial",
+                                "generalDescription": "Cubre los gastos en reparaciones, mano de obra y refacciones que necesite el vehículo en caso de que resulte dañado en algún siniestro vial o de cualquier tipo.",
+                                "isMain": 1,
+                                "isParam": 1,
+                                "valueDescription": "{dano materiales}",
+                                "polCad": "POL120130368",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 3,
+                                "name": "Robo, hurto y uso no autorizado",
+                                "mainDescription": "Hasta el valor comercial del vehículo",
+                                "generalDescription": "Cubre el robo total o las partes robadas del vehículo, además de los daños en ruta durante su uso indebido.",
+                                "isMain": 1,
+                                "isParam": 1,
+                                "valueDescription": "{robo, hurto y uso no autorizado}",
+                                "polCad": "POL120130368",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 4,
+                                "name": "Responsabilidad Civil Emergente, Moral y Cesante",
+                                "mainDescription": "Hasta UF 500 entre daño emergente, moral y lucro cesante",
+                                "generalDescription": "Existen 3 tipos de daño: \n- El Daño Emergente corresponde a los daños materiales, lesiones o muerte de terceros. \n- El Daño Moral corresponde a los daños psicológicos de terceros. \n- El Daño Lucro Cesante corresponde a los daños que afectan la producción de la herramienta de trabajo de terceros.",
+                                "isMain": 1,
+                                "isParam": 1,
+                                "valueDescription": "{rc emergente, moral y cesante}",
+                                "polCad": "POL120130368",
+                                "value": "UF 1000"
+                            },
+                            {
+                                "id": 5,
+                                "name": "Robo de accesorios",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre frente a los robos de accesorios del vehículo.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{robo de accesorios}",
+                                "polCad": "CAD120130397",
+                                "value": "15% valor comercial. Max UF 80"
+                            },
+                            {
+                                "id": 6,
+                                "name": "Actos maliciosos",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre frente a los daños generados por actos voluntarios de terceros.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{actos maliciosos}",
+                                "polCad": "CAD120130390",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 7,
+                                "name": "Huelga y terrorismo",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre los daños que tengan origen o fueren consecuencia de huelga, desórdenes públicos o de delitos contra el orden público o de terrorismo.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{huelga y terrorismo}",
+                                "polCad": "CAD120130391",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 8,
+                                "name": "Riesgo de la naturaleza",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre frente a incendios y daños materiales como consecuencia directa e inmediata de erupción volcánica, salida de mar, inundación, huracán, ciclón, avalanchas, aluvión o deslizamiento, producidos o desencadenados por fenómenos de la naturaleza a excepción de sismo, o de caídas de rayos.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{riesgo de la naturaleza}",
+                                "polCad": "CAD120130395",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 9,
+                                "name": "Granizo",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre los daños que directa o indirectamente tengan por origen o fueren una consecuencia de granizo.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{granizo}",
+                                "polCad": "CAD120130398",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 10,
+                                "name": "Sismo",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre los daños que se produzcan o que ocurran como consecuencia de sismo y salida de mar de origen sísmico; así como los daños que ocurran a causa de la situación anormal provocada por el mismo.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{sismo}",
+                                "polCad": "CAD120130400",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 11,
+                                "name": "Defensa penal y constitución de fianzas",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre honorarios de abogados y procuradores, costas judiciales y monto de las fianzas por algún siniestro.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{defensa penal y constitucion de fianzas}",
+                                "polCad": "CAD120130794",
+                                "value": "UF 150"
+                            },
+                            {
+                                "id": 12,
+                                "name": "Tipo taller",
+                                "mainDescription": "Multimarca",
+                                "generalDescription": "En caso de reparación, el auto será enviado a Taller Multimarca que es el taller que recibe los vehículos de distintas marcas para su arreglo.",
+                                "isMain": 1,
+                                "isParam": 1,
+                                "valueDescription": "{tipo taller}",
+                                "polCad": null,
+                                "value": "Multimarca"
+                            },
+                            {
+                                "id": 13,
+                                "name": "Deducible Inteligente",
+                                "mainDescription": null,
+                                "generalDescription": "Permite eximir el pago del deducible acordado en la póliza en el caso de que un tercero involucrado sea culpable del siniestro en cuestión.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{deducible inteligente}",
+                                "polCad": null,
+                                "value": "Incluído"
+                            },
+                            {
+                                "id": 26,
+                                "name": "Seguro de Movilidad",
+                                "mainDescription": null,
+                                "generalDescription": "Por motivo de la ocurrencia de un siniestro indemnizable por la compañía de seguros, el asegurado podrá optar por: \n(1) Un vehículo de reemplazo. \n(2) Créditos en la aplicación Cabify proporcionales a los días contratado.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{seguro movilidad}",
+                                "polCad": null,
+                                "value": "30 días con copago"
+                            },
+                            {
+                                "id": 27,
+                                "name": "Daños a terceros causados por la carga",
+                                "mainDescription": null,
+                                "generalDescription": null,
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{danos terceros por carga}",
+                                "polCad": "CAD120130404",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 28,
+                                "name": "Asiento de Pasajero Plan A",
+                                "mainDescription": null,
+                                "generalDescription": null,
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{asiento pasajero A}",
+                                "polCad": "POL320130966",
+                                "value": "UF 150"
+                            },
+                            {
+                                "id": 29,
+                                "name": "Asiento de Pasajero Plan B",
+                                "mainDescription": null,
+                                "generalDescription": null,
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{asiento pasajero B}",
+                                "polCad": "POL320130966",
+                                "value": "UF 150"
+                            },
+                            {
+                                "id": 30,
+                                "name": "Reposición a nuevo",
+                                "mainDescription": null,
+                                "generalDescription": null,
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{reposicion nuevo}",
+                                "polCad": "CP",
+                                "value": "12 meses"
+                            },
+                            {
+                                "id": 33,
+                                "name": "Clausula adicional daño por carga",
+                                "mainDescription": null,
+                                "generalDescription": "Clausula adicional de daños materiales causados por la propia carga",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{danos materiales carga}",
+                                "polCad": "CAD120130403",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 34,
+                                "name": "Asistencia a persona en viaje",
+                                "mainDescription": null,
+                                "generalDescription": "Póliza de seguro de asistencia a personas en viaje",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{asistencia persona viaje}",
+                                "polCad": "POL320180121",
+                                "value": "UF 10000"
+                            },
+                            {
+                                "id": 35,
+                                "name": "Asistencia al vehículo europ",
+                                "mainDescription": null,
+                                "generalDescription": null,
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{asistencia vehiculo}",
+                                "polCad": "POL120130194",
+                                "value": "Valor comercial"
+                            }
+                        ],
+                        "benefits": [],
+                        "exclusions": []
+                    }
+                },
+                {
+                    "planId": "322",
+                    "id": 16,
+                    "FIDId": "0000311067",
+                    "expiryDate": "2026-07-02",
+                    "policyInceptionDate": "2026-06-18",
+                    "policyExpiryDate": "2027-06-18",
+                    "policyPeriodVigency": 365,
+                    "deductible": 0,
+                    "netPremium": 8.05,
+                    "grossWrittenPremium": 9.58,
+                    "brokerage": 1.1274,
+                    "liabilityAmount": 1500,
+                    "garageType": "Multimarca",
+                    "vehicleReplacement": "Sin reposicion",
+                    "inspectionRequired": 1,
+                    "monthlyPremium": 38791.26689240273,
+                    "valueUf": 39754.84,
+                    "plan": {
+                        "id": 20,
+                        "siseId": 322,
+                        "name": "AUTÓNOMO.IA TALLER DE MARCA CON/DMExt",
+                        "paymentPlan": "PAGO AUTOMATICO FLOW 12",
+                        "paymentPipeline": "FLOW PAT",
+                        "quotationPeriod": "ANUAL",
+                        "paymentWay": "PAT",
+                        "parameters": [
+                            {
+                                "id": 1,
+                                "name": "Daños materiales al vehículo",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "dano materiales"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 318,
+                                        "name": "dano materiales",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 3,
+                                "name": "Robo, hurto y uso no autorizado",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "robo, hurto y uso no autorizado"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 319,
+                                        "name": "robo, hurto y uso no autorizado",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 4,
+                                "name": "Responsabilidad Civil Emergente, Moral y Cesante",
+                                "type": "Cobertura",
+                                "value_0": "UF 1000",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "rc emergente, moral y cesante"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 320,
+                                        "name": "rc emergente, moral y cesante",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "UF 1000"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 5,
+                                "name": "Robo de accesorios",
+                                "type": "Cobertura",
+                                "value_0": "15% valor comercial. Max UF 80",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "robo de accesorios"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 321,
+                                        "name": "robo de accesorios",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "15% valor comercial. Max UF 80"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 6,
+                                "name": "Actos maliciosos",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "actos maliciosos"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 322,
+                                        "name": "actos maliciosos",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 7,
+                                "name": "Huelga y terrorismo",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "huelga y terrorismo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 323,
+                                        "name": "huelga y terrorismo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 8,
+                                "name": "Riesgo de la naturaleza",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "riesgo de la naturaleza"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 324,
+                                        "name": "riesgo de la naturaleza",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 9,
+                                "name": "Granizo",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "granizo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 325,
+                                        "name": "granizo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 10,
+                                "name": "Sismo",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "sismo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 326,
+                                        "name": "sismo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 11,
+                                "name": "Defensa penal y constitución de fianzas",
+                                "type": "Cobertura",
+                                "value_0": "UF 150",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "defensa penal y constitucion de fianzas"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 327,
+                                        "name": "defensa penal y constitucion de fianzas",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "UF 150"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 12,
+                                "name": "Tipo taller",
+                                "type": "Cobertura",
+                                "value_0": "Marca hasta 3 años",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "tipo taller"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 328,
+                                        "name": "tipo taller",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Marca hasta 3 años"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 13,
+                                "name": "Deducible Inteligente",
+                                "type": "Cobertura",
+                                "value_0": "Incluído",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "deducible inteligente"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 329,
+                                        "name": "deducible inteligente",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Incluído"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 21,
+                                "name": "Deducible",
+                                "type": "Deducible",
+                                "value_0": 0,
+                                "valueType_0": "UF",
+                                "rangeDescriptions": [
+                                    "deducible"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 330,
+                                        "name": "deducible",
+                                        "values": [
+                                            {
+                                                "type": "UF",
+                                                "value": 0
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 3
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 5
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 8
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 10
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 12
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 15
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 20
+                                            },
+                                            {
+                                                "type": "UF",
+                                                "value": 25
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 26,
+                                "name": "Seguro de Movilidad",
+                                "type": "Cobertura",
+                                "value_0": "30 días con copago",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "seguro movilidad"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 331,
+                                        "name": "seguro movilidad",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "30 días con copago"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 27,
+                                "name": "Daños a terceros causados por la carga",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "danos terceros por carga"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 332,
+                                        "name": "danos terceros por carga",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 28,
+                                "name": "Asiento de Pasajero Plan A",
+                                "type": "Cobertura",
+                                "value_0": "UF 150",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "asiento pasajero A"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 333,
+                                        "name": "asiento pasajero A",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "UF 150"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 29,
+                                "name": "Asiento de Pasajero Plan B",
+                                "type": "Cobertura",
+                                "value_0": "UF 150",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "asiento pasajero B"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 334,
+                                        "name": "asiento pasajero B",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "UF 150"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 30,
+                                "name": "Reposición a nuevo",
+                                "type": "Cobertura",
+                                "value_0": "12 meses",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "reposicion nuevo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 335,
+                                        "name": "reposicion nuevo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "12 meses"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 33,
+                                "name": "Clausula adicional daño por carga",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "danos materiales carga"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 336,
+                                        "name": "danos materiales carga",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 34,
+                                "name": "Asistencia a persona en viaje",
+                                "type": "Cobertura",
+                                "value_0": "UF 10000",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "asistencia persona viaje"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 337,
+                                        "name": "asistencia persona viaje",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "UF 10000"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 35,
+                                "name": "Asistencia al vehículo europ",
+                                "type": "Cobertura",
+                                "value_0": "Valor comercial",
+                                "valueType_0": "Fijo",
+                                "rangeDescriptions": [
+                                    "asistencia vehiculo"
+                                ],
+                                "ranges": [
+                                    {
+                                        "id": 338,
+                                        "name": "asistencia vehiculo",
+                                        "values": [
+                                            {
+                                                "type": "Fijo",
+                                                "value": "Valor comercial"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ],
+                        "coverages": [
+                            {
+                                "id": 1,
+                                "name": "Daños materiales al vehículo",
+                                "mainDescription": "Daño que sufre vehículo hasta valor comercial",
+                                "generalDescription": "Cubre los gastos en reparaciones, mano de obra y refacciones que necesite el vehículo en caso de que resulte dañado en algún siniestro vial o de cualquier tipo.",
+                                "isMain": 1,
+                                "isParam": 1,
+                                "valueDescription": "{dano materiales}",
+                                "polCad": "POL120130368",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 3,
+                                "name": "Robo, hurto y uso no autorizado",
+                                "mainDescription": "Hasta el valor comercial del vehículo",
+                                "generalDescription": "Cubre el robo total o las partes robadas del vehículo, además de los daños en ruta durante su uso indebido.",
+                                "isMain": 1,
+                                "isParam": 1,
+                                "valueDescription": "{robo, hurto y uso no autorizado}",
+                                "polCad": "POL120130368",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 4,
+                                "name": "Responsabilidad Civil Emergente, Moral y Cesante",
+                                "mainDescription": "Hasta UF 500 entre daño emergente, moral y lucro cesante",
+                                "generalDescription": "Existen 3 tipos de daño: \n- El Daño Emergente corresponde a los daños materiales, lesiones o muerte de terceros. \n- El Daño Moral corresponde a los daños psicológicos de terceros. \n- El Daño Lucro Cesante corresponde a los daños que afectan la producción de la herramienta de trabajo de terceros.",
+                                "isMain": 1,
+                                "isParam": 1,
+                                "valueDescription": "{rc emergente, moral y cesante}",
+                                "polCad": "POL120130368",
+                                "value": "UF 1000"
+                            },
+                            {
+                                "id": 5,
+                                "name": "Robo de accesorios",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre frente a los robos de accesorios del vehículo.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{robo de accesorios}",
+                                "polCad": "CAD120130397",
+                                "value": "15% valor comercial. Max UF 80"
+                            },
+                            {
+                                "id": 6,
+                                "name": "Actos maliciosos",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre frente a los daños generados por actos voluntarios de terceros.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{actos maliciosos}",
+                                "polCad": "CAD120130390",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 7,
+                                "name": "Huelga y terrorismo",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre los daños que tengan origen o fueren consecuencia de huelga, desórdenes públicos o de delitos contra el orden público o de terrorismo.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{huelga y terrorismo}",
+                                "polCad": "CAD120130391",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 8,
+                                "name": "Riesgo de la naturaleza",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre frente a incendios y daños materiales como consecuencia directa e inmediata de erupción volcánica, salida de mar, inundación, huracán, ciclón, avalanchas, aluvión o deslizamiento, producidos o desencadenados por fenómenos de la naturaleza a excepción de sismo, o de caídas de rayos.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{riesgo de la naturaleza}",
+                                "polCad": "CAD120130395",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 9,
+                                "name": "Granizo",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre los daños que directa o indirectamente tengan por origen o fueren una consecuencia de granizo.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{granizo}",
+                                "polCad": "CAD120130398",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 10,
+                                "name": "Sismo",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre los daños que se produzcan o que ocurran como consecuencia de sismo y salida de mar de origen sísmico; así como los daños que ocurran a causa de la situación anormal provocada por el mismo.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{sismo}",
+                                "polCad": "CAD120130400",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 11,
+                                "name": "Defensa penal y constitución de fianzas",
+                                "mainDescription": null,
+                                "generalDescription": "Cubre honorarios de abogados y procuradores, costas judiciales y monto de las fianzas por algún siniestro.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{defensa penal y constitucion de fianzas}",
+                                "polCad": "CAD120130794",
+                                "value": "UF 150"
+                            },
+                            {
+                                "id": 12,
+                                "name": "Tipo taller",
+                                "mainDescription": "Multimarca",
+                                "generalDescription": "En caso de reparación, el auto será enviado a Taller Multimarca que es el taller que recibe los vehículos de distintas marcas para su arreglo.",
+                                "isMain": 1,
+                                "isParam": 1,
+                                "valueDescription": "{tipo taller}",
+                                "polCad": null,
+                                "value": "Marca hasta 3 años"
+                            },
+                            {
+                                "id": 13,
+                                "name": "Deducible Inteligente",
+                                "mainDescription": null,
+                                "generalDescription": "Permite eximir el pago del deducible acordado en la póliza en el caso de que un tercero involucrado sea culpable del siniestro en cuestión.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{deducible inteligente}",
+                                "polCad": null,
+                                "value": "Incluído"
+                            },
+                            {
+                                "id": 26,
+                                "name": "Seguro de Movilidad",
+                                "mainDescription": null,
+                                "generalDescription": "Por motivo de la ocurrencia de un siniestro indemnizable por la compañía de seguros, el asegurado podrá optar por: \n(1) Un vehículo de reemplazo. \n(2) Créditos en la aplicación Cabify proporcionales a los días contratado.",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{seguro movilidad}",
+                                "polCad": null,
+                                "value": "30 días con copago"
+                            },
+                            {
+                                "id": 27,
+                                "name": "Daños a terceros causados por la carga",
+                                "mainDescription": null,
+                                "generalDescription": null,
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{danos terceros por carga}",
+                                "polCad": "CAD120130404",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 28,
+                                "name": "Asiento de Pasajero Plan A",
+                                "mainDescription": null,
+                                "generalDescription": null,
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{asiento pasajero A}",
+                                "polCad": "POL320130966",
+                                "value": "UF 150"
+                            },
+                            {
+                                "id": 29,
+                                "name": "Asiento de Pasajero Plan B",
+                                "mainDescription": null,
+                                "generalDescription": null,
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{asiento pasajero B}",
+                                "polCad": "POL320130966",
+                                "value": "UF 150"
+                            },
+                            {
+                                "id": 30,
+                                "name": "Reposición a nuevo",
+                                "mainDescription": null,
+                                "generalDescription": null,
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{reposicion nuevo}",
+                                "polCad": "CP",
+                                "value": "12 meses"
+                            },
+                            {
+                                "id": 33,
+                                "name": "Clausula adicional daño por carga",
+                                "mainDescription": null,
+                                "generalDescription": "Clausula adicional de daños materiales causados por la propia carga",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{danos materiales carga}",
+                                "polCad": "CAD120130403",
+                                "value": "Valor comercial"
+                            },
+                            {
+                                "id": 34,
+                                "name": "Asistencia a persona en viaje",
+                                "mainDescription": null,
+                                "generalDescription": "Póliza de seguro de asistencia a personas en viaje",
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{asistencia persona viaje}",
+                                "polCad": "POL320180121",
+                                "value": "UF 10000"
+                            },
+                            {
+                                "id": 35,
+                                "name": "Asistencia al vehículo europ",
+                                "mainDescription": null,
+                                "generalDescription": null,
+                                "isMain": 0,
+                                "isParam": 1,
+                                "valueDescription": "{asistencia vehiculo}",
+                                "polCad": "POL120130194",
+                                "value": "Valor comercial"
+                            }
+                        ],
+                        "benefits": [],
+                        "exclusions": []
+                    }
+                }
+            ]
+        }
+    ]
+}

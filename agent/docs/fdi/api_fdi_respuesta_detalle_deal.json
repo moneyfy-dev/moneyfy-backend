@@ -1,0 +1,73 @@
+{
+    "contractor": {
+        "idNumber": "11111111-1",
+        "address": {
+            "streetName": "Calle NUser 00",
+            "building": 1111,
+            "countryCode": "15",
+            "regionCode": "13",
+            "communeCode": "13101"
+        },
+        "email": "nuser.random@gmail.com",
+        "firstName": "JUANA DEL CARMEN",
+        "lastName1": "PONCE",
+        "lastName2": "VENEGAS",
+        "dob": "1967-09-19"
+    },
+    "payer": {
+        "idNumber": "22222222-2",
+        "address": {
+            "streetName": "Calle NUser 01",
+            "building": 1111,
+            "countryCode": "15",
+            "regionCode": "13",
+            "communeCode": "13101"
+        },
+        "phone": 911111111,
+        "email": "nuser.random01@gmail.com",
+        "firstName": "EDIN OSWALDO",
+        "lastName1": "ANICETO",
+        "lastName2": "FERNANDEZ",
+        "dob": "1971-09-04",
+        "paymentRegisterStatus": false
+    },
+    "brokerIdNumber": "77901622-6",
+    "brokerName": "AZ CORREDORES SE SEGUROS SPA",
+    "items": [
+        {
+            "vehicle": {
+                "brandId": 52,
+                "modelId": 2035,
+                "modelYear": 2011,
+                "plateNumber": "CXLS79",
+                "chasisNumber": "BJ508323",
+                "engineNumber": "10FX7U3452160",
+                "new": false,
+                "modelName": "XSARA PICASSO",
+                "brandName": "CITROEN",
+                "versionId": 1,
+                "versionName": "FIDENSLAT",
+                "typeId": 102,
+                "type": "STATION WAGON"
+            },
+            "policyHolder": {
+                "idNumber": "22222222-2",
+                "email": "nuser.random01@gmail.com",
+                "address": {
+                    "streetName": "Calle NUser 01",
+                    "building": 1111,
+                    "countryCode": "15",
+                    "regionCode": "13",
+                    "communeCode": "13101"
+                },
+                "phone": 911111111,
+                "firstName": "EDIN OSWALDO",
+                "lastName1": "ANICETO",
+                "lastName2": "FERNANDEZ",
+                "dob": "1971-09-04"
+            },
+            "id": 0
+        }
+    ],
+    "finished": false
+}
