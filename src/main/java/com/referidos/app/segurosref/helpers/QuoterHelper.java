@@ -40,7 +40,7 @@ public class QuoterHelper {
                                 BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
-                                "", new HashSet<>(), new ArrayList<>());
+                                "", new HashSet<>());
                 this.adjustTestPlan(plan1, "70%", "800 UF", "90", "3");
                 QuotationPlanDto plan2 = new QuotationPlanDto("TRACTOR123456789", "TRACTOR123456789",
                                 "Tractor Seguros Automotriz", "Seguro auto completo", BigDecimal.valueOf(valueUF),
@@ -51,7 +51,7 @@ public class QuoterHelper {
                                 BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
-                                "", new HashSet<>(), new ArrayList<>());
+                                "", new HashSet<>());
                 this.adjustTestPlan(plan2, "80%", "1200 UF", "120", "4");
                 QuotationPlanDto plan3 = new QuotationPlanDto("TRACTOR987654321", "TRACTOR987654321",
                                 "Tractor Seguros Automotriz", "Plan seguro auto asegurado", BigDecimal.valueOf(valueUF),
@@ -62,7 +62,7 @@ public class QuoterHelper {
                                 BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
-                                "", new HashSet<>(), new ArrayList<>());
+                                "", new HashSet<>());
                 this.adjustTestPlan(plan3, "60%", "1500 UF", "90", "4");
                 QuotationPlanDto plan4 = new QuotationPlanDto("TRACTOR12975678953", "TRACTOR12975678953",
                                 "Tractor Seguros Automotriz", "Seguro auto premium", BigDecimal.valueOf(valueUF),
@@ -73,7 +73,7 @@ public class QuoterHelper {
                                 BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
-                                "", new HashSet<>(), new ArrayList<>());
+                                "", new HashSet<>());
                 this.adjustTestPlan(plan4, "75%", "900 UF", "120", "3");
                 list.add(plan1);
                 list.add(plan2);
@@ -97,7 +97,7 @@ public class QuoterHelper {
                                 BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
-                                "", new HashSet<>(), new ArrayList<>());
+                                "", new HashSet<>());
                 this.adjustTestPlan(plan1, "70%", "1200 UF", "90", "3");
                 QuotationPlanDto plan2 = new QuotationPlanDto("SEGUROSALAMEDA123456789", "SEGUROSALAMEDA123456789",
                                 "Seguros Alameda", "Tu trasporte asegurado", BigDecimal.valueOf(valueUF),
@@ -108,7 +108,7 @@ public class QuoterHelper {
                                 BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
-                                "", new HashSet<>(), new ArrayList<>());
+                                "", new HashSet<>());
                 this.adjustTestPlan(plan2, "80%", "800 UF", "120", "4");
                 list.add(plan1);
                 list.add(plan2);
@@ -130,7 +130,7 @@ public class QuoterHelper {
                                 BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
-                                "", new HashSet<>(), new ArrayList<>());
+                                "", new HashSet<>());
                 this.adjustTestPlan(plan1, "65%", "1500 uf", "180", "3");
                 QuotationPlanDto plan2 = new QuotationPlanDto("LOSALAMOS123456789", "LOSALAMOS123456789",
                                 "Los Alamos Seguros Automotriz", "Plan de automóvil asegurado",
@@ -141,7 +141,7 @@ public class QuoterHelper {
                                 BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
-                                "", new HashSet<>(), new ArrayList<>());
+                                "", new HashSet<>());
                 this.adjustTestPlan(plan2, "75%", "1000 UF", "120", "4");
                 QuotationPlanDto plan3 = new QuotationPlanDto("LOSALAMOS987654321", "LOSALAMOS987654321",
                                 "Los Alamos Seguros Automotriz", "Seguro MAX automóvil", BigDecimal.valueOf(valueUF),
@@ -152,7 +152,7 @@ public class QuoterHelper {
                                 BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
-                                "", new HashSet<>(), new ArrayList<>());
+                                "", new HashSet<>());
                 this.adjustTestPlan(plan3, "75%", "1200 UF", "90", "3");
                 list.add(plan1);
                 list.add(plan2);
@@ -166,14 +166,9 @@ public class QuoterHelper {
                 // Adjust data
                 String totalLoss = "Valor comercial en caso de daños mayores al " + lossPercentage + " del valor";
                 String damageThirdParty = "Hasta " + thirdPartyUF + " entre daños emergentes, morales y lucro cesante";
-                String detailReplacement = "Limitado hasta " + daysReplacement
-                                + " días hábiles, para el reemplazo del vehículo";
-                String detailRenewal = "Luego de " + yearsRenewal
-                                + " año/s de haber comprado, se habilita la renovación del vehículo";
                 // Update plan
                 testPlan.setTotalLoss(totalLoss);
                 testPlan.setDamageThirdParty(damageThirdParty);
-                testPlan.addDetail(detailReplacement).add(detailRenewal);
         }
 
         // Creación de un cotizador para los flujos: "Iniciando" o "Cotizando"

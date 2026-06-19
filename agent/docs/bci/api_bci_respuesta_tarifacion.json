@@ -1,0 +1,153 @@
+{
+    "bool_Estado": true,
+    "codigo": 200,
+    "str_Mensaje": "OK",
+    "resultado": {
+        "str_NroCotizacion": "92CB51E4F6993712D887E67C37D01B3F",
+        "dec_TasaDeCambioUF": 40787.7,
+        "dec_Iva": 1.19,
+        "bool_IsPinValido": false,
+        "lst_Productos": [
+            {
+                "dec_TasaInteresCuota": 0.0032,
+                "producto": {
+                    "int_Codigo_Producto": 22000653,
+                    "int_CantidadCuotas": 11,
+                    "nombreProducto": "SOLUCION MOVIL 2.0",
+                    "lst_CodigoCoberturasFlexibles": []
+                },
+                "lst_TarifaVehiculos": [
+                    {
+                        "lst_Tarifa": [
+                            {
+                                "int_IdDeducible": 1,
+                                "str_Deducible": "0UF",
+                                "dec_ValorNetoUfConInteres": 32.63,
+                                "dec_ValorBrutoUfConInteres": 38.83,
+                                "dec_ImpuestoConInteres": 6.2,
+                                "dec_ValorNetoUfSinInteres": 32.04,
+                                "dec_ValorBrutoUfSinInteres": 38.13,
+                                "dec_ImpuestoSinInteres": 6.09,
+                                "int_ValorBrutoPesos": 1555235,
+                                "int_ValorCuotaPesos": 143981,
+                                "int_ValorCuotaUf": 3.53,
+                                "int_ValorUltimaCuotaUf": 3.53,
+                                "bool_EsPrimaMinima": false,
+                                "int_CantidadCuotas": 11,
+                                "dec_ValorNetoUfConDescuentos": 38.83,
+                                "int_UfDeducible": 0
+                            },
+                            {
+                                "int_IdDeducible": 2,
+                                "str_Deducible": "3UF",
+                                "dec_ValorNetoUfConInteres": 25.88,
+                                "dec_ValorBrutoUfConInteres": 30.8,
+                                "dec_ImpuestoConInteres": 4.92,
+                                "dec_ValorNetoUfSinInteres": 25.38,
+                                "dec_ValorBrutoUfSinInteres": 30.2,
+                                "dec_ImpuestoSinInteres": 4.82,
+                                "int_ValorBrutoPesos": 1231789,
+                                "int_ValorCuotaPesos": 114206,
+                                "int_ValorCuotaUf": 2.8,
+                                "int_ValorUltimaCuotaUf": 2.8,
+                                "bool_EsPrimaMinima": false,
+                                "int_CantidadCuotas": 11,
+                                "dec_ValorNetoUfConDescuentos": 30.8,
+                                "int_UfDeducible": 3
+                            },
+                            {
+                                "int_IdDeducible": 3,
+                                "str_Deducible": "5UF",
+                                "dec_ValorNetoUfConInteres": 23.39,
+                                "dec_ValorBrutoUfConInteres": 27.83,
+                                "dec_ImpuestoConInteres": 4.44,
+                                "dec_ValorNetoUfSinInteres": 22.92,
+                                "dec_ValorBrutoUfSinInteres": 27.27,
+                                "dec_ImpuestoSinInteres": 4.35,
+                                "int_ValorBrutoPesos": 1112281,
+                                "int_ValorCuotaPesos": 103193,
+                                "int_ValorCuotaUf": 2.53,
+                                "int_ValorUltimaCuotaUf": 2.53,
+                                "bool_EsPrimaMinima": false,
+                                "int_CantidadCuotas": 11,
+                                "dec_ValorNetoUfConDescuentos": 27.83,
+                                "int_UfDeducible": 5
+                            },
+                            {
+                                "int_IdDeducible": 5,
+                                "str_Deducible": "10UF",
+                                "dec_ValorNetoUfConInteres": 20.34,
+                                "dec_ValorBrutoUfConInteres": 24.2,
+                                "dec_ImpuestoConInteres": 3.86,
+                                "dec_ValorNetoUfSinInteres": 19.96,
+                                "dec_ValorBrutoUfSinInteres": 23.75,
+                                "dec_ImpuestoSinInteres": 3.79,
+                                "int_ValorBrutoPesos": 968708,
+                                "int_ValorCuotaPesos": 89733,
+                                "int_ValorCuotaUf": 2.2,
+                                "int_ValorUltimaCuotaUf": 2.2,
+                                "bool_EsPrimaMinima": false,
+                                "int_CantidadCuotas": 11,
+                                "dec_ValorNetoUfConDescuentos": 24.2,
+                                "int_UfDeducible": 10
+                            },
+                            {
+                                "int_IdDeducible": 7,
+                                "str_Deducible": "15UF",
+                                "dec_ValorNetoUfConInteres": 18.12,
+                                "dec_ValorBrutoUfConInteres": 21.56,
+                                "dec_ImpuestoConInteres": 3.44,
+                                "dec_ValorNetoUfSinInteres": 17.74,
+                                "dec_ValorBrutoUfSinInteres": 21.11,
+                                "dec_ImpuestoSinInteres": 3.37,
+                                "int_ValorBrutoPesos": 861028,
+                                "int_ValorCuotaPesos": 79944,
+                                "int_ValorCuotaUf": 1.96,
+                                "int_ValorUltimaCuotaUf": 1.96,
+                                "bool_EsPrimaMinima": false,
+                                "int_CantidadCuotas": 11,
+                                "dec_ValorNetoUfConDescuentos": 21.56,
+                                "int_UfDeducible": 15
+                            },
+                            {
+                                "int_IdDeducible": 6,
+                                "str_Deducible": "20UF",
+                                "dec_ValorNetoUfConInteres": 16.36,
+                                "dec_ValorBrutoUfConInteres": 19.47,
+                                "dec_ImpuestoConInteres": 3.11,
+                                "dec_ValorNetoUfSinInteres": 16.02,
+                                "dec_ValorBrutoUfSinInteres": 19.06,
+                                "dec_ImpuestoSinInteres": 3.04,
+                                "int_ValorBrutoPesos": 777414,
+                                "int_ValorCuotaPesos": 72194,
+                                "int_ValorCuotaUf": 1.77,
+                                "int_ValorUltimaCuotaUf": 1.77,
+                                "bool_EsPrimaMinima": false,
+                                "int_CantidadCuotas": 11,
+                                "dec_ValorNetoUfConDescuentos": 19.47,
+                                "int_UfDeducible": 20
+                            }
+                        ],
+                        "estadoTarifa": {
+                            "codigo": 0,
+                            "mensaje": "OK"
+                        },
+                        "str_TipoVehiculo": "AUTOMOVIL",
+                        "int_Marca": 4,
+                        "str_Marca": "CHEVROLET",
+                        "int_Modelo": 105,
+                        "str_Modelo": "CORSA",
+                        "int_Ano": 2025,
+                        "propietario": {
+                            "int_Rut": 12345678,
+                            "str_Dv": "5",
+                            "int_Edad": 52
+                        }
+                    }
+                ]
+            }
+        ],
+        "int_NroTarificacion": 88272,
+        "dt_FinVigencia": "2026-07-18T00:00:00-04:00"
+    }
+}

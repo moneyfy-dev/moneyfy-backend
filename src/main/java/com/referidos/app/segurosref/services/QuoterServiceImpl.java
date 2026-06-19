@@ -226,7 +226,7 @@ public class QuoterServiceImpl implements QuoterService {
                 DataHelper.buildUser(userDB, dataResponse));
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "null" })
     @Transactional
     @Override
     public ResponseEntity<?> searchPlan(SearchPlanRequest searchPlan, String emailAuth) {
@@ -440,18 +440,48 @@ public class QuoterServiceImpl implements QuoterService {
             }
         }
 
-        // Guardar planes en BD en caso de no existir
-        for (QuotationPlanDto insurerPlan : planList) {
-            String insurerPlanId = insurerPlan.getPlanId();
-            @SuppressWarnings("null")
-            Optional<PlanModel> optionalPlan = planRepository.findById(insurerPlanId);
-            if (optionalPlan.isEmpty()) {
-                PlanModel novaPlan = new PlanModel(insurerPlanId, insurerPlan.getInsurer(), insurerPlan.getPlanName(),
-                        insurerPlan.getDeductibleDesc(), insurerPlan.getStolenVehicle(), insurerPlan.getTotalLoss(),
-                        insurerPlan.getDamageThirdParty(), insurerPlan.getWorkshopType(), insurerPlan.getCoverages(),
-                        insurerPlan.getDetails(),
-                        currentDateTime, currentDateTime);
-                planRepository.save(novaPlan);
+        // Guardar planes en BD consolidando coberturas sin N+1
+        if (planList != null && !planList.isEmpty()) {
+            List<String> planIds = planList.stream().map(QuotationPlanDto::getPlanId).distinct().toList();
+            List<PlanModel> existingPlans = planRepository.findAllById(planIds);
+            Map<String, PlanModel> plansMap = existingPlans.stream()
+                    .collect(java.util.stream.Collectors.toMap(PlanModel::getPlanId, p -> p));
+
+            List<PlanModel> plansToSave = new ArrayList<>();
+
+            for (QuotationPlanDto insurerPlan : planList) {
+                // Actualizar el nombre de la aseguradora dinámicamente en el DTO
+                insurerPlan.setInsurer(returnInsurerDB.getName());
+
+                String pId = insurerPlan.getPlanId();
+                PlanModel pModel = plansMap.get(pId);
+
+                if (pModel == null) {
+                    pModel = new PlanModel(pId, returnInsurerDB.getName(), insurerPlan.getPlanName(),
+                            insurerPlan.getDeductibleDesc(), insurerPlan.getStolenVehicle(), insurerPlan.getTotalLoss(),
+                            insurerPlan.getDamageThirdParty(), insurerPlan.getWorkshopType(),
+                            new java.util.HashSet<>(insurerPlan.getCoverages()),
+                            currentDateTime, currentDateTime);
+                    plansMap.put(pId, pModel);
+                    plansToSave.add(pModel);
+                } else {
+                    // Evitar duplicados de coberturas
+                    java.util.Set<com.referidos.app.segurosref.dtos.quotation.QuotationPlanCoverDto> existingCoverages = pModel
+                            .getCoverages();
+                    if (existingCoverages == null) {
+                        existingCoverages = new java.util.HashSet<>();
+                        pModel.setCoverages(existingCoverages);
+                    }
+                    if (insurerPlan.getCoverages() != null) {
+                        existingCoverages.addAll(insurerPlan.getCoverages());
+                    }
+                    if (!plansToSave.contains(pModel)) {
+                        plansToSave.add(pModel);
+                    }
+                }
+            }
+            if (!plansToSave.isEmpty()) {
+                planRepository.saveAll(plansToSave);
             }
         }
 

@@ -1,7 +1,6 @@
 package com.referidos.app.segurosref.dtos.quotation;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -19,7 +18,7 @@ import lombok.EqualsAndHashCode;
         "expiryDateBCI", "dealTokenFDI", "itemIdFDI",
         "quotationIdFDI", "FIDId", "expiryDateFDI", "brokerageUfFDI", "vehicleReplacementFDI",
         "inspectionRequiredFDI", "monthlyPremiumFDI", "paymentPlanFDI", "quotationPeriodFDI",
-        "paymentWayFDI", "coverages", "details" })
+        "paymentWayFDI", "coverages" })
 public class QuotationPlanDto {
 
     @EqualsAndHashCode.Include
@@ -59,13 +58,6 @@ public class QuotationPlanDto {
     private String paymentWayFDI;
 
     private Set<QuotationPlanCoverDto> coverages;
-    private List<String> details;
-
-    // Métodos de lógica, propios de la clase
-    public List<String> addDetail(String detail) {
-        this.details.add(detail);
-        return this.details;
-    }
 
     // Métodos de lógica, propios de la clase
     public Set<QuotationPlanCoverDto> addCoverage(QuotationPlanCoverDto coverage) {

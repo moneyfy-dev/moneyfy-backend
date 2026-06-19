@@ -1,0 +1,217 @@
+{
+    "bool_Estado": true,
+    "codigo": 200,
+    "str_Mensaje": "OK",
+    "resultado": {
+        "comunas": [
+            {
+                "int_Id": 316,
+                "str_Nombre": "ALHUE"
+            },
+            {
+                "int_Id": 313,
+                "str_Nombre": "BUIN"
+            },
+            {
+                "int_Id": 309,
+                "str_Nombre": "CALERA DE TANGO"
+            },
+            {
+                "int_Id": 272,
+                "str_Nombre": "CERRILLOS"
+            },
+            {
+                "int_Id": 263,
+                "str_Nombre": "CERRO NAVIA"
+            },
+            {
+                "int_Id": 287,
+                "str_Nombre": "COLINA"
+            },
+            {
+                "int_Id": 286,
+                "str_Nombre": "CONCHALI"
+            },
+            {
+                "int_Id": 294,
+                "str_Nombre": "CURACAVI"
+            },
+            {
+                "int_Id": 277,
+                "str_Nombre": "EL BOSQUE"
+            },
+            {
+                "int_Id": 299,
+                "str_Nombre": "EL MONTE"
+            },
+            {
+                "int_Id": 267,
+                "str_Nombre": "ESTACION CENTRAL"
+            },
+            {
+                "int_Id": 273,
+                "str_Nombre": "HUECHURABA"
+            },
+            {
+                "int_Id": 269,
+                "str_Nombre": "INDEPENDENCIA"
+            },
+            {
+                "int_Id": 297,
+                "str_Nombre": "ISLA DE MAIPO"
+            },
+            {
+                "int_Id": 306,
+                "str_Nombre": "LA CISTERNA"
+            },
+            {
+                "int_Id": 303,
+                "str_Nombre": "LA FLORIDA"
+            },
+            {
+                "int_Id": 307,
+                "str_Nombre": "LA GRANJA"
+            },
+            {
+                "int_Id": 266,
+                "str_Nombre": "LA PINTANA"
+            },
+            {
+                "int_Id": 302,
+                "str_Nombre": "LA REINA"
+            },
+            {
+                "int_Id": 289,
+                "str_Nombre": "LAMPA"
+            },
+            {
+                "int_Id": 284,
+                "str_Nombre": "LAS CONDES"
+            },
+            {
+                "int_Id": 271,
+                "str_Nombre": "LO BARNECHEA"
+            },
+            {
+                "int_Id": 276,
+                "str_Nombre": "LO ESPEJO"
+            },
+            {
+                "int_Id": 264,
+                "str_Nombre": "LO PRADO"
+            },
+            {
+                "int_Id": 262,
+                "str_Nombre": "MACUL"
+            },
+            {
+                "int_Id": 304,
+                "str_Nombre": "MAIPU"
+            },
+            {
+                "int_Id": 300,
+                "str_Nombre": "MARIA PINTO"
+            },
+            {
+                "int_Id": 298,
+                "str_Nombre": "MELIPILLA"
+            },
+            {
+                "int_Id": 301,
+                "str_Nombre": "ÑUÑOA"
+            },
+            {
+                "int_Id": 278,
+                "str_Nombre": "PADRE HURTADO"
+            },
+            {
+                "int_Id": 314,
+                "str_Nombre": "PAINE"
+            },
+            {
+                "int_Id": 275,
+                "str_Nombre": "PEDRO AGUIRRE CERDA"
+            },
+            {
+                "int_Id": 295,
+                "str_Nombre": "PENAFLOR"
+            },
+            {
+                "int_Id": 261,
+                "str_Nombre": "PENALOLEN"
+            },
+            {
+                "int_Id": 311,
+                "str_Nombre": "PIRQUE"
+            },
+            {
+                "int_Id": 285,
+                "str_Nombre": "PROVIDENCIA"
+            },
+            {
+                "int_Id": 293,
+                "str_Nombre": "PUDAHUEL"
+            },
+            {
+                "int_Id": 310,
+                "str_Nombre": "PUENTE ALTO"
+            },
+            {
+                "int_Id": 290,
+                "str_Nombre": "QUILICURA"
+            },
+            {
+                "int_Id": 292,
+                "str_Nombre": "QUINTA NORMAL"
+            },
+            {
+                "int_Id": 268,
+                "str_Nombre": "RECOLETA"
+            },
+            {
+                "int_Id": 288,
+                "str_Nombre": "RENCA"
+            },
+            {
+                "int_Id": 308,
+                "str_Nombre": "SAN BERNARDO"
+            },
+            {
+                "int_Id": 274,
+                "str_Nombre": "SAN JOAQUIN"
+            },
+            {
+                "int_Id": 312,
+                "str_Nombre": "SAN JOSE DE MAIPO"
+            },
+            {
+                "int_Id": 305,
+                "str_Nombre": "SAN MIGUEL"
+            },
+            {
+                "int_Id": 315,
+                "str_Nombre": "SAN PEDRO"
+            },
+            {
+                "int_Id": 265,
+                "str_Nombre": "SAN RAMON"
+            },
+            {
+                "int_Id": 283,
+                "str_Nombre": "SANTIAGO"
+            },
+            {
+                "int_Id": 296,
+                "str_Nombre": "TALAGANTE"
+            },
+            {
+                "int_Id": 291,
+                "str_Nombre": "TIL-TIL"
+            },
+            {
+                "int_Id": 270,
+                "str_Nombre": "VITACURA"
+            }
+        ]
+    }
+}

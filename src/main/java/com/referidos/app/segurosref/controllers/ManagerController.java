@@ -52,6 +52,12 @@ public class ManagerController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
+    @PutMapping("/finalize/quote")
+    public ResponseEntity<?> finalizeQuote(@RequestBody FinalizeQuoteRequest finalizeQuote,
+            HttpServletRequest request) {
+        return managerService.finalizeQuote(finalizeQuote, request);
+    }
+
     @PostMapping("/pay-quotes")
     public ResponseEntity<?> payQuotes(
             @RequestHeader(value = "X-Moneyfy-Api-Key", required = true) String apiKey,
@@ -66,9 +72,4 @@ public class ManagerController {
         return managerService.payQuotes(request);
     }
 
-    @PutMapping("/finalize/quote")
-    public ResponseEntity<?> finalizeQuote(@RequestBody FinalizeQuoteRequest finalizeQuote,
-            HttpServletRequest request) {
-        return managerService.finalizeQuote(finalizeQuote, request);
-    }
 }
