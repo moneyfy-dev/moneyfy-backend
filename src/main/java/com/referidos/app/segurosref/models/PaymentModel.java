@@ -15,7 +15,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-@JsonPropertyOrder(value = { "paymentId", "userId", "account", "payment", "voucher", "transactionIds",
+@JsonPropertyOrder(value = { "paymentId", "userId", "account", "payment", "voucher", "status", "note", "transactionIds",
         "createdDate", "updatedDate" })
 @Document(collection = "payments")
 public class PaymentModel {
@@ -26,6 +26,9 @@ public class PaymentModel {
     private ReportAccountDto account;
     private int payment;
     private String voucher;
+    
+    private String status;
+    private String note;
 
     private Set<String> transactionIds;
     private LocalDateTime createdDate;

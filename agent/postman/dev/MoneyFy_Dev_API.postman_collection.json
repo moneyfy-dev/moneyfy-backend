@@ -1466,6 +1466,42 @@
                     "response": []
                 },
                 {
+                    "name": "report pay quotes",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "X-Moneyfy-Api-Key",
+                                "value": "{{Dev - X-Moneyfy-Api-Key}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"dateFrom\": \"2026-04-01\",\n  \"dateTo\": \"2026-06-18\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{Dev - URL}}/api/v1/manager/pay-quotes/report",
+                            "host": [
+                                "{{Dev - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "pay-quotes",
+                                "report"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
                     "name": "pay quotes",
                     "request": {
                         "method": "POST",

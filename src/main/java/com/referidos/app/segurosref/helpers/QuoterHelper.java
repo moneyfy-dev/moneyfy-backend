@@ -197,7 +197,7 @@ public class QuoterHelper {
                                 commissionTotal,
                                 commissionScope, true, observation, currentDateTime, currentDateTime,
                                 DataHelper.deprecatedDateTime(), DataHelper.deprecatedDateTime());
-                novaTransaction.addCommission(new TransactionComissionModel(userCId, commissionTotal, status, DataHelper.deprecatedDateTime()));
+                novaTransaction.addCommission(new TransactionComissionModel(userCId, commissionTotal, status, "", DataHelper.deprecatedDateTime()));
                 return novaTransaction;
         }
 
