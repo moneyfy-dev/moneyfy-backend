@@ -1478,7 +1478,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"transactions\": [\"replace-id-1\", \"replace-id-2\"]\n}",
+                            "raw": "{\n    \"usersQuotes\": [\n        {\n            \"userId\": \"user-id-1\",\n            \"transactions\": [\n                \"replace-transaction-1\",\n                \"replace-transaction-2\"\n            ],\n            \"userAccount\": {\n                \"rut\": \"11.111.111-1\",\n                \"holderName\": \"Test User\",\n                \"email\": \"user@test.com\",\n                \"bank\": \"Banco Santander\",\n                \"accountType\": \"Corriente\",\n                \"accountNumber\": \"123456789\"\n            },\n            \"userPayment\": 15000,\n            \"userVoucher\": \"url-to-voucher-or-base64\"\n        }\n    ]\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"

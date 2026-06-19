@@ -58,6 +58,20 @@ public class ManagerController {
         return managerService.finalizeQuote(finalizeQuote, request);
     }
 
+    @PostMapping("/pay-quotes/report")
+    public ResponseEntity<?> generatePayQuotesReport(
+            @RequestHeader(value = "X-Moneyfy-Api-Key", required = true) String apiKey,
+            @RequestBody com.referidos.app.segurosref.dtos.manager.PayQuotesReportRequest request) {
+
+        if (apiKey == null || !apiKey.equals(moneyfyApiKey)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new DashboardPaginatedResponseDto("No autorizado",
+                            HttpStatus.UNAUTHORIZED.value(), null));
+        }
+
+        return managerService.generatePayQuotesReport(request);
+    }
+
     @PostMapping("/pay-quotes")
     public ResponseEntity<?> payQuotes(
             @RequestHeader(value = "X-Moneyfy-Api-Key", required = true) String apiKey,

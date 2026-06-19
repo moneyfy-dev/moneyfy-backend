@@ -681,4 +681,107 @@ public class ManagerServiceImpl implements ManagerService {
         return ResponseHelper.ok("Proceso de pagos completado", Map.of("failedPayments", failedPayments));
     }
 
+    @Override
+    public ResponseEntity<?> generatePayQuotesReport(com.referidos.app.segurosref.dtos.manager.PayQuotesReportRequest request) {
+        if (request == null || request.getDateFrom() == null || request.getDateTo() == null) {
+            return ResponseHelper.failedDependency("La solicitud no contiene el rango de fechas válido", "failed dependency");
+        }
+
+        LocalDateTime dateFrom = request.getDateFrom().atStartOfDay();
+        LocalDateTime dateTo = request.getDateTo().atTime(23, 59, 59);
+
+        List<TransactionModel> approvedTransactions = transactionRepository.findAllByApprovalDateBetweenAndStatus(dateFrom, dateTo, "Aprobado");
+
+        Map<String, List<TransactionModel>> transactionsByUser = new HashMap<>();
+        
+        // Agrupar transacciones por userId a partir de las comisiones en estado Aprobado
+        for (TransactionModel tx : approvedTransactions) {
+            if (tx.getCommissions() != null) {
+                for (TransactionComissionModel comm : tx.getCommissions()) {
+                    if ("Aprobado".equals(comm.getCommissionStatus())) {
+                        String userId = comm.getUserId();
+                        transactionsByUser.computeIfAbsent(userId, k -> new ArrayList<>()).add(tx);
+                    }
+                }
+            }
+        }
+
+        List<com.referidos.app.segurosref.dtos.manager.BankPayrollDto> bankPayroll = new ArrayList<>();
+        List<com.referidos.app.segurosref.dtos.manager.UserQuotePaymentDto> backendPayload = new ArrayList<>();
+        List<com.referidos.app.segurosref.dtos.manager.ConflictDto> conflicts = new ArrayList<>();
+
+        if (transactionsByUser.isEmpty()) {
+            return ResponseHelper.response("Solicitud realizada: Reporte generado", 200, new com.referidos.app.segurosref.dtos.manager.PayQuotesReportResponse(bankPayroll, backendPayload, conflicts));
+        }
+
+        List<ObjectId> userIds = transactionsByUser.keySet().stream()
+                .filter(ObjectId::isValid)
+                .map(ObjectId::new)
+                .toList();
+
+        List<UserModel> users = userRepository.findAllById(userIds);
+        Map<String, UserModel> usersMap = users.stream().collect(Collectors.toMap(UserModel::getUserId, u -> u));
+
+        for (Map.Entry<String, List<TransactionModel>> entry : transactionsByUser.entrySet()) {
+            String userId = entry.getKey();
+            List<TransactionModel> userTransactions = entry.getValue();
+
+            UserModel user = usersMap.get(userId);
+            if (user == null) {
+                conflicts.add(new com.referidos.app.segurosref.dtos.manager.ConflictDto(userId, "N/A", "Usuario no encontrado en la base de datos"));
+                continue;
+            }
+
+            String userName = user.getPersonalData() != null ? user.getPersonalData().getName() + " " + user.getPersonalData().getSurname() : "N/A";
+            
+            com.referidos.app.segurosref.models.AccountModel selectedAccount = null;
+            if (user.getAccounts() != null) {
+                selectedAccount = user.getAccounts().stream().filter(com.referidos.app.segurosref.models.AccountModel::isSelected).findFirst().orElse(null);
+            }
+
+            if (selectedAccount == null) {
+                conflicts.add(new com.referidos.app.segurosref.dtos.manager.ConflictDto(userId, userName, "Usuario no tiene cuenta bancaria confirmada/seleccionada"));
+                continue;
+            }
+
+            int calculatedTotal = 0;
+            Set<String> transactionIds = new java.util.HashSet<>();
+
+            for (TransactionModel tx : userTransactions) {
+                transactionIds.add(tx.getTransactionId());
+                for (TransactionComissionModel comm : tx.getCommissions()) {
+                    if (comm.getUserId().equals(userId) && "Aprobado".equals(comm.getCommissionStatus())) {
+                        calculatedTotal += comm.getUserCommission();
+                    }
+                }
+            }
+
+            if (calculatedTotal <= 0) {
+                conflicts.add(new com.referidos.app.segurosref.dtos.manager.ConflictDto(userId, userName, "Inconsistencia matemática: El monto total a pagar calculado es <= 0"));
+                continue;
+            }
+
+            com.referidos.app.segurosref.dtos.report.ReportAccountDto reportAccount = new com.referidos.app.segurosref.dtos.report.ReportAccountDto(
+                    selectedAccount.getPersonalId(),
+                    selectedAccount.getHolderName(),
+                    selectedAccount.getEmail(),
+                    selectedAccount.getBank(),
+                    selectedAccount.getAccountType(),
+                    selectedAccount.getAccountNumber()
+            );
+
+            bankPayroll.add(new com.referidos.app.segurosref.dtos.manager.BankPayrollDto(userId, reportAccount, calculatedTotal));
+            
+            backendPayload.add(new com.referidos.app.segurosref.dtos.manager.UserQuotePaymentDto(
+                    userId,
+                    transactionIds,
+                    reportAccount,
+                    calculatedTotal,
+                    null
+            ));
+        }
+
+        return ResponseHelper.response("Solicitud realizada: Reporte generado", 200, new com.referidos.app.segurosref.dtos.manager.PayQuotesReportResponse(bankPayroll, backendPayload, conflicts));
+    }
+
 }
