@@ -1,3 +1,5 @@
+package com.referidos.app.segurosref.validators;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BindingResult;
