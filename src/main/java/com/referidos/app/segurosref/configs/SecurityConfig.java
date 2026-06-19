@@ -92,6 +92,8 @@ public class SecurityConfig {
 
         cors.setAllowedOriginPatterns(Arrays.asList(
                 "https://toshihiro.herokuapp.com",
+                "https://moneyfy.cl",
+                "https://*.moneyfy.cl",
                 "http://localhost:*",
                 "http://127.0.0.1:*",
                 "http://192.168.*.*:*",
