@@ -12,8 +12,10 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Data;
 
 @Data
-@JsonPropertyOrder(value = {"transactionId", "planId", "userId", "quoterId", "status", "commissionTotal", "commissionScope",
-        "userReferringFound", "observation", "commissions", "createdDate", "updatedDate", "approvalDate", "paymentDate"})
+@JsonPropertyOrder(value = { "transactionId", "planId", "userId", "quoterId", "status", "commissionTotal",
+        "commissionScope",
+        "userReferringFound", "observation", "commissions", "createdDate", "updatedDate", "approvalDate",
+        "paymentDate" })
 @Document(collection = "transactions")
 public class TransactionModel {
 
@@ -35,8 +37,9 @@ public class TransactionModel {
 
     // Constructor personalizado
     public TransactionModel(String transactionId, String planId, String userId, String quoterId, String status,
-            int commissionTotal, int commissionScope, boolean userReferringFound, String observation, LocalDateTime createdDate,
-            LocalDateTime updatedDate, LocalDateTime approvalDate, LocalDateTime paymentDate) {
+            int commissionTotal, int commissionScope, boolean userReferringFound, String observation,
+            LocalDateTime createdDate, LocalDateTime updatedDate, LocalDateTime approvalDate,
+            LocalDateTime paymentDate) {
         this.commissions = new ArrayList<>();
         this.transactionId = transactionId;
         this.planId = planId;

@@ -42,4 +42,5 @@ public interface TransactionRepository extends MongoRepository<TransactionModel,
     // objeto cuyo 'userId' coincida con el parámetro.
     List<TransactionModel> findAllByCommissions_UserId(String userId);
 
+    List<TransactionModel> findAllByStatus(String status);
 }

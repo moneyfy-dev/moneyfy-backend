@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inconveniente con tu pago de comisiones</title>
+    <style>
+        @media only screen and (max-width: 640px) {
+            .mail-container { width: 100% !important; }
+            .mail-padding { padding: 28px 22px !important; }
+            .mail-title { font-size: 28px !important; line-height: 34px !important; }
+            .secure-cell { display: block !important; width: 100% !important; }
+        }
+    </style>
+</head>
+<body style="margin:0; padding:0; background:#f3f6f4; color:#1f2933; font-family:Arial, Helvetica, sans-serif;">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="background:#f3f6f4;">
+    <tr>
+        <td align="center" style="padding:28px 12px;">
+            <table class="mail-container" width="640" border="0" cellspacing="0" cellpadding="0" style="width:640px; max-width:640px; background:#ffffff; border-radius:24px; overflow:hidden;">
+                <tr>
+                    <td class="mail-padding" style="background:#111111; padding:36px 42px;">
+                        <img src="cid:moneyfy-logo" alt="Moneyfy" width="168" style="display:block; border:0; outline:none; text-decoration:none; max-width:168px; height:auto;">
+                        <div style="height:20px;"></div>
+                        <div class="mail-title" style="font-size:34px; line-height:40px; font-weight:800; color:#ffffff;">Inconveniente con tu pago</div>
+                        <div style="font-size:15px; line-height:24px; color:#b8c1bd; margin-top:10px;">Lamentamos informarte que no fue posible realizar el pago de tus comisiones.</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mail-padding" style="padding:40px 42px;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background:#fffcf2; border-left:4px solid #f7b731; border-radius:16px;">
+                            <tr>
+                                <td style="padding:22px 24px;">
+                                    <p style="margin:0 0 12px 0; font-size:16px; line-height:26px; color:#344054;"><strong>Motivo del rechazo:</strong></p>
+                                    <p style="margin:0 0 12px 0; font-size:16px; line-height:26px; color:#344054;" th:text="${note}"></p>
+                                    <p style="margin:0; font-size:16px; line-height:26px; color:#344054;">Te sugerimos revisar que los datos de tu cuenta bancaria en la aplicación estén correctos y actualizados.</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background:#f7faf8; padding:0 42px 34px 42px;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-top:1px solid #dfe7e2; padding-top:22px;">
+                            <tr>
+                                <td class="secure-cell" width="90" valign="top" style="font-size:38px; line-height:44px;">&#128274;</td>
+                                <td class="secure-cell" valign="top" style="font-size:12px; line-height:19px; color:#667085;">
+                                    <strong style="color:#111111;">Correo seguro Moneyfy.</strong><br>
+                                    Moneyfy nunca solicitará tus claves, PIN o códigos de verificación. Actualiza tus datos solo desde la app oficial.
+                                </td>
+                            </tr>
+                        </table>
+                        <p style="margin:22px 0 0 0; text-align:center; font-size:12px; line-height:18px; color:#98a2b3;">Este es un mensaje automático, por favor no lo respondas. Soporte: <span th:text="${support}">soporte@moneyfy.cl</span></p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

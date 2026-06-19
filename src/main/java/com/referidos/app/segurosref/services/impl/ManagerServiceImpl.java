@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.NoSuchElementException;
@@ -17,16 +18,20 @@ import java.util.NoSuchElementException;
 import org.springframework.http.ResponseEntity;
 
 import com.referidos.app.segurosref.dtos.manager.FailedPaymentDto;
+import com.referidos.app.segurosref.dtos.manager.PayQuotesReportResponse;
 import com.referidos.app.segurosref.dtos.manager.PayQuotesRequest;
 import com.referidos.app.segurosref.dtos.manager.UserQuotePaymentDto;
+import com.referidos.app.segurosref.dtos.report.ReportAccountDto;
 import com.referidos.app.segurosref.helpers.DataHelper;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
+import com.referidos.app.segurosref.models.AccountModel;
 import com.referidos.app.segurosref.models.PaymentModel;
 import com.referidos.app.segurosref.models.TransactionComissionModel;
 import com.referidos.app.segurosref.models.UserModel;
 import com.referidos.app.segurosref.models.WalletModel;
 import com.referidos.app.segurosref.repositories.PaymentRepository;
 import com.referidos.app.segurosref.repositories.UserRepository;
+import com.referidos.app.segurosref.integrations.email.providers.EmailAppProvider;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +48,8 @@ import com.referidos.app.segurosref.models.QuoterModel;
 import com.referidos.app.segurosref.models.TransactionModel;
 import com.referidos.app.segurosref.repositories.TransactionRepository;
 import com.referidos.app.segurosref.services.ManagerService;
+import com.referidos.app.segurosref.dtos.manager.BankPayrollDto;
+import com.referidos.app.segurosref.dtos.manager.ConflictDto;
 import com.referidos.app.segurosref.dtos.manager.DashboardPaginatedResponseDto;
 
 import org.bson.Document;
@@ -64,6 +71,7 @@ public class ManagerServiceImpl implements ManagerService {
     private final PaymentRepository paymentRepository;
     private final MongoTemplate mongoTemplate;
     private final ReferredRepository referredRepository;
+    private final EmailAppProvider emailAppProvider;
 
     @Value("${moneyfy.api-key}")
     private String apiKeyMF;
@@ -558,7 +566,7 @@ public class ManagerServiceImpl implements ManagerService {
                 user = usersToSave.get(userId);
             }
 
-            // Validar que todas las transacciones existan y esten en Aprobado
+            // Validar que todas las transacciones existan y su comisión asociada al usuario esten en Aprobado
             boolean validTransactions = true;
             List<TransactionModel> userTransactions = new ArrayList<>();
             for (String txId : transactionIds) {
@@ -572,7 +580,22 @@ public class ManagerServiceImpl implements ManagerService {
                     }
                 }
 
-                if (tx == null || !"Aprobado".equals(tx.getStatus())) {
+                if (tx == null) {
+                    validTransactions = false;
+                    break;
+                }
+
+                boolean userCommissionApproved = false;
+                if (tx.getCommissions() != null) {
+                    for (TransactionComissionModel comm : tx.getCommissions()) {
+                        if (comm.getUserId().equals(userId) && "Aprobado".equals(comm.getCommissionStatus())) {
+                            userCommissionApproved = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!userCommissionApproved) {
                     validTransactions = false;
                     break;
                 }
@@ -581,22 +604,49 @@ public class ManagerServiceImpl implements ManagerService {
 
             if (!validTransactions || userTransactions.size() != transactionIds.size()) {
                 failedPayments.add(new FailedPaymentDto(userId, transactionIds,
-                        "Una o más transacciones no existen o no están en estado Aprobado (Todo o Nada)"));
+                        "Una o más transacciones no existen o no están en estado Aprobado para este usuario (Todo o Nada)"));
                 continue; // Todo o Nada
             }
 
-            // Actualizar Wallet
-            WalletModel wallet = user.getWallet();
-            int currentAvailable = wallet.getAvailableBalance();
-            wallet.setAvailableBalance(currentAvailable - userQuote.getUserPayment());
-            wallet.setTotalBalance(wallet.getAvailableBalance() + wallet.getOutstandingBalance());
-            wallet.setPaymentBalance(wallet.getPaymentBalance() + userQuote.getUserPayment());
+            String transactionStatus = userQuote.getUserTransactionStatus();
+            if (transactionStatus == null || (!transactionStatus.equals("Pagado") && !transactionStatus.equals("Conflictivo"))) {
+                failedPayments.add(new FailedPaymentDto(userId, transactionIds, "Estado de transacción inválido"));
+                continue;
+            }
 
-            // Crear Payment
+            String userNote = userQuote.getUserNote();
+            if (transactionStatus.equals("Conflictivo") && DataHelper.isNull(userNote)) {
+                userNote = "No se proporcionaron datos suficientes, verifique que los datos de su cuenta bancaria esten actualizados";
+            } else if (DataHelper.isNull(userNote)) {
+                userNote = "";
+            }
+
+            String userVoucher = userQuote.getUserVoucher();
+            if (DataHelper.isNull(userVoucher)) {
+                userVoucher = "";
+            }
+
+            WalletModel wallet = user.getWallet();
+
+            // Actualizar Wallet si es Pagado
+            if ("Pagado".equals(transactionStatus)) {
+                int currentAvailable = wallet.getAvailableBalance();
+                wallet.setAvailableBalance(currentAvailable - userQuote.getUserPayment());
+                wallet.setTotalBalance(wallet.getAvailableBalance() + wallet.getOutstandingBalance());
+                wallet.setPaymentBalance(wallet.getPaymentBalance() + userQuote.getUserPayment());
+            } else {
+                // Enviar correo si es Conflictivo
+                String userEmail = user.getPersonalData() != null ? user.getPersonalData().getEmail() : null;
+                if (userEmail != null) {
+                    emailAppProvider.notifyConflictivePayment(userEmail, userNote);
+                }
+            }
+
+            // Crear Payment obligatoriamente
             ObjectId newPaymentId = new ObjectId();
             PaymentModel payment = new PaymentModel(newPaymentId, userId, userQuote.getUserAccount(),
                     userQuote.getUserPayment(),
-                    userQuote.getUserVoucher(), transactionIds, now, now);
+                    userVoucher, transactionStatus, userNote, transactionIds, now, now);
             paymentsToSave.add(payment);
 
             wallet.addPaymentId(newPaymentId.toString());
@@ -606,7 +656,8 @@ public class ManagerServiceImpl implements ManagerService {
                 if (tx.getCommissions() != null) {
                     for (TransactionComissionModel comm : tx.getCommissions()) {
                         if (comm.getUserId().equals(userId)) {
-                            comm.setCommissionStatus("Pagado");
+                            comm.setCommissionStatus(transactionStatus);
+                            comm.setObservation(userNote);
                             comm.setPaymentDate(now);
                             break;
                         }
@@ -620,25 +671,38 @@ public class ManagerServiceImpl implements ManagerService {
         }
 
         // Revisión posterior: Actualizar transacciones generales y cotizaciones si
-        // todas las comisiones estan Pagadas
+        // las comisiones están Pagadas o en Conflicto
         for (TransactionModel tx : transactionsToSave.values()) {
+            boolean hasConflict = false;
             boolean allPaid = true;
+            String ownerCommissionStatus = null;
+
             if (tx.getCommissions() != null && !tx.getCommissions().isEmpty()) {
                 for (TransactionComissionModel comm : tx.getCommissions()) {
-                    if (!"Pagado".equals(comm.getCommissionStatus())) {
+                    if ("Conflictivo".equals(comm.getCommissionStatus())) {
+                        hasConflict = true;
                         allPaid = false;
-                        break;
+                    } else if (!"Pagado".equals(comm.getCommissionStatus())) {
+                        allPaid = false;
+                    }
+                    if (comm.getUserId().equals(tx.getUserId())) {
+                        ownerCommissionStatus = comm.getCommissionStatus();
                     }
                 }
             } else {
                 allPaid = false;
             }
 
-            if (allPaid) {
+            if (hasConflict) {
+                tx.setStatus("Conflictivo");
+                tx.setPaymentDate(now);
+            } else if (allPaid) {
                 tx.setStatus("Pagado");
                 tx.setPaymentDate(now);
+            }
 
-                // Buscar al dueño del quoter y actualizar el quoterStatus a Pagado
+            // Actualizar el estado del Quoter basado SOLAMENTE en el estado de la comisión del dueño principal
+            if ("Pagado".equals(ownerCommissionStatus) || "Conflictivo".equals(ownerCommissionStatus)) {
                 String ownerId = tx.getUserId();
                 if (ownerId != null && ObjectId.isValid(ownerId)) {
                     UserModel owner;
@@ -657,7 +721,7 @@ public class ManagerServiceImpl implements ManagerService {
                     if (owner.getQuoters() != null) {
                         for (com.referidos.app.segurosref.models.QuoterModel q : owner.getQuoters()) {
                             if (q.getQuoterId().equals(tx.getQuoterId())) {
-                                q.setQuoterStatus("Pagado");
+                                q.setQuoterStatus(ownerCommissionStatus);
                                 q.setUpdatedDate(now);
                                 break;
                             }
@@ -681,20 +745,38 @@ public class ManagerServiceImpl implements ManagerService {
         return ResponseHelper.ok("Proceso de pagos completado", Map.of("failedPayments", failedPayments));
     }
 
+    @SuppressWarnings("null")
     @Override
-    public ResponseEntity<?> generatePayQuotesReport(com.referidos.app.segurosref.dtos.manager.PayQuotesReportRequest request) {
+    public ResponseEntity<?> generatePayQuotesReport(
+            com.referidos.app.segurosref.dtos.manager.PayQuotesReportRequest request) {
         if (request == null || request.getDateFrom() == null || request.getDateTo() == null) {
-            return ResponseHelper.failedDependency("La solicitud no contiene el rango de fechas válido", "failed dependency");
+            return ResponseHelper.failedDependency("La solicitud no contiene el rango de fechas válido",
+                    "failed dependency");
         }
 
         LocalDateTime dateFrom = request.getDateFrom().atStartOfDay();
         LocalDateTime dateTo = request.getDateTo().atTime(23, 59, 59);
 
-        List<TransactionModel> approvedTransactions = transactionRepository.findAllByApprovalDateBetweenAndStatus(dateFrom, dateTo, "Aprobado");
+        List<TransactionModel> approvedTransactions = transactionRepository
+                .findAllByApprovalDateBetweenAndStatus(dateFrom, dateTo, "Aprobado");
 
         Map<String, List<TransactionModel>> transactionsByUser = new HashMap<>();
-        
-        // Agrupar transacciones por userId a partir de las comisiones en estado Aprobado
+
+        // Agrupar transacciones por userId a partir de las comisiones en estado
+        // Aprobado
+        // También detectar si el usuario tiene transacciones en estado Conflictivo globalmente
+        Set<String> usersWithConflicts = new HashSet<>();
+        List<TransactionModel> conflictiveTransactions = transactionRepository.findAllByStatus("Conflictivo");
+        for (TransactionModel ctx : conflictiveTransactions) {
+            if (ctx.getCommissions() != null) {
+                for (TransactionComissionModel ccomm : ctx.getCommissions()) {
+                    if ("Conflictivo".equals(ccomm.getCommissionStatus())) {
+                        usersWithConflicts.add(ccomm.getUserId());
+                    }
+                }
+            }
+        }
+
         for (TransactionModel tx : approvedTransactions) {
             if (tx.getCommissions() != null) {
                 for (TransactionComissionModel comm : tx.getCommissions()) {
@@ -706,12 +788,14 @@ public class ManagerServiceImpl implements ManagerService {
             }
         }
 
-        List<com.referidos.app.segurosref.dtos.manager.BankPayrollDto> bankPayroll = new ArrayList<>();
-        List<com.referidos.app.segurosref.dtos.manager.UserQuotePaymentDto> backendPayload = new ArrayList<>();
-        List<com.referidos.app.segurosref.dtos.manager.ConflictDto> conflicts = new ArrayList<>();
+        List<BankPayrollDto> bankPayroll = new ArrayList<>();
+        List<UserQuotePaymentDto> backendPayload = new ArrayList<>();
+        List<ConflictDto> conflicts = new ArrayList<>();
 
         if (transactionsByUser.isEmpty()) {
-            return ResponseHelper.response("Solicitud realizada: Reporte generado", 200, new com.referidos.app.segurosref.dtos.manager.PayQuotesReportResponse(bankPayroll, backendPayload, conflicts));
+            return ResponseHelper.response("Solicitud realizada: Reporte generado", 200,
+                    new PayQuotesReportResponse(bankPayroll, backendPayload,
+                            conflicts));
         }
 
         List<ObjectId> userIds = transactionsByUser.keySet().stream()
@@ -728,24 +812,34 @@ public class ManagerServiceImpl implements ManagerService {
 
             UserModel user = usersMap.get(userId);
             if (user == null) {
-                conflicts.add(new com.referidos.app.segurosref.dtos.manager.ConflictDto(userId, "N/A", "Usuario no encontrado en la base de datos"));
+                conflicts.add(new ConflictDto(userId, "N/A",
+                        "Usuario no encontrado en la base de datos"));
                 continue;
             }
 
-            String userName = user.getPersonalData() != null ? user.getPersonalData().getName() + " " + user.getPersonalData().getSurname() : "N/A";
-            
-            com.referidos.app.segurosref.models.AccountModel selectedAccount = null;
+            String userName = user.getPersonalData() != null
+                    ? user.getPersonalData().getName() + " " + user.getPersonalData().getSurname()
+                    : "N/A";
+
+            if (usersWithConflicts.contains(userId)) {
+                conflicts.add(new ConflictDto(userId, userName,
+                        "Advertencia: El usuario tiene otras comisiones en estado Conflictivo pendientes de revisión. Sin embargo, sus comisiones aprobadas están en la nómina."));
+            }
+
+            AccountModel selectedAccount = null;
             if (user.getAccounts() != null) {
-                selectedAccount = user.getAccounts().stream().filter(com.referidos.app.segurosref.models.AccountModel::isSelected).findFirst().orElse(null);
+                selectedAccount = user.getAccounts().stream()
+                        .filter(AccountModel::isSelected).findFirst().orElse(null);
             }
 
             if (selectedAccount == null) {
-                conflicts.add(new com.referidos.app.segurosref.dtos.manager.ConflictDto(userId, userName, "Usuario no tiene cuenta bancaria confirmada/seleccionada"));
+                conflicts.add(new ConflictDto(userId, userName,
+                        "Usuario no tiene cuenta bancaria confirmada/seleccionada"));
                 continue;
             }
 
             int calculatedTotal = 0;
-            Set<String> transactionIds = new java.util.HashSet<>();
+            Set<String> transactionIds = new HashSet<>();
 
             for (TransactionModel tx : userTransactions) {
                 transactionIds.add(tx.getTransactionId());
@@ -757,31 +851,35 @@ public class ManagerServiceImpl implements ManagerService {
             }
 
             if (calculatedTotal <= 0) {
-                conflicts.add(new com.referidos.app.segurosref.dtos.manager.ConflictDto(userId, userName, "Inconsistencia matemática: El monto total a pagar calculado es <= 0"));
+                conflicts.add(new ConflictDto(userId, userName,
+                        "Inconsistencia matemática: El monto total a pagar calculado es <= 0"));
                 continue;
             }
 
-            com.referidos.app.segurosref.dtos.report.ReportAccountDto reportAccount = new com.referidos.app.segurosref.dtos.report.ReportAccountDto(
+            ReportAccountDto reportAccount = new ReportAccountDto(
                     selectedAccount.getPersonalId(),
                     selectedAccount.getHolderName(),
                     selectedAccount.getEmail(),
                     selectedAccount.getBank(),
                     selectedAccount.getAccountType(),
-                    selectedAccount.getAccountNumber()
-            );
+                    selectedAccount.getAccountNumber());
 
-            bankPayroll.add(new com.referidos.app.segurosref.dtos.manager.BankPayrollDto(userId, reportAccount, calculatedTotal));
-            
-            backendPayload.add(new com.referidos.app.segurosref.dtos.manager.UserQuotePaymentDto(
+            bankPayroll.add(new BankPayrollDto(userId, reportAccount,
+                    calculatedTotal));
+
+            backendPayload.add(new UserQuotePaymentDto(
                     userId,
+                    "",
+                    "",
                     transactionIds,
                     reportAccount,
                     calculatedTotal,
-                    null
-            ));
+                    ""));
         }
 
-        return ResponseHelper.response("Solicitud realizada: Reporte generado", 200, new com.referidos.app.segurosref.dtos.manager.PayQuotesReportResponse(bankPayroll, backendPayload, conflicts));
+        return ResponseHelper.response("Solicitud realizada: Reporte generado", 200,
+                new PayQuotesReportResponse(bankPayroll, backendPayload,
+                        conflicts));
     }
 
 }

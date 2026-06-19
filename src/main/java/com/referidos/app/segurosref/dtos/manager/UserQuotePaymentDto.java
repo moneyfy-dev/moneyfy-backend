@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserQuotePaymentDto {
     private String userId;
+    private String userTransactionStatus;
+    private String userNote;
     private Set<String> transactions;
     private ReportAccountDto userAccount;
     private int userPayment;

@@ -9,12 +9,13 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-@JsonPropertyOrder(value = {"userId", "userCommission", "commissionStatus", "paymentDate"})
+@JsonPropertyOrder(value = {"userId", "userCommission", "commissionStatus", "observation", "paymentDate"})
 public class TransactionComissionModel {
 
     private String userId;
     private int userCommission;
     private String commissionStatus;
+    private String observation;
     private LocalDateTime paymentDate;
 
 }

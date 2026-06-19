@@ -13,7 +13,8 @@ public interface ManagerService {
 
     ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote, HttpServletRequest request);
 
+    ResponseEntity<?> generatePayQuotesReport(com.referidos.app.segurosref.dtos.manager.PayQuotesReportRequest request);
+
     ResponseEntity<?> payQuotes(PayQuotesRequest request);
 
-    ResponseEntity<?> generatePayQuotesReport(com.referidos.app.segurosref.dtos.manager.PayQuotesReportRequest request);
 }

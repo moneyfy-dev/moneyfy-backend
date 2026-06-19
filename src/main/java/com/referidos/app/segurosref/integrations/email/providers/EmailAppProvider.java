@@ -91,6 +91,12 @@ public class EmailAppProvider {
     @Value(value = "${mail.template.notify-account-not-found}")
     private String templateNotifyAccountNotFound;
 
+    @Value(value = "${mail.subject.notify-conflictive-payment}")
+    private String subjectNotifyConflictivePayment;
+
+    @Value(value = "${mail.template.notify-conflictive-payment}")
+    private String templateNotifyConflictivePayment;
+
     private DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public void sendAuthCodeToRegisterUser(String[] toUsers, String code) {
@@ -263,6 +269,24 @@ public class EmailAppProvider {
             sb.append("Verifica tu cuenta bancaria predeterminada para el recibo de comisiones en la aplicación.\n");
             sb.append("Si tu cuenta no puede ser identificada, tus pagos de comisiones serán programadas para el próximo mes.");
             this.testEmail(sendToUsers, subjectNotifyAccountNotFound, sb.toString());
+        }
+    }
+
+    public void notifyConflictivePayment(String userEmail, String note) {
+        String[] toUsers = {userEmail};
+        try {
+            Map<String, Object> templateData = Map.of("note", note, "support", supportMoneyFy);
+            this.sendEmail(toUsers, subjectNotifyConflictivePayment, templateData, templateNotifyConflictivePayment);
+        } catch (Exception e) {
+            StringBuilder sb = new StringBuilder("¡Hola!\n\n");
+            sb.append("Lamentamos informarte que no fue posible realizar el pago de tus comisiones debido a un inconveniente.\n\n");
+            sb.append("Motivo del rechazo:\n");
+            sb.append(note).append("\n\n");
+            sb.append("Te sugerimos revisar que los datos de tu cuenta bancaria en la aplicación estén correctos y actualizados. ");
+            sb.append("Nuestro equipo está revisando el asunto para poder solucionar este inconveniente lo antes posible.\n\n");
+            sb.append("Si necesitas ayuda, puedes comunicarte con: ").append(supportMoneyFy).append("\n");
+            sb.append("Este es un mensaje automático, por favor no lo responda.");
+            this.testEmail(toUsers, subjectNotifyConflictivePayment, sb.toString());
         }
     }
 
