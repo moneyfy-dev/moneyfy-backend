@@ -26,6 +26,9 @@ public interface TransactionRepository extends MongoRepository<TransactionModel,
     @Query(value = "{'approvalDate': {$lt: ?0}, 'status': 'Aprobado'}")
     List<TransactionModel> findAllByApprovalDateBeforeAndStatusApproved(LocalDateTime afterCutoffDate);
 
+    @Query(value = "{'approvalDate': {$gte: ?0, $lte: ?1}, 'status': ?2}")
+    List<TransactionModel> findAllByApprovalDateBetweenAndStatus(LocalDateTime from, LocalDateTime to, String status);
+
     @Query(value = "{'approvalDate': {$gte: ?0}, 'commissions.userId': ?1, 'status': {$in: ['Aprobado', 'Pagado']}}")
     List<TransactionModel> findAllByApprovalDateAfterAndCommissions_UserIdAndStatusPassed(
             LocalDateTime lastMonthlyEarning, String userId);
