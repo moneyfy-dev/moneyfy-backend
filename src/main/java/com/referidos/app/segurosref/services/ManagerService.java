@@ -11,6 +11,8 @@ public interface ManagerService {
 
     DashboardPaginatedResponseDto getQuotesDashboard(int page, int size, String userId, String quoteStatus);
 
+    ResponseEntity<?> getDashboardSummary();
+
     ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote, HttpServletRequest request);
 
     ResponseEntity<?> generatePayQuotesReport(com.referidos.app.segurosref.dtos.manager.PayQuotesReportRequest request);

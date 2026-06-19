@@ -178,7 +178,7 @@ public class QuoterHelper {
                 QuoterPlanModel quoterPlan = new QuoterPlanModel("", "", "", BigDecimal.ZERO, BigDecimal.ZERO, 0,
                                 BigDecimal.ZERO, BigDecimal.ZERO, "", BigDecimal.ZERO, "", "",
                                 DataHelper.deprecatedDate(), "", 0);
-                QuoterAddressModel quoterAddress = new QuoterAddressModel("", "", "");
+                QuoterAddressModel quoterAddress = new QuoterAddressModel("", "", "", "", "");
                 QuoterPaymentModel quoterPayment = new QuoterPaymentModel("", "", "", "");
                 return new QuoterModel(new ObjectId(), quoterStatus, quoterOwner, quoterCar, quoterPurchaser,
                                 quoterPlan,
