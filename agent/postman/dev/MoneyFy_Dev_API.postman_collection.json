@@ -84,10 +84,10 @@
                                     "var jsonData = pm.response.json();",
                                     "if (jsonData && jsonData.data) {",
                                     "    if (jsonData.data.sessionToken) {",
-                                    "        pm.environment.set(\"Dev - Session Token\", jsonData.data.sessionToken);",
+                                    "        pm.collectionVariables.set(\"Dev - Session Token\", jsonData.data.sessionToken);",
                                     "    }",
                                     "    if (jsonData.data.refreshToken) {",
-                                    "        pm.environment.set(\"Dev - Refresh Token\", jsonData.data.refreshToken);",
+                                    "        pm.collectionVariables.set(\"Dev - Refresh Token\", jsonData.data.refreshToken);",
                                     "    }",
                                     "}"
                                 ],
@@ -171,10 +171,10 @@
                                     "var jsonData = pm.response.json();",
                                     "if (jsonData && jsonData.data) {",
                                     "    if (jsonData.data.sessionToken) {",
-                                    "        pm.environment.set(\"Dev - Session Token\", jsonData.data.sessionToken);",
+                                    "        pm.collectionVariables.set(\"Dev - Session Token\", jsonData.data.sessionToken);",
                                     "    }",
                                     "    if (jsonData.data.refreshToken) {",
-                                    "        pm.environment.set(\"Dev - Refresh Token\", jsonData.data.refreshToken);",
+                                    "        pm.collectionVariables.set(\"Dev - Refresh Token\", jsonData.data.refreshToken);",
                                     "    }",
                                     "}"
                                 ],
@@ -260,10 +260,10 @@
                                     "var jsonData = pm.response.json();",
                                     "if (jsonData && jsonData.data) {",
                                     "    if (jsonData.data.sessionToken) {",
-                                    "        pm.environment.set(\"Dev - Session Token\", jsonData.data.sessionToken);",
+                                    "        pm.collectionVariables.set(\"Dev - Session Token\", jsonData.data.sessionToken);",
                                     "    }",
                                     "    if (jsonData.data.refreshToken) {",
-                                    "        pm.environment.set(\"Dev - Refresh Token\", jsonData.data.refreshToken);",
+                                    "        pm.collectionVariables.set(\"Dev - Refresh Token\", jsonData.data.refreshToken);",
                                     "    }",
                                     "}"
                                 ],
@@ -1537,6 +1537,235 @@
                     "response": []
                 }
             ]
+        },
+        {
+            "name": "Manager Auth",
+            "item": [
+                {
+                    "name": "log-in",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "let body = pm.response.json();",
+                                    "if (body.data && body.data.sessionToken) {",
+                                    "    pm.collectionVariables.set(\"manager_session_token\", body.data.sessionToken);",
+                                    "}",
+                                    "if (body.data && body.data.refreshToken) {",
+                                    "    pm.collectionVariables.set(\"manager_refresh_token\", body.data.refreshToken);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{manager_email}}\",\n  \"pwd\": \"{{manager_pwd}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Dev - URL}}/api/v1/manager/auth/log-in",
+                            "host": [
+                                "{{Dev - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "auth",
+                                "log-in"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{manager_session_token}}"
+                            },
+                            {
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Dev - URL}}/api/v1/manager/auth/logout",
+                            "host": [
+                                "{{Dev - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "auth",
+                                "logout"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "create",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{manager_session_token}}"
+                            },
+                            {
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Admin\",\n  \"surname\": \"Test\",\n  \"email\": \"admin.test@moneyfy.com\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Dev - URL}}/api/v1/manager/auth/create",
+                            "host": [
+                                "{{Dev - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "auth",
+                                "create"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "restore password",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{manager_email}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Dev - URL}}/api/v1/manager/auth/restore/password",
+                            "host": [
+                                "{{Dev - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "auth",
+                                "restore",
+                                "password"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "confirm password reset",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "let body = pm.response.json();",
+                                    "if (body.data && body.data.sessionToken) {",
+                                    "    pm.collectionVariables.set(\"manager_session_token\", body.data.sessionToken);",
+                                    "}",
+                                    "if (body.data && body.data.refreshToken) {",
+                                    "    pm.collectionVariables.set(\"manager_refresh_token\", body.data.refreshToken);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{manager_email}}\",\n  \"code\": \"123456\",\n  \"newPwd\": \"{{manager_pwd}}\",\n  \"repeatedPwd\": \"{{manager_pwd}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Dev - URL}}/api/v1/manager/auth/confirm/password/reset",
+                            "host": [
+                                "{{Dev - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "auth",
+                                "confirm",
+                                "password",
+                                "reset"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "resend code",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{manager_email}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Dev - URL}}/api/v1/manager/auth/resend/code",
+                            "host": [
+                                "{{Dev - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "auth",
+                                "resend",
+                                "code"
+                            ]
+                        }
+                    }
+                }
+            ]
         }
     ],
     "event": [
@@ -1561,6 +1790,73 @@
                     ""
                 ]
             }
+        }
+    ],
+    "variable": [
+        {
+            "key": "Dev - URL",
+            "value": "http://localhost:8080",
+            "type": "default"
+        },
+        {
+            "key": "Dev - API Key MoneyFy",
+            "value": "C1LB4PKD3RY0WL4R3N3G",
+            "type": "secret"
+        },
+        {
+            "key": "Dev - userEmail",
+            "value": "eliu.practicaltech@gmail.com",
+            "type": "default"
+        },
+        {
+            "key": "Dev - userPwd",
+            "value": "Testing_123",
+            "type": "secret"
+        },
+        {
+            "key": "Dev - Session Token",
+            "value": "",
+            "type": "default"
+        },
+        {
+            "key": "Dev - Refresh Token",
+            "value": "",
+            "type": "default"
+        },
+        {
+            "key": "testing_email",
+            "value": "eliu.practicaltech@gmail.com",
+            "type": "default"
+        },
+        {
+            "key": "testing_password",
+            "value": "Testing_123",
+            "type": "default"
+        },
+        {
+            "key": "moneyfy.api-key",
+            "value": "your-api-key-here",
+            "type": "default"
+        },
+        {
+            "key": "manager_email",
+            "value": "admin@moneyfy.com",
+            "type": "default"
+        },
+        {
+            "key": "manager_pwd",
+            "value": "Admin123",
+            "type": "secret"
+        },
+        {
+            "key": "manager_session_token",
+            "value": "",
+            "type": "default"
+        },
+        {
+            "key": "manager_refresh_token",
+            "value": "",
+            "type": "default"
         }
     ]
 }

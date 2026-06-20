@@ -78,6 +78,17 @@ public class ResponseHelper {
         return ResponseHelper.response(buildMessage, HttpStatus.PRECONDITION_REQUIRED.value(), buildInfo);
     }
 
+    public static ResponseEntity<GeneralResponse> badRequest(String message, String info) {
+        String buildInfo = (info != null) ? info : "bad request";
+        String buildMessage = "Solicitud incorrecta: " + message;
+        return ResponseHelper.response(buildMessage, HttpStatus.BAD_REQUEST.value(), Map.of("info", buildInfo));
+    }
+
+    public static ResponseEntity<GeneralResponse> notFound(String message) {
+        String buildMessage = "Recurso no encontrado: " + message;
+        return ResponseHelper.response(buildMessage, HttpStatus.NOT_FOUND.value(), Map.of("info", "not found"));
+    }
+
     public static void failedDependency(HttpServletResponse response, String message, String info) throws JsonProcessingException, IOException {
         String buildInfo = (info != null) ? info : "failed dependency";
         String buildMessage = "Solicitud irreconocible: " + message;

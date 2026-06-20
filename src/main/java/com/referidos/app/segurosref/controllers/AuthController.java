@@ -67,7 +67,7 @@ public class AuthController {
     }
 
     @PostMapping(value = "/logout")
-    @PreAuthorize(value = "isAuthenticated()")
+    @PreAuthorize(value = "hasRole('USER')")
     @Operation(summary = "User logout", description = "Logout from the application and revoke tokens")
     public ResponseEntity<GeneralResponse> logout(Authentication auth) {
         return userDetailsServiceImpl.logout(auth.getName());

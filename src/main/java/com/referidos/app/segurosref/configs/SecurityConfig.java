@@ -18,6 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import com.referidos.app.segurosref.helpers.FilterHelper;
 import org.springframework.web.filter.CorsFilter;
 
 import com.referidos.app.segurosref.configs.filters.JwtValidationFilter;
@@ -40,18 +41,7 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
         return http
-                .securityMatcher(
-                        "/home",
-                        "/auth/**",
-                        "/seed/**",
-                        "/log/**",
-                        "/transaction/**",
-                        "/quoter/commission/**",
-                        "/quoter/finalize/quote",
-                        "/api/v1/manager/**",
-                        "/swagger-ui.html",
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**")
+                .securityMatcher(FilterHelper.PUBLIC_ROUTES)
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(cors -> cors.configurationSource(this.corsConfigurationSource()))
@@ -91,11 +81,8 @@ public class SecurityConfig {
         CorsConfiguration cors = new CorsConfiguration();
 
         cors.setAllowedOriginPatterns(Arrays.asList(
-                "https://toshihiro.herokuapp.com",
                 "https://moneyfy.cl",
                 "https://*.moneyfy.cl",
-                "http://localhost:*",
-                "http://127.0.0.1:*",
                 "http://192.168.*.*:*",
                 "http://10.*.*.*:*",
                 "exp://*"));
