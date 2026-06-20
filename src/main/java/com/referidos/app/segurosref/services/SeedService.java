@@ -4,15 +4,14 @@ import org.springframework.http.ResponseEntity;
 
 import com.referidos.app.segurosref.requests.SeedRequest;
 
-import jakarta.servlet.http.HttpServletRequest;
 
 public interface SeedService {
 
     // Servicios para registrar información esencial a la API
-    ResponseEntity<?> checkRegions(HttpServletRequest request, SeedRequest seedRequest);
+    ResponseEntity<?> checkRegions(SeedRequest seedRequest);
 
-    ResponseEntity<?> checkInsurers(HttpServletRequest request, SeedRequest seedRequest);
+    ResponseEntity<?> checkInsurers(SeedRequest seedRequest);
 
-    ResponseEntity<?> checkBrands(HttpServletRequest request, SeedRequest seedRequest);
+    ResponseEntity<?> checkBrands(SeedRequest seedRequest);
 
 }

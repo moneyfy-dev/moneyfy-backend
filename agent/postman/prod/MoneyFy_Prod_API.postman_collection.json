@@ -84,10 +84,10 @@
                                     "var jsonData = pm.response.json();",
                                     "if (jsonData && jsonData.data) {",
                                     "    if (jsonData.data.sessionToken) {",
-                                    "        pm.environment.set(\"Prod - Session Token\", jsonData.data.sessionToken);",
+                                    "        pm.collectionVariables.set(\"Prod - Session Token\", jsonData.data.sessionToken);",
                                     "    }",
                                     "    if (jsonData.data.refreshToken) {",
-                                    "        pm.environment.set(\"Prod - Refresh Token\", jsonData.data.refreshToken);",
+                                    "        pm.collectionVariables.set(\"Prod - Refresh Token\", jsonData.data.refreshToken);",
                                     "    }",
                                     "}"
                                 ],
@@ -171,10 +171,10 @@
                                     "var jsonData = pm.response.json();",
                                     "if (jsonData && jsonData.data) {",
                                     "    if (jsonData.data.sessionToken) {",
-                                    "        pm.environment.set(\"Prod - Session Token\", jsonData.data.sessionToken);",
+                                    "        pm.collectionVariables.set(\"Prod - Session Token\", jsonData.data.sessionToken);",
                                     "    }",
                                     "    if (jsonData.data.refreshToken) {",
-                                    "        pm.environment.set(\"Prod - Refresh Token\", jsonData.data.refreshToken);",
+                                    "        pm.collectionVariables.set(\"Prod - Refresh Token\", jsonData.data.refreshToken);",
                                     "    }",
                                     "}"
                                 ],
@@ -260,10 +260,10 @@
                                     "var jsonData = pm.response.json();",
                                     "if (jsonData && jsonData.data) {",
                                     "    if (jsonData.data.sessionToken) {",
-                                    "        pm.environment.set(\"Prod - Session Token\", jsonData.data.sessionToken);",
+                                    "        pm.collectionVariables.set(\"Prod - Session Token\", jsonData.data.sessionToken);",
                                     "    }",
                                     "    if (jsonData.data.refreshToken) {",
-                                    "        pm.environment.set(\"Prod - Refresh Token\", jsonData.data.refreshToken);",
+                                    "        pm.collectionVariables.set(\"Prod - Refresh Token\", jsonData.data.refreshToken);",
                                     "    }",
                                     "}"
                                 ],
@@ -1183,8 +1183,8 @@
                         "method": "POST",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - API Key MoneyFy}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1206,6 +1206,16 @@
                                 "seed",
                                 "regions"
                             ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{manager_session_token}}",
+                                    "type": "string"
+                                }
+                            ]
                         }
                     },
                     "response": []
@@ -1216,8 +1226,8 @@
                         "method": "POST",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - API Key MoneyFy}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1239,6 +1249,16 @@
                                 "seed",
                                 "insurers"
                             ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{manager_session_token}}",
+                                    "type": "string"
+                                }
+                            ]
                         }
                     },
                     "response": []
@@ -1249,8 +1269,8 @@
                         "method": "POST",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - API Key MoneyFy}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1271,6 +1291,16 @@
                             "path": [
                                 "seed",
                                 "brands"
+                            ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{manager_session_token}}",
+                                    "type": "string"
+                                }
                             ]
                         }
                     },
@@ -1317,8 +1347,8 @@
                         "method": "GET",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - API Key MoneyFy}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1331,6 +1361,16 @@
                                 "transaction",
                                 "69df1fcb8cc6b0593a23f36d"
                             ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{manager_session_token}}",
+                                    "type": "string"
+                                }
+                            ]
                         }
                     },
                     "response": []
@@ -1341,8 +1381,8 @@
                         "method": "GET",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - API Key MoneyFy}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1355,6 +1395,16 @@
                                 "transaction",
                                 "check",
                                 "referring"
+                            ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{manager_session_token}}",
+                                    "type": "string"
+                                }
                             ]
                         }
                     },
@@ -1371,8 +1421,8 @@
                         "method": "GET",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - API Key MoneyFy}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1387,6 +1437,16 @@
                                 "manager",
                                 "dashboard",
                                 "quotes"
+                            ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{manager_session_token}}",
+                                    "type": "string"
+                                }
                             ]
                         }
                     },
@@ -1403,7 +1463,7 @@
                             "bearer": [
                                 {
                                     "key": "token",
-                                    "value": "{{Prod - Session Token}}",
+                                    "value": "{{manager_session_token}}",
                                     "type": "string"
                                 }
                             ]
@@ -1411,8 +1471,8 @@
                         "method": "PUT",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - API Key MoneyFy}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1447,8 +1507,8 @@
                         "method": "POST",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - X-Moneyfy-Api-Key}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1473,6 +1533,16 @@
                                 "pay-quotes",
                                 "report"
                             ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{manager_session_token}}",
+                                    "type": "string"
+                                }
+                            ]
                         }
                     },
                     "response": []
@@ -1483,8 +1553,8 @@
                         "method": "POST",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - X-Moneyfy-Api-Key}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1508,9 +1578,248 @@
                                 "manager",
                                 "pay-quotes"
                             ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{manager_session_token}}",
+                                    "type": "string"
+                                }
+                            ]
                         }
                     },
                     "response": []
+                }
+            ]
+        },
+        {
+            "name": "Manager Auth",
+            "item": [
+                {
+                    "name": "log-in",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "let body = pm.response.json();",
+                                    "if (body.data && body.data.sessionToken) {",
+                                    "    pm.collectionVariables.set(\"manager_session_token\", body.data.sessionToken);",
+                                    "}",
+                                    "if (body.data && body.data.refreshToken) {",
+                                    "    pm.collectionVariables.set(\"manager_refresh_token\", body.data.refreshToken);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{manager_email}}\",\n  \"pwd\": \"{{manager_pwd}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Prod - URL}}/api/v1/manager/auth/log-in",
+                            "host": [
+                                "{{Prod - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "auth",
+                                "log-in"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{manager_session_token}}"
+                            },
+                            {
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Prod - URL}}/api/v1/manager/auth/logout",
+                            "host": [
+                                "{{Prod - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "auth",
+                                "logout"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "create",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{manager_session_token}}"
+                            },
+                            {
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Admin\",\n  \"surname\": \"Test\",\n  \"email\": \"admin.test@moneyfy.com\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Prod - URL}}/api/v1/manager/auth/create",
+                            "host": [
+                                "{{Prod - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "auth",
+                                "create"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "restore password",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{manager_email}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Prod - URL}}/api/v1/manager/auth/restore/password",
+                            "host": [
+                                "{{Prod - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "auth",
+                                "restore",
+                                "password"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "confirm password reset",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "let body = pm.response.json();",
+                                    "if (body.data && body.data.sessionToken) {",
+                                    "    pm.collectionVariables.set(\"manager_session_token\", body.data.sessionToken);",
+                                    "}",
+                                    "if (body.data && body.data.refreshToken) {",
+                                    "    pm.collectionVariables.set(\"manager_refresh_token\", body.data.refreshToken);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{manager_email}}\",\n  \"code\": \"123456\",\n  \"newPwd\": \"{{manager_pwd}}\",\n  \"repeatedPwd\": \"{{manager_pwd}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Prod - URL}}/api/v1/manager/auth/confirm/password/reset",
+                            "host": [
+                                "{{Prod - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "auth",
+                                "confirm",
+                                "password",
+                                "reset"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "resend code",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"{{manager_email}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Prod - URL}}/api/v1/manager/auth/resend/code",
+                            "host": [
+                                "{{Prod - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "auth",
+                                "resend",
+                                "code"
+                            ]
+                        }
+                    }
                 }
             ]
         }
@@ -1537,6 +1846,58 @@
                     ""
                 ]
             }
+        }
+    ],
+    "variable": [
+        {
+            "key": "Prod - URL",
+            "value": "https://api.moneyfy.cl/moneyfy",
+            "type": "default"
+        },
+        {
+            "key": "Prod - API Key MoneyFy",
+            "value": "C1LB4PKD3RY0WL4R3N3G",
+            "type": "secret"
+        },
+        {
+            "key": "Prod - userEmail",
+            "value": "",
+            "type": "default"
+        },
+        {
+            "key": "Prod - userPwd",
+            "value": "",
+            "type": "secret"
+        },
+        {
+            "key": "Prod - Session Token",
+            "value": "",
+            "type": "default"
+        },
+        {
+            "key": "Prod - Refresh Token",
+            "value": "",
+            "type": "default"
+        },
+        {
+            "key": "manager_email",
+            "value": "admin@moneyfy.com",
+            "type": "default"
+        },
+        {
+            "key": "manager_pwd",
+            "value": "Admin123",
+            "type": "secret"
+        },
+        {
+            "key": "manager_session_token",
+            "value": "",
+            "type": "default"
+        },
+        {
+            "key": "manager_refresh_token",
+            "value": "",
+            "type": "default"
         }
     ]
 }

@@ -1,7 +1,6 @@
 package com.referidos.app.segurosref.services;
 
 import org.springframework.http.ResponseEntity;
-import jakarta.servlet.http.HttpServletRequest;
 import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
 
 import com.referidos.app.segurosref.dtos.manager.DashboardPaginatedResponseDto;
@@ -13,7 +12,7 @@ public interface ManagerService {
 
     ResponseEntity<?> getDashboardSummary();
 
-    ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote, HttpServletRequest request);
+    ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote);
 
     ResponseEntity<?> generatePayQuotesReport(com.referidos.app.segurosref.dtos.manager.PayQuotesReportRequest request);
 

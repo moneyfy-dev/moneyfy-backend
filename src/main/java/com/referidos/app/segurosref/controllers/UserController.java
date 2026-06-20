@@ -40,7 +40,6 @@ public class UserController {
 
         private final UserService userService;
 
-        // ENDPOINTS PARA FLUJOS RELACIONADOS AL USUARIO
         @PutMapping(value = "/update")
         @PreAuthorize(value = "hasRole('USER')")
         @Operation(summary = "Update your user", description = "Update your specific user by its id", tags = {

@@ -13,13 +13,10 @@ import com.referidos.app.segurosref.responses.GeneralResponse;
 import com.referidos.app.segurosref.services.LogService;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,16 +29,14 @@ public class LogController {
 
     // Endpoint para la búsqueda de todos los logs de la aplicación
     @GetMapping(value = "/find/all")
-    @PreAuthorize(value = "permitAll()")
+    @PreAuthorize(value = "hasRole('ADMIN')")
     @Operation(summary = "Search all the logs to verify the application status", description = "Search all the logs to verify the application status", tags = {
-            "Log Controller" }, parameters = {
-                    @Parameter(name = "X-Moneyfy-Api-Key", in = ParameterIn.HEADER, description = "Security parameter for some public endpoints", required = true)
-            }, responses = {
+            "Log Controller" }, responses = {
                     @ApiResponse(responseCode = "200", description = "The logs were recovered successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
                     @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
             })
-    public ResponseEntity<?> findAllLogs(HttpServletRequest request) {
-        return logService.findAllLogs(request);
+    public ResponseEntity<?> findAllLogs() {
+        return logService.findAllLogs();
     }
 
 }

@@ -8,6 +8,7 @@ import static com.referidos.app.segurosref.configs.JwtConfig.CONTENT_TYPE;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import com.referidos.app.segurosref.helpers.FilterHelper;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,7 +23,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.util.AntPathMatcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.referidos.app.segurosref.configs.JwtConfig;
@@ -44,48 +44,20 @@ import jakarta.servlet.http.HttpServletResponse;
 public class JwtValidationFilter extends BasicAuthenticationFilter {
 
     private final AuthRepository authRepository;
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    // Patrones de rutas públicas (no requieren token)
-    private static final String[] PUBLIC_ROUTES = {
-            "/auth/register",
-            "/auth/confirm/registration",
-            "/auth/log-in",
-            "/auth/confirm/device/change",
-            "/auth/restore/password",
-            "/auth/confirm/password/reset",
-            "/auth/resend/code",
-            "/home",
-            "/seed/**",
-            "/log/**",
-            "/transaction/**",
-            "/quoter/commission/**",
-            "/quoter/finalize/quote",
-            "/api/v1/manager/**",
-            "/swagger-ui.html",
-            "/swagger-ui/**",
-            "/v3/api-docs/**",
-            "/swagger-resources/**",
-            "/webjars/**",
-
-    };
 
     public JwtValidationFilter(AuthenticationManager authenticationManager, AuthRepository authRepository) {
         super(authenticationManager);
         this.authRepository = authRepository;
     }
 
-    @SuppressWarnings("null")
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        String path = request.getServletPath();
-        for (String publicRoute : PUBLIC_ROUTES) {
-            if (pathMatcher.match(publicRoute, path)) {
-                chain.doFilter(request, response);
-                return;
-            }
+
+        if (FilterHelper.checkPublicRoute(request)) {
+            chain.doFilter(request, response);
+            return;
         }
 
         String tokenHeader = request.getHeader(HEADER_AUTHORIZATION);

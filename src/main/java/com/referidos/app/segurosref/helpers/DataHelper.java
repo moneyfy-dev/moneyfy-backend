@@ -163,4 +163,12 @@ public class DataHelper {
         return json;
     }
 
+    public static String generateRandomCode() {
+        StringBuilder sb = new StringBuilder("");
+        for (int i = 0; i < 6; i++) {
+            sb.append(((int) (Math.random() * 10)));
+        }
+        return sb.toString();
+    }
+
 }
