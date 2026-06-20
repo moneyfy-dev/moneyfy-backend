@@ -29,5 +29,6 @@ Al recibir este comando o cuando se recomiende su ejecución, debes asumir el ro
 
 7. **Sugerencia de Descripción para Pull Request (PR)**:
    - Independientemente de si el usuario decide hacer una PR inmediatamente o no, después de ejecutar exitosamente el flujo de este comando (`$/c`), debes generar y **sugerirle al usuario una descripción estructurada y profesional para una Pull Request**.
+   - **IDIOMA DE LA PR**: El título de la PR puede (y debe) mantener la convención de commits en inglés, pero el **cuerpo de la plantilla sugerida (Qué cambió, Por qué cambió, Consideraciones especiales) DEBE ESTAR OBLIGATORIAMENTE EN ESPAÑOL**.
    - Esta descripción debe abarcar los cambios más relevantes que se encuentran actualmente en la rama `eliu` y que aún no han sido integrados a `master`.
    - **Propósito**: Facilitar la vida del usuario entregándole un borrador listo de PR (título, qué cambió, por qué cambió, y consideraciones especiales) para que él mismo lo utilice cuando inicie su proceso de PR.

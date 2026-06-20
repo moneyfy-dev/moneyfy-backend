@@ -1,11 +1,9 @@
 package com.referidos.app.segurosref.services.impl;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,12 +55,14 @@ public class ManagerAuthServiceImpl implements ManagerAuthService {
         Optional<AuthModel> authOptional = authRepository.findByEmail(email);
         if (authOptional.isPresent()) {
             AuthModel authDB = authOptional.get();
-            if (pwdEncoder.matches(pwd, authDB.getPwd()) && "ROLE_ADMIN".equals(authDB.getRole())) {
+            if (authDB.getRole() != null && authDB.getRole().contains("ROLE_ADMIN")
+                    && pwdEncoder.matches(pwd, authDB.getPwd())) {
                 ManagerModel managerDB = managerRepository.findByEmail(email).orElseThrow();
 
                 if ("Activado".equals(managerDB.getStatus())) {
                     String sessionToken = JwtConfig.createSessionToken(email,
-                            Collections.singletonList(new SimpleGrantedAuthority(authDB.getRole())));
+                            org.springframework.security.core.authority.AuthorityUtils
+                                    .commaSeparatedStringToAuthorityList(authDB.getRole()));
                     String refreshToken = JwtConfig.createRefreshToken(email);
 
                     // Devolvemos la data relevante del administrador
@@ -110,14 +110,16 @@ public class ManagerAuthServiceImpl implements ManagerAuthService {
     public ResponseEntity<GeneralResponse> createManager(ManagerRegisterRequest request) {
         String requesterEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         if (!isRootAdmin(requesterEmail)) {
-            return ResponseHelper.badRequest("Acceso denegado: Solo el administrador principal puede crear nuevas cuentas de administrador", (String) null);
+            return ResponseHelper.badRequest(
+                    "Acceso denegado: Solo el administrador principal puede crear nuevas cuentas de administrador",
+                    (String) null);
         }
 
         String email = request.email().toLowerCase();
         Optional<AuthModel> authOpt = authRepository.findByEmail(email);
         Optional<ManagerModel> managerOpt = managerRepository.findByEmail(email);
 
-        if (authOpt.isPresent() && managerOpt.isPresent()) {
+        if (managerOpt.isPresent()) {
             ManagerModel manager = managerOpt.get();
             if ("Activado".equals(manager.getStatus())) {
                 return ResponseHelper.ok("El usuario ya existe con comando", (Map<String, Object>) null);
@@ -127,7 +129,16 @@ public class ManagerAuthServiceImpl implements ManagerAuthService {
             }
         }
 
-        if (authOpt.isEmpty() && managerOpt.isEmpty()) {
+        if (authOpt.isPresent()) {
+            AuthModel existingAuth = authOpt.get();
+            String currentRoles = existingAuth.getRole();
+            if (currentRoles == null || currentRoles.isEmpty()) {
+                existingAuth.setRole("ROLE_ADMIN");
+            } else if (!currentRoles.contains("ROLE_ADMIN")) {
+                existingAuth.setRole(currentRoles + ",ROLE_ADMIN");
+            }
+            authRepository.save(existingAuth);
+        } else {
             // Si no existe, lo creamos
             AuthModel newAuth = AuthModel.builder()
                     .email(email)
@@ -136,7 +147,9 @@ public class ManagerAuthServiceImpl implements ManagerAuthService {
                     .accountConfirmed(false)
                     .build();
             authRepository.save(newAuth);
+        }
 
+        if (managerOpt.isEmpty()) {
             ManagerModel newManager = ManagerModel.builder()
                     .name(request.name())
                     .surname(request.surname())
@@ -144,12 +157,9 @@ public class ManagerAuthServiceImpl implements ManagerAuthService {
                     .status("Desactivado")
                     .build();
             managerRepository.save(newManager);
-
-            return ResponseHelper.ok("Usuario administrador creado", (Map<String, Object>) null);
         }
 
-        return ResponseHelper.badRequest(
-                "Error de integridad: el correo ya se encuentra registrado con otro rol o estado", (String) null);
+        return ResponseHelper.ok("Usuario administrador creado", (Map<String, Object>) null);
     }
 
     @Transactional
@@ -157,7 +167,8 @@ public class ManagerAuthServiceImpl implements ManagerAuthService {
     public ResponseEntity<GeneralResponse> restorePassword(EmailRequest request) {
         String email = request.email().toLowerCase();
         if (isRootAdmin(email)) {
-            return ResponseHelper.badRequest("El administrador principal no puede restablecer su contraseña mediante este flujo", (String) null);
+            return ResponseHelper.badRequest(
+                    "El administrador principal no puede restablecer su contraseña mediante este flujo", (String) null);
         }
 
         Optional<ManagerModel> managerOpt = managerRepository.findByEmail(email);
@@ -188,7 +199,8 @@ public class ManagerAuthServiceImpl implements ManagerAuthService {
             throws JsonProcessingException {
         String email = request.email().toLowerCase();
         if (isRootAdmin(email)) {
-            return ResponseHelper.badRequest("El administrador principal no puede restablecer su contraseña mediante este flujo", (String) null);
+            return ResponseHelper.badRequest(
+                    "El administrador principal no puede restablecer su contraseña mediante este flujo", (String) null);
         }
         String code = request.code();
         String pwd = request.newPwd();
@@ -224,18 +236,27 @@ public class ManagerAuthServiceImpl implements ManagerAuthService {
             auth.setCodeExpirationTime(null);
             authRepository.save(auth);
 
+            String sessionToken = null;
+            String refreshToken = null;
             String message;
             if ("Desactivado".equals(manager.getStatus())) {
                 manager.setStatus("Activado");
                 managerRepository.save(manager);
+                sessionToken = JwtConfig.createSessionToken(email,
+                        org.springframework.security.core.authority.AuthorityUtils
+                                .commaSeparatedStringToAuthorityList(auth.getRole()));
+                refreshToken = JwtConfig.createRefreshToken(email);
                 message = "el usuario se activo y se le creo la contraseña";
             } else {
+                auth.setTokenRevocationDate(LocalDateTime.now());
+                authRepository.save(auth);
+
+                sessionToken = JwtConfig.createSessionToken(email,
+                        org.springframework.security.core.authority.AuthorityUtils
+                                .commaSeparatedStringToAuthorityList(auth.getRole()));
+                refreshToken = JwtConfig.createRefreshToken(email);
                 message = "se reestablecio su contraseña";
             }
-
-            String sessionToken = JwtConfig.createSessionToken(email,
-                    Collections.singletonList(new SimpleGrantedAuthority(auth.getRole())));
-            String refreshToken = JwtConfig.createRefreshToken(email);
 
             ManagerDto managerDto = ManagerDto.builder()
                     .managerId(manager.getManagerId())
@@ -261,7 +282,8 @@ public class ManagerAuthServiceImpl implements ManagerAuthService {
     public ResponseEntity<GeneralResponse> resendCode(EmailRequest request) {
         String email = request.email().toLowerCase();
         if (isRootAdmin(email)) {
-            return ResponseHelper.badRequest("El administrador principal no puede restablecer su contraseña mediante este flujo", (String) null);
+            return ResponseHelper.badRequest(
+                    "El administrador principal no puede restablecer su contraseña mediante este flujo", (String) null);
         }
 
         Optional<ManagerModel> managerOpt = managerRepository.findByEmail(email);
