@@ -1,11 +1,9 @@
 package com.referidos.app.segurosref.services.impl;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,12 +55,14 @@ public class ManagerAuthServiceImpl implements ManagerAuthService {
         Optional<AuthModel> authOptional = authRepository.findByEmail(email);
         if (authOptional.isPresent()) {
             AuthModel authDB = authOptional.get();
-            if (authDB.getRole() != null && authDB.getRole().contains("ROLE_ADMIN") && pwdEncoder.matches(pwd, authDB.getPwd())) {
+            if (authDB.getRole() != null && authDB.getRole().contains("ROLE_ADMIN")
+                    && pwdEncoder.matches(pwd, authDB.getPwd())) {
                 ManagerModel managerDB = managerRepository.findByEmail(email).orElseThrow();
 
                 if ("Activado".equals(managerDB.getStatus())) {
                     String sessionToken = JwtConfig.createSessionToken(email,
-                            org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList(authDB.getRole()));
+                            org.springframework.security.core.authority.AuthorityUtils
+                                    .commaSeparatedStringToAuthorityList(authDB.getRole()));
                     String refreshToken = JwtConfig.createRefreshToken(email);
 
                     // Devolvemos la data relevante del administrador
@@ -243,7 +243,8 @@ public class ManagerAuthServiceImpl implements ManagerAuthService {
                 manager.setStatus("Activado");
                 managerRepository.save(manager);
                 sessionToken = JwtConfig.createSessionToken(email,
-                        org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList(auth.getRole()));
+                        org.springframework.security.core.authority.AuthorityUtils
+                                .commaSeparatedStringToAuthorityList(auth.getRole()));
                 refreshToken = JwtConfig.createRefreshToken(email);
                 message = "el usuario se activo y se le creo la contraseña";
             } else {
@@ -251,7 +252,8 @@ public class ManagerAuthServiceImpl implements ManagerAuthService {
                 authRepository.save(auth);
 
                 sessionToken = JwtConfig.createSessionToken(email,
-                        org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList(auth.getRole()));
+                        org.springframework.security.core.authority.AuthorityUtils
+                                .commaSeparatedStringToAuthorityList(auth.getRole()));
                 refreshToken = JwtConfig.createRefreshToken(email);
                 message = "se reestablecio su contraseña";
             }

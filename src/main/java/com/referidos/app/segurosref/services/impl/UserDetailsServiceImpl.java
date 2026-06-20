@@ -1,6 +1,5 @@
 package com.referidos.app.segurosref.services.impl;
 
-
 import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
 import lombok.RequiredArgsConstructor;
 
@@ -14,7 +13,6 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -75,7 +73,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return new User(auth.getEmail(),
                 auth.getPwd(),
                 true, true, true, true,
-                org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList(auth.getRole()));
+                org.springframework.security.core.authority.AuthorityUtils
+                        .commaSeparatedStringToAuthorityList(auth.getRole()));
     }
 
     public ResponseEntity<GeneralResponse> userRegister(UserRegisterRequest userRegister) {
@@ -193,7 +192,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         authRepository.save(authDB);
 
         String sessionToken = JwtConfig.createSessionToken(userEmail,
-                org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList(authDB.getRole()));
+                org.springframework.security.core.authority.AuthorityUtils
+                        .commaSeparatedStringToAuthorityList(authDB.getRole()));
         String refreshToken = JwtConfig.createRefreshToken(userEmail);
 
         userData.setStatus("Activado");
@@ -247,7 +247,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         Optional<AuthModel> authOptional = authRepository.findByEmail(email);
         if (authOptional.isPresent()) {
             AuthModel authDB = authOptional.isPresent() ? authOptional.get() : null;
-            if (authDB != null && authDB.getRole() != null && authDB.getRole().contains("ROLE_USER") && pwdEncoder.matches(pwd, authDB.getPwd())) {
+            if (authDB != null && authDB.getRole() != null && authDB.getRole().contains("ROLE_USER")
+                    && pwdEncoder.matches(pwd, authDB.getPwd())) {
                 UserModel userDB = userRepository.findByPersonalData_Email(email).orElseThrow();
                 UserDataModel userData = userDB.getPersonalData();
                 String statusUserDB = userData.getStatus();
@@ -255,7 +256,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 switch (statusUserDB) {
                     case "Activado" -> {
                         String sessionToken = JwtConfig.createSessionToken(email,
-                                org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList(authDB.getRole()));
+                                org.springframework.security.core.authority.AuthorityUtils
+                                        .commaSeparatedStringToAuthorityList(authDB.getRole()));
                         String refreshToken = JwtConfig.createRefreshToken(email);
 
                         Map<String, Object> responseData = DataHelper.buildUserAuthData(userDB, sessionToken,
@@ -339,7 +341,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Transactional
-    public ResponseEntity<GeneralResponse> confirmPasswordReset(PasswordResetRequest passwordReset) throws JsonProcessingException {
+    public ResponseEntity<GeneralResponse> confirmPasswordReset(PasswordResetRequest passwordReset)
+            throws JsonProcessingException {
         String userEmail = passwordReset.email().toLowerCase();
         Optional<AuthModel> authOptional = authRepository.findByEmail(userEmail);
         Optional<UserModel> userOptional = userRepository.findByPersonalData_Email(userEmail);
@@ -380,7 +383,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     authRepository.save(authDB);
 
                     String sessionToken = JwtConfig.createSessionToken(userEmail,
-                            org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList(authDB.getRole()));
+                            org.springframework.security.core.authority.AuthorityUtils
+                                    .commaSeparatedStringToAuthorityList(authDB.getRole()));
                     String refreshToken = JwtConfig.createRefreshToken(userEmail);
 
                     return ResponseHelper.ok(
@@ -499,8 +503,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private UserDataModel createUserData(String name, String surname, String email) {
         return new UserDataModel(name, surname, email, "", "", DataHelper.deprecatedDate(), "Desactivado", new byte[0]);
     }
-
-
 
     private boolean isCodeActive(LocalDateTime codeExpirationTime, LocalDateTime verificationDateTime,
             int expirationMinutes) {
