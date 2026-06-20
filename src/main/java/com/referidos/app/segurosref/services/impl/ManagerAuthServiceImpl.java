@@ -27,6 +27,8 @@ import com.referidos.app.segurosref.requests.EmailRequest;
 import com.referidos.app.segurosref.requests.PasswordResetRequest;
 import java.time.LocalDateTime;
 import com.referidos.app.segurosref.helpers.DataHelper;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +40,13 @@ public class ManagerAuthServiceImpl implements ManagerAuthService {
     private final AuthRepository authRepository;
     private final PasswordEncoder pwdEncoder;
     private final EmailAppProvider emailAppProvider;
+
+    @Value("${moneyfy.admin.email}")
+    private String rootAdminEmail;
+
+    private boolean isRootAdmin(String email) {
+        return rootAdminEmail != null && rootAdminEmail.equalsIgnoreCase(email);
+    }
 
     @Transactional
     @Override
@@ -99,6 +108,11 @@ public class ManagerAuthServiceImpl implements ManagerAuthService {
     @Transactional
     @Override
     public ResponseEntity<GeneralResponse> createManager(ManagerRegisterRequest request) {
+        String requesterEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!isRootAdmin(requesterEmail)) {
+            return ResponseHelper.badRequest("Acceso denegado: Solo el administrador principal puede crear nuevas cuentas de administrador", (String) null);
+        }
+
         String email = request.email().toLowerCase();
         Optional<AuthModel> authOpt = authRepository.findByEmail(email);
         Optional<ManagerModel> managerOpt = managerRepository.findByEmail(email);
@@ -142,6 +156,10 @@ public class ManagerAuthServiceImpl implements ManagerAuthService {
     @Override
     public ResponseEntity<GeneralResponse> restorePassword(EmailRequest request) {
         String email = request.email().toLowerCase();
+        if (isRootAdmin(email)) {
+            return ResponseHelper.badRequest("El administrador principal no puede restablecer su contraseña mediante este flujo", (String) null);
+        }
+
         Optional<ManagerModel> managerOpt = managerRepository.findByEmail(email);
 
         if (managerOpt.isPresent()) {
@@ -169,6 +187,9 @@ public class ManagerAuthServiceImpl implements ManagerAuthService {
     public ResponseEntity<GeneralResponse> confirmPasswordReset(PasswordResetRequest request)
             throws JsonProcessingException {
         String email = request.email().toLowerCase();
+        if (isRootAdmin(email)) {
+            return ResponseHelper.badRequest("El administrador principal no puede restablecer su contraseña mediante este flujo", (String) null);
+        }
         String code = request.code();
         String pwd = request.newPwd();
         String confirmPwd = request.repeatedPwd();
@@ -239,6 +260,10 @@ public class ManagerAuthServiceImpl implements ManagerAuthService {
     @Override
     public ResponseEntity<GeneralResponse> resendCode(EmailRequest request) {
         String email = request.email().toLowerCase();
+        if (isRootAdmin(email)) {
+            return ResponseHelper.badRequest("El administrador principal no puede restablecer su contraseña mediante este flujo", (String) null);
+        }
+
         Optional<ManagerModel> managerOpt = managerRepository.findByEmail(email);
         Optional<AuthModel> authOpt = authRepository.findByEmail(email);
 
