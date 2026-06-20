@@ -75,7 +75,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return new User(auth.getEmail(),
                 auth.getPwd(),
                 true, true, true, true,
-                Collections.singletonList(new SimpleGrantedAuthority(auth.getRole())));
+                org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList(auth.getRole()));
     }
 
     public ResponseEntity<GeneralResponse> userRegister(UserRegisterRequest userRegister) {
@@ -193,7 +193,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         authRepository.save(authDB);
 
         String sessionToken = JwtConfig.createSessionToken(userEmail,
-                Collections.singletonList(new SimpleGrantedAuthority(authDB.getRole())));
+                org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList(authDB.getRole()));
         String refreshToken = JwtConfig.createRefreshToken(userEmail);
 
         userData.setStatus("Activado");
@@ -247,7 +247,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         Optional<AuthModel> authOptional = authRepository.findByEmail(email);
         if (authOptional.isPresent()) {
             AuthModel authDB = authOptional.isPresent() ? authOptional.get() : null;
-            if (authDB != null && pwdEncoder.matches(pwd, authDB.getPwd())) {
+            if (authDB != null && authDB.getRole() != null && authDB.getRole().contains("ROLE_USER") && pwdEncoder.matches(pwd, authDB.getPwd())) {
                 UserModel userDB = userRepository.findByPersonalData_Email(email).orElseThrow();
                 UserDataModel userData = userDB.getPersonalData();
                 String statusUserDB = userData.getStatus();
@@ -255,7 +255,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 switch (statusUserDB) {
                     case "Activado" -> {
                         String sessionToken = JwtConfig.createSessionToken(email,
-                                Collections.singletonList(new SimpleGrantedAuthority(authDB.getRole())));
+                                org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList(authDB.getRole()));
                         String refreshToken = JwtConfig.createRefreshToken(email);
 
                         Map<String, Object> responseData = DataHelper.buildUserAuthData(userDB, sessionToken,
@@ -380,7 +380,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     authRepository.save(authDB);
 
                     String sessionToken = JwtConfig.createSessionToken(userEmail,
-                            Collections.singletonList(new SimpleGrantedAuthority(authDB.getRole())));
+                            org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList(authDB.getRole()));
                     String refreshToken = JwtConfig.createRefreshToken(userEmail);
 
                     return ResponseHelper.ok(
