@@ -12,6 +12,8 @@ public interface ManagerService {
 
     ResponseEntity<?> getDashboardSummary();
 
+    ResponseEntity<?> getMoneyfyersDashboard();
+
     ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote);
 
     ResponseEntity<?> generatePayQuotesReport(com.referidos.app.segurosref.dtos.manager.PayQuotesReportRequest request);
