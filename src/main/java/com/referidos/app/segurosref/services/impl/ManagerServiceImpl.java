@@ -66,6 +66,10 @@ import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.FacetOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
+import com.referidos.app.segurosref.dtos.manager.MoneyfyerDto;
+import com.referidos.app.segurosref.dtos.manager.MoneyfyersResponseDto;
+import org.springframework.data.mongodb.core.aggregation.ConditionalOperators;
+import org.springframework.data.mongodb.core.aggregation.ComparisonOperators;
 
 @Service
 @RequiredArgsConstructor
@@ -1054,6 +1058,87 @@ public class ManagerServiceImpl implements ManagerService {
         return ResponseHelper.ok("Solicitud realizada: Reporte generado",
                 Map.of("report", new PayQuotesReportResponse(bankPayroll, backendPayload,
                         conflicts), "manager", managerDto));
+    }
+    @Override
+    public ResponseEntity<?> getMoneyfyersDashboard() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        ManagerModel managerDB = managerRepository.findByEmail(email).orElse(null);
+        if (managerDB == null) {
+            return ResponseHelper.unauthorized("No autorizado");
+        }
+        ManagerDto managerDto = ManagerDto.builder()
+                .managerId(managerDB.getManagerId())
+                .name(managerDB.getName())
+                .surname(managerDB.getSurname())
+                .email(managerDB.getEmail())
+                .status(managerDB.getStatus())
+                .build();
+
+        List<AggregationOperation> operations = new ArrayList<>();
+        operations.add(Aggregation.unwind("commissions"));
+
+        operations.add(Aggregation.project()
+                .and("commissions.userId").as("receptorId")
+                .and(ComparisonOperators.Eq.valueOf("userId").equalTo("commissions.userId")).as("isOwn")
+                .and(ConditionalOperators.when(Criteria.where("commissions.commissionStatus").in("Aprobado", "Conflictivo", "Pagado"))
+                        .thenValueOf("commissions.userCommission").otherwise(0)).as("validCommission")
+                .and(ConditionalOperators.when(Criteria.where("commissions.commissionStatus").in("Aprobado", "Conflictivo"))
+                        .thenValueOf("commissions.userCommission").otherwise(0)).as("pendingCommission")
+                .and(ConditionalOperators.when(Criteria.where("commissions.commissionStatus").is("Pagado"))
+                        .thenValueOf("commissions.userCommission").otherwise(0)).as("paidCommission")
+        );
+
+        operations.add(Aggregation.group("receptorId")
+                .count().as("realizedCommissions")
+                .sum("pendingCommission").as("pendingPayments")
+                .sum("paidCommission").as("paidCommissions")
+                .sum(ConditionalOperators.when(Criteria.where("isOwn").is(true))
+                        .thenValueOf("validCommission").otherwise(0)).as("ownCommissions")
+                .sum(ConditionalOperators.when(Criteria.where("isOwn").is(false))
+                        .thenValueOf("validCommission").otherwise(0)).as("referredCommissions")
+        );
+
+        Aggregation aggregation = Aggregation.newAggregation(operations);
+        AggregationResults<Document> results = mongoTemplate.aggregate(aggregation, "transactions", Document.class);
+        List<Document> aggResults = results.getMappedResults();
+
+        Map<String, Document> userMetricsMap = aggResults.stream()
+                .collect(Collectors.toMap(doc -> doc.getString("_id"), doc -> doc));
+
+        List<UserModel> allUsers = userRepository.findAll();
+        List<MoneyfyerDto> moneyfyers = new ArrayList<>();
+
+        for (UserModel user : allUsers) {
+            String uId = user.getUserId();
+            Document metrics = userMetricsMap.getOrDefault(uId, new Document());
+
+            AccountModel activeAccount = user.getAccounts() != null ? user.getAccounts().stream()
+                    .filter(AccountModel::isSelected)
+                    .findFirst()
+                    .orElse(null) : null;
+
+            int realized = metrics.getInteger("realizedCommissions", 0);
+            int pending = metrics.getInteger("pendingPayments", 0);
+            int own = metrics.getInteger("ownCommissions", 0);
+            int referred = metrics.getInteger("referredCommissions", 0);
+            int paid = metrics.getInteger("paidCommissions", 0);
+
+            moneyfyers.add(MoneyfyerDto.builder()
+                    .idUser(uId)
+                    .userFullname(user.getPersonalData() != null ? user.getPersonalData().getName() + " " + user.getPersonalData().getSurname() : "N/A")
+                    .userEmail(user.getPersonalData() != null ? user.getPersonalData().getEmail() : "N/A")
+                    .userPhone(user.getPersonalData() != null ? user.getPersonalData().getPhone() : "N/A")
+                    .activeAccount(activeAccount)
+                    .realizedCommissions(realized)
+                    .pendingPayments(pending)
+                    .ownCommissions(own)
+                    .referredCommissions(referred)
+                    .totalCommissions(own + referred)
+                    .paidCommissions(paid)
+                    .build());
+        }
+
+        return ResponseEntity.ok(new MoneyfyersResponseDto("Moneyfyers recuperados exitosamente", 200, moneyfyers, managerDto));
     }
 
 }

@@ -1,4 +1,5 @@
-package com.referidos.app.segurosref.services;
+package com.referidos.app.segurosref.services.impl;
+import com.referidos.app.segurosref.services.LogService;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;

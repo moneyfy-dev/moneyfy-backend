@@ -22,7 +22,7 @@ import com.referidos.app.segurosref.requests.PasswordResetRequest;
 import com.referidos.app.segurosref.requests.UserLoginRequest;
 import com.referidos.app.segurosref.requests.UserRegisterRequest;
 import com.referidos.app.segurosref.responses.GeneralResponse;
-import com.referidos.app.segurosref.services.UserDetailsServiceImpl;
+import com.referidos.app.segurosref.services.impl.UserDetailsServiceImpl;
 import com.referidos.app.segurosref.services.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;

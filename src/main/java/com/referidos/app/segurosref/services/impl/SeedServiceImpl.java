@@ -1,4 +1,5 @@
-package com.referidos.app.segurosref.services;
+package com.referidos.app.segurosref.services.impl;
+import com.referidos.app.segurosref.services.SeedService;
 
 import java.util.LinkedHashMap;
 import lombok.RequiredArgsConstructor;

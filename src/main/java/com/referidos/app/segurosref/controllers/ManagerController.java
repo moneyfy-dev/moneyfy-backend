@@ -66,5 +66,10 @@ public class ManagerController {
 
         return managerService.payQuotes(request);
     }
+    @GetMapping("/moneyfyers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getMoneyfyers() {
+        return managerService.getMoneyfyersDashboard();
+    }
 
 }
