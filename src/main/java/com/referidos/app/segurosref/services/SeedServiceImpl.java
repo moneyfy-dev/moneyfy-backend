@@ -5,14 +5,12 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.referidos.app.segurosref.helpers.ResponseHelper;
 import com.referidos.app.segurosref.helpers.SeedHelper;
-import com.referidos.app.segurosref.helpers.ValidateInputHelper;
 import com.referidos.app.segurosref.models.BrandModel;
 import com.referidos.app.segurosref.models.RegionModel;
 import com.referidos.app.segurosref.models.InsurerModel;
@@ -21,14 +19,16 @@ import com.referidos.app.segurosref.repositories.RegionRepository;
 import com.referidos.app.segurosref.repositories.InsurerRepository;
 import com.referidos.app.segurosref.requests.SeedRequest;
 
-import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.referidos.app.segurosref.models.ManagerModel;
+import com.referidos.app.segurosref.dtos.manager.ManagerDto;
+import com.referidos.app.segurosref.repositories.ManagerRepository;
 
 @Service
 @RequiredArgsConstructor
 public class SeedServiceImpl implements SeedService {
 
-    @Value(value = "${moneyfy.api-key}")
-    private String apiKeyMF;
+    private final ManagerRepository managerRepository;
 
     private final SeedHelper seedHelper;
 
@@ -40,10 +40,19 @@ public class SeedServiceImpl implements SeedService {
 
     @Transactional
     @Override
-    public ResponseEntity<?> checkRegions(HttpServletRequest request, SeedRequest seedRequest) {
-        if (!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("X-Moneyfy-Api-Key"))) {
-            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
+    public ResponseEntity<?> checkRegions(SeedRequest seedRequest) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        ManagerModel managerDB = managerRepository.findByEmail(email).orElse(null);
+        if (managerDB == null) {
+            return ResponseHelper.unauthorized("no autorizado");
         }
+        ManagerDto managerDto = ManagerDto.builder()
+                .managerId(managerDB.getManagerId())
+                .name(managerDB.getName())
+                .surname(managerDB.getSurname())
+                .email(managerDB.getEmail())
+                .status(managerDB.getStatus())
+                .build();
         boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
         Object[] objRegions = seedHelper.updateRegions(regionRepository, refreshData);
         String message = (String) objRegions[0];
@@ -53,15 +62,25 @@ public class SeedServiceImpl implements SeedService {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("message", message);
         data.put("regions", regions);
+        data.put("manager", managerDto);
         return ResponseHelper.ok("se ha logrado hacer la petición", data);
     }
 
     @Transactional
     @Override
-    public ResponseEntity<?> checkInsurers(HttpServletRequest request, SeedRequest seedRequest) {
-        if (!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("X-Moneyfy-Api-Key"))) {
-            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
+    public ResponseEntity<?> checkInsurers(SeedRequest seedRequest) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        ManagerModel managerDB = managerRepository.findByEmail(email).orElse(null);
+        if (managerDB == null) {
+            return ResponseHelper.unauthorized("no autorizado");
         }
+        ManagerDto managerDto = ManagerDto.builder()
+                .managerId(managerDB.getManagerId())
+                .name(managerDB.getName())
+                .surname(managerDB.getSurname())
+                .email(managerDB.getEmail())
+                .status(managerDB.getStatus())
+                .build();
         boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
         Object[] objInsurers = seedHelper.updateInsurers(insurerRepository, refreshData);
         String message = (String) objInsurers[0];
@@ -71,15 +90,25 @@ public class SeedServiceImpl implements SeedService {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("message", message);
         data.put("insurers", insurers);
+        data.put("manager", managerDto);
         return ResponseHelper.ok("se ha logrado hacer la petición", data);
     }
 
     @Transactional
     @Override
-    public ResponseEntity<?> checkBrands(HttpServletRequest request, SeedRequest seedRequest) {
-        if (!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("X-Moneyfy-Api-Key"))) {
-            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
+    public ResponseEntity<?> checkBrands(SeedRequest seedRequest) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        ManagerModel managerDB = managerRepository.findByEmail(email).orElse(null);
+        if (managerDB == null) {
+            return ResponseHelper.unauthorized("no autorizado");
         }
+        ManagerDto managerDto = ManagerDto.builder()
+                .managerId(managerDB.getManagerId())
+                .name(managerDB.getName())
+                .surname(managerDB.getSurname())
+                .email(managerDB.getEmail())
+                .status(managerDB.getStatus())
+                .build();
         boolean refreshData = (seedRequest.refreshData() == null) ? false : seedRequest.refreshData();
         Object[] objBrands = seedHelper.updateBrands(brandRepository, refreshData);
         String message = (String) objBrands[0];
@@ -89,6 +118,7 @@ public class SeedServiceImpl implements SeedService {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("message", message);
         data.put("brands", brands);
+        data.put("manager", managerDto);
         return ResponseHelper.ok("se ha logrado hacer la petición", data);
     }
 

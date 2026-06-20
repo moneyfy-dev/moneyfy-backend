@@ -15,6 +15,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.NoSuchElementException;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.referidos.app.segurosref.models.ManagerModel;
+import com.referidos.app.segurosref.dtos.manager.ManagerDto;
+import com.referidos.app.segurosref.repositories.ManagerRepository;
+
 import org.springframework.http.ResponseEntity;
 
 import com.referidos.app.segurosref.dtos.manager.FailedPaymentDto;
@@ -37,9 +42,7 @@ import com.referidos.app.segurosref.integrations.email.providers.EmailAppProvide
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
-import jakarta.servlet.http.HttpServletRequest;
 import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
-import com.referidos.app.segurosref.helpers.ValidateInputHelper;
 import com.referidos.app.segurosref.models.ReferredModel;
 import com.referidos.app.segurosref.repositories.ReferredRepository;
 import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
@@ -75,8 +78,7 @@ public class ManagerServiceImpl implements ManagerService {
     private final ReferredRepository referredRepository;
     private final EmailAppProvider emailAppProvider;
 
-    @Value("${moneyfy.api-key}")
-    private String apiKeyMF;
+    private final ManagerRepository managerRepository;
 
     @Value("${moneyfy.commissions.level1}")
     private int commissionUserC;
@@ -130,10 +132,24 @@ public class ManagerServiceImpl implements ManagerService {
         int totalPages = size > 0 ? (int) Math.ceil((double) totalElements / size) : 0;
         List<DashboardQuoteDto> dashboardQuotes = new ArrayList<>();
 
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        ManagerModel managerDB = managerRepository.findByEmail(email).orElse(null);
+        if (managerDB == null) {
+            return new DashboardPaginatedResponseDto("No autorizado", 401, null, null);
+        }
+        ManagerDto managerDto = ManagerDto.builder()
+                .managerId(managerDB.getManagerId())
+                .name(managerDB.getName())
+                .surname(managerDB.getSurname())
+                .email(managerDB.getEmail())
+                .status(managerDB.getStatus())
+                .build();
+
         if (dataFacet.isEmpty()) {
             DashboardPaginatedResponseDto.PaginatedData paginatedData = new DashboardPaginatedResponseDto.PaginatedData(
                     dashboardQuotes, page, size, totalElements, totalPages);
-            return new DashboardPaginatedResponseDto("Cotizaciones recuperadas exitosamente", 200, paginatedData);
+            return new DashboardPaginatedResponseDto("Cotizaciones recuperadas exitosamente", 200, paginatedData,
+                    managerDto);
         }
 
         // 2. Extraer todos los IDs de cotizaciones para buscar transacciones
@@ -315,12 +331,26 @@ public class ManagerServiceImpl implements ManagerService {
 
         DashboardPaginatedResponseDto.PaginatedData paginatedData = new DashboardPaginatedResponseDto.PaginatedData(
                 dashboardQuotes, page, size, totalElements, totalPages);
-        return new DashboardPaginatedResponseDto("Cotizaciones recuperadas exitosamente", 200, paginatedData);
+        return new DashboardPaginatedResponseDto("Cotizaciones recuperadas exitosamente", 200, paginatedData,
+                managerDto);
     }
 
     @Override
     @Transactional(readOnly = true)
     public ResponseEntity<?> getDashboardSummary() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        ManagerModel managerDB = managerRepository.findByEmail(email).orElse(null);
+        if (managerDB == null) {
+            return ResponseHelper.unauthorized("no autorizado");
+        }
+        ManagerDto managerDto = ManagerDto.builder()
+                .managerId(managerDB.getManagerId())
+                .name(managerDB.getName())
+                .surname(managerDB.getSurname())
+                .email(managerDB.getEmail())
+                .status(managerDB.getStatus())
+                .build();
+
         List<UserModel> users = userRepository.findAll();
         List<TransactionModel> transactions = transactionRepository.findAll();
 
@@ -415,16 +445,26 @@ public class ManagerServiceImpl implements ManagerService {
                 pendingCommissions,
                 weeklyMetrics);
 
-        return ResponseHelper.response("Solicitud realizada: Resumen dashboard generado", 200, summary);
+        return ResponseHelper.ok("Solicitud realizada: Resumen dashboard generado",
+                Map.of("summary", summary, "manager", managerDto));
     }
 
     @SuppressWarnings("null")
     @Transactional
     @Override
-    public ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote, HttpServletRequest request) {
-        if (!ValidateInputHelper.checkApiKeyMF(apiKeyMF, request.getHeader("X-Moneyfy-Api-Key"))) {
-            return ResponseHelper.failedDependency("no es posible continuar con la solicitud", "failed dependency");
+    public ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        ManagerModel managerDB = managerRepository.findByEmail(email).orElse(null);
+        if (managerDB == null) {
+            return ResponseHelper.unauthorized("no autorizado");
         }
+        ManagerDto managerDto = ManagerDto.builder()
+                .managerId(managerDB.getManagerId())
+                .name(managerDB.getName())
+                .surname(managerDB.getSurname())
+                .email(managerDB.getEmail())
+                .status(managerDB.getStatus())
+                .build();
 
         if (finalizeQuote == null || finalizeQuote.usersQuotes() == null) {
             return ResponseHelper.failedDependency("la data proporcionada no es correcta", "failed dependency");
@@ -629,6 +669,7 @@ public class ManagerServiceImpl implements ManagerService {
         finalResult.put("generalMessage", "Actualización masiva procesada con éxito");
         finalResult.put("status", 200);
         finalResult.put("users", usersResultList);
+        finalResult.put("manager", managerDto);
 
         return ResponseHelper.ok("la actualización masiva de cotizaciones se ha completado", finalResult);
     }
@@ -636,6 +677,19 @@ public class ManagerServiceImpl implements ManagerService {
     @SuppressWarnings("null")
     @Override
     public ResponseEntity<?> payQuotes(PayQuotesRequest request) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        ManagerModel managerDB = managerRepository.findByEmail(email).orElse(null);
+        if (managerDB == null) {
+            return ResponseHelper.unauthorized("no autorizado");
+        }
+        ManagerDto managerDto = ManagerDto.builder()
+                .managerId(managerDB.getManagerId())
+                .name(managerDB.getName())
+                .surname(managerDB.getSurname())
+                .email(managerDB.getEmail())
+                .status(managerDB.getStatus())
+                .build();
+
         if (request == null || request.getUsersQuotes() == null || request.getUsersQuotes().isEmpty()) {
             return ResponseHelper.failedDependency("La solicitud no contiene usuarios a procesar", "failed dependency");
         }
@@ -668,7 +722,8 @@ public class ManagerServiceImpl implements ManagerService {
                 user = usersToSave.get(userId);
             }
 
-            // Validar que todas las transacciones existan y su comisión asociada al usuario esten en Aprobado
+            // Validar que todas las transacciones existan y su comisión asociada al usuario
+            // esten en Aprobado
             boolean validTransactions = true;
             List<TransactionModel> userTransactions = new ArrayList<>();
             for (String txId : transactionIds) {
@@ -711,7 +766,8 @@ public class ManagerServiceImpl implements ManagerService {
             }
 
             String transactionStatus = userQuote.getUserTransactionStatus();
-            if (transactionStatus == null || (!transactionStatus.equals("Pagado") && !transactionStatus.equals("Conflictivo"))) {
+            if (transactionStatus == null
+                    || (!transactionStatus.equals("Pagado") && !transactionStatus.equals("Conflictivo"))) {
                 failedPayments.add(new FailedPaymentDto(userId, transactionIds, "Estado de transacción inválido"));
                 continue;
             }
@@ -803,7 +859,8 @@ public class ManagerServiceImpl implements ManagerService {
                 tx.setPaymentDate(now);
             }
 
-            // Actualizar el estado del Quoter basado SOLAMENTE en el estado de la comisión del dueño principal
+            // Actualizar el estado del Quoter basado SOLAMENTE en el estado de la comisión
+            // del dueño principal
             if ("Pagado".equals(ownerCommissionStatus) || "Conflictivo".equals(ownerCommissionStatus)) {
                 String ownerId = tx.getUserId();
                 if (ownerId != null && ObjectId.isValid(ownerId)) {
@@ -844,13 +901,27 @@ public class ManagerServiceImpl implements ManagerService {
             paymentRepository.saveAll(paymentsToSave);
         }
 
-        return ResponseHelper.ok("Proceso de pagos completado", Map.of("failedPayments", failedPayments));
+        return ResponseHelper.ok("Proceso de pagos completado",
+                Map.of("failedPayments", failedPayments, "manager", managerDto));
     }
 
     @SuppressWarnings("null")
     @Override
     public ResponseEntity<?> generatePayQuotesReport(
             com.referidos.app.segurosref.dtos.manager.PayQuotesReportRequest request) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        ManagerModel managerDB = managerRepository.findByEmail(email).orElse(null);
+        if (managerDB == null) {
+            return ResponseHelper.unauthorized("no autorizado");
+        }
+        ManagerDto managerDto = ManagerDto.builder()
+                .managerId(managerDB.getManagerId())
+                .name(managerDB.getName())
+                .surname(managerDB.getSurname())
+                .email(managerDB.getEmail())
+                .status(managerDB.getStatus())
+                .build();
+
         if (request == null || request.getDateFrom() == null || request.getDateTo() == null) {
             return ResponseHelper.failedDependency("La solicitud no contiene el rango de fechas válido",
                     "failed dependency");
@@ -866,7 +937,8 @@ public class ManagerServiceImpl implements ManagerService {
 
         // Agrupar transacciones por userId a partir de las comisiones en estado
         // Aprobado
-        // También detectar si el usuario tiene transacciones en estado Conflictivo globalmente
+        // También detectar si el usuario tiene transacciones en estado Conflictivo
+        // globalmente
         Set<String> usersWithConflicts = new HashSet<>();
         List<TransactionModel> conflictiveTransactions = transactionRepository.findAllByStatus("Conflictivo");
         for (TransactionModel ctx : conflictiveTransactions) {
@@ -895,9 +967,9 @@ public class ManagerServiceImpl implements ManagerService {
         List<ConflictDto> conflicts = new ArrayList<>();
 
         if (transactionsByUser.isEmpty()) {
-            return ResponseHelper.response("Solicitud realizada: Reporte generado", 200,
-                    new PayQuotesReportResponse(bankPayroll, backendPayload,
-                            conflicts));
+            return ResponseHelper.ok("Solicitud realizada: Reporte generado",
+                    Map.of("report", new PayQuotesReportResponse(bankPayroll, backendPayload,
+                            conflicts), "manager", managerDto));
         }
 
         List<ObjectId> userIds = transactionsByUser.keySet().stream()
@@ -979,10 +1051,9 @@ public class ManagerServiceImpl implements ManagerService {
                     ""));
         }
 
-        return ResponseHelper.response("Solicitud realizada: Reporte generado", 200,
-                new PayQuotesReportResponse(bankPayroll, backendPayload,
-                        conflicts));
+        return ResponseHelper.ok("Solicitud realizada: Reporte generado",
+                Map.of("report", new PayQuotesReportResponse(bankPayroll, backendPayload,
+                        conflicts), "manager", managerDto));
     }
 
 }
-

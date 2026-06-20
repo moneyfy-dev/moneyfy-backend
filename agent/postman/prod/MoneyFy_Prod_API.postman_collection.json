@@ -1183,8 +1183,8 @@
                         "method": "POST",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - API Key MoneyFy}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1206,6 +1206,16 @@
                                 "seed",
                                 "regions"
                             ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{manager_session_token}}",
+                                    "type": "string"
+                                }
+                            ]
                         }
                     },
                     "response": []
@@ -1216,8 +1226,8 @@
                         "method": "POST",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - API Key MoneyFy}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1239,6 +1249,16 @@
                                 "seed",
                                 "insurers"
                             ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{manager_session_token}}",
+                                    "type": "string"
+                                }
+                            ]
                         }
                     },
                     "response": []
@@ -1249,8 +1269,8 @@
                         "method": "POST",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - API Key MoneyFy}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1271,6 +1291,16 @@
                             "path": [
                                 "seed",
                                 "brands"
+                            ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{manager_session_token}}",
+                                    "type": "string"
+                                }
                             ]
                         }
                     },
@@ -1317,8 +1347,8 @@
                         "method": "GET",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - API Key MoneyFy}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1331,6 +1361,16 @@
                                 "transaction",
                                 "69df1fcb8cc6b0593a23f36d"
                             ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{manager_session_token}}",
+                                    "type": "string"
+                                }
+                            ]
                         }
                     },
                     "response": []
@@ -1341,8 +1381,8 @@
                         "method": "GET",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - API Key MoneyFy}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1355,6 +1395,16 @@
                                 "transaction",
                                 "check",
                                 "referring"
+                            ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{manager_session_token}}",
+                                    "type": "string"
+                                }
                             ]
                         }
                     },
@@ -1371,8 +1421,8 @@
                         "method": "GET",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - API Key MoneyFy}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1387,6 +1437,16 @@
                                 "manager",
                                 "dashboard",
                                 "quotes"
+                            ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{manager_session_token}}",
+                                    "type": "string"
+                                }
                             ]
                         }
                     },
@@ -1403,7 +1463,7 @@
                             "bearer": [
                                 {
                                     "key": "token",
-                                    "value": "{{Prod - Session Token}}",
+                                    "value": "{{manager_session_token}}",
                                     "type": "string"
                                 }
                             ]
@@ -1411,8 +1471,8 @@
                         "method": "PUT",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - API Key MoneyFy}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1447,8 +1507,8 @@
                         "method": "POST",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - X-Moneyfy-Api-Key}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1473,6 +1533,16 @@
                                 "pay-quotes",
                                 "report"
                             ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{manager_session_token}}",
+                                    "type": "string"
+                                }
+                            ]
                         }
                     },
                     "response": []
@@ -1483,8 +1553,8 @@
                         "method": "POST",
                         "header": [
                             {
-                                "key": "X-Moneyfy-Api-Key",
-                                "value": "{{Prod - X-Moneyfy-Api-Key}}",
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
                         ],
@@ -1507,6 +1577,16 @@
                                 "v1",
                                 "manager",
                                 "pay-quotes"
+                            ]
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{manager_session_token}}",
+                                    "type": "string"
+                                }
                             ]
                         }
                     },

@@ -89,6 +89,11 @@ public class ResponseHelper {
         return ResponseHelper.response(buildMessage, HttpStatus.NOT_FOUND.value(), Map.of("info", "not found"));
     }
 
+    public static ResponseEntity<GeneralResponse> unauthorized(String message) {
+        String buildMessage = "Solicitud no autorizada: " + message;
+        return ResponseHelper.response(buildMessage, HttpStatus.UNAUTHORIZED.value(), Map.of("info", "unauthorized"));
+    }
+
     public static void failedDependency(HttpServletResponse response, String message, String info) throws JsonProcessingException, IOException {
         String buildInfo = (info != null) ? info : "failed dependency";
         String buildMessage = "Solicitud irreconocible: " + message;
