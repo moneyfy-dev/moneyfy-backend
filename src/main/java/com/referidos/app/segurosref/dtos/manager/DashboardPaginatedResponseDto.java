@@ -12,6 +12,7 @@ public class DashboardPaginatedResponseDto {
     private String message;
     private int status;
     private PaginatedData data;
+    private ManagerDto manager;
 
     @Data
     @NoArgsConstructor

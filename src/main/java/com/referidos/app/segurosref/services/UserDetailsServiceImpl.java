@@ -131,7 +131,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             }
         }
 
-        String codeAuth = generateRandomCode();
+        String codeAuth = DataHelper.generateRandomCode();
         emailAppProvider.sendAuthCodeToRegisterUser(new String[] { email }, codeAuth);
 
         String userReferringState = (userReferring[0].equals("Sin usuario")) ? "Desactivado" : "Activado";
@@ -309,7 +309,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
             if (authDB.isAccountConfirmed()) {
                 String statusUserDB = userData.getStatus();
-                String codeAuth = generateRandomCode();
+                String codeAuth = DataHelper.generateRandomCode();
 
                 switch (statusUserDB) {
                     case "Activado" -> {
@@ -403,7 +403,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             AuthModel authDB = authOptional.get();
             UserModel userDB = userOptional.get();
             String userStatusDB = userDB.getPersonalData().getStatus();
-            String code = generateRandomCode();
+            String code = DataHelper.generateRandomCode();
             boolean isValid = false;
 
             if (!DataHelper.isNull(type)) {
@@ -499,13 +499,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return new UserDataModel(name, surname, email, "", "", DataHelper.deprecatedDate(), "Desactivado", new byte[0]);
     }
 
-    private String generateRandomCode() {
-        StringBuilder sb = new StringBuilder("");
-        for (int i = 0; i < 6; i++) {
-            sb.append(((int) (Math.random() * 10)));
-        }
-        return sb.toString();
-    }
+
 
     private boolean isCodeActive(LocalDateTime codeExpirationTime, LocalDateTime verificationDateTime,
             int expirationMinutes) {

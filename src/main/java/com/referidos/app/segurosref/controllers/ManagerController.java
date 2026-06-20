@@ -1,10 +1,7 @@
 package com.referidos.app.segurosref.controllers;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,8 +14,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import com.referidos.app.segurosref.dtos.manager.PayQuotesRequest;
-import jakarta.servlet.http.HttpServletRequest;
 import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,74 +24,45 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ManagerController {
 
-    @Value("${moneyfy.api-key}")
-    private String moneyfyApiKey;
-
     private final ManagerService managerService;
 
-    // TODO: Ajuste momentaneo, se debe arreglar a futuro usando
-    // @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/dashboard/quotes")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DashboardPaginatedResponseDto> getQuotesDashboard(
-            @RequestHeader(value = "X-Moneyfy-Api-Key", required = true) String apiKey,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String userId,
             @RequestParam(required = false) String quoteStatus) {
-
-        if (apiKey == null || !apiKey.equals(moneyfyApiKey)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new DashboardPaginatedResponseDto("No autorizado",
-                            HttpStatus.UNAUTHORIZED.value(), null));
-        }
 
         DashboardPaginatedResponseDto response = managerService.getQuotesDashboard(page, size, userId, quoteStatus);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
     @GetMapping("/dashboard/summary")
-    public ResponseEntity<?> getDashboardSummary(
-            @RequestHeader(value = "X-Moneyfy-Api-Key", required = true) String apiKey) {
-
-        if (apiKey == null || !apiKey.equals(moneyfyApiKey)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new DashboardPaginatedResponseDto("No autorizado",
-                            HttpStatus.UNAUTHORIZED.value(), null));
-        }
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getDashboardSummary() {
 
         return managerService.getDashboardSummary();
     }
 
     @PutMapping("/finalize/quote")
-    public ResponseEntity<?> finalizeQuote(@RequestBody FinalizeQuoteRequest finalizeQuote,
-            HttpServletRequest request) {
-        return managerService.finalizeQuote(finalizeQuote, request);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> finalizeQuote(@RequestBody FinalizeQuoteRequest finalizeQuote) {
+        return managerService.finalizeQuote(finalizeQuote);
     }
 
     @PostMapping("/pay-quotes/report")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> generatePayQuotesReport(
-            @RequestHeader(value = "X-Moneyfy-Api-Key", required = true) String apiKey,
             @RequestBody com.referidos.app.segurosref.dtos.manager.PayQuotesReportRequest request) {
-
-        if (apiKey == null || !apiKey.equals(moneyfyApiKey)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new DashboardPaginatedResponseDto("No autorizado",
-                            HttpStatus.UNAUTHORIZED.value(), null));
-        }
 
         return managerService.generatePayQuotesReport(request);
     }
 
     @PostMapping("/pay-quotes")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> payQuotes(
-            @RequestHeader(value = "X-Moneyfy-Api-Key", required = true) String apiKey,
             @RequestBody PayQuotesRequest request) {
-
-        if (apiKey == null || !apiKey.equals(moneyfyApiKey)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new DashboardPaginatedResponseDto("No autorizado",
-                            HttpStatus.UNAUTHORIZED.value(), null));
-        }
 
         return managerService.payQuotes(request);
     }

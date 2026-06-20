@@ -20,7 +20,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,33 +28,30 @@ import jakarta.servlet.http.HttpServletRequest;
 @Tag(name = "Transactions", description = "Controller to handle the transactions with problems")
 public class TransactionController {
 
-    private final TransactionService transactionService;
+        private final TransactionService transactionService;
 
-    @GetMapping(value = "/{transactionId}")
-    @PreAuthorize(value = "permitAll()")
-    @Operation(summary = "Find transaction", description = "Find transaction by id", tags = {
-            "Transactions" }, parameters = {
-                    @Parameter(name = "transactionId", in = ParameterIn.PATH, description = "Enter the transaction id for the searching", required = true),
-                    @Parameter(name = "X-Moneyfy-Api-Key", in = ParameterIn.HEADER, description = "Security parameter for some public endpoints", required = true)
-            }, responses = {
-                    @ApiResponse(responseCode = "200", description = "The trasaction was found successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
-                    @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
-            })
-    public ResponseEntity<?> findById(@PathVariable String transactionId, HttpServletRequest request) {
-        return transactionService.findById(transactionId, request);
-    }
+        @GetMapping(value = "/{transactionId}")
+        @PreAuthorize(value = "hasRole('ADMIN')")
+        @Operation(summary = "Find transaction", description = "Find transaction by id", tags = {
+                        "Transactions" }, parameters = {
+                                        @Parameter(name = "transactionId", in = ParameterIn.PATH, description = "Enter the transaction id for the searching", required = true)
+                        }, responses = {
+                                        @ApiResponse(responseCode = "200", description = "The trasaction was found successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                                        @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+                        })
+        public ResponseEntity<?> findById(@PathVariable String transactionId) {
+                return transactionService.findById(transactionId);
+        }
 
-    @GetMapping(value = "/check/referring")
-    @PreAuthorize(value = "permitAll()")
-    @Operation(summary = "Find all transaction that have issues referring", description = "Find all transaction that have issues referring", tags = {
-            "Transactions" }, parameters = {
-                    @Parameter(name = "X-Moneyfy-Api-Key", in = ParameterIn.HEADER, description = "Security parameter for some public endpoints", required = true)
-            }, responses = {
-                    @ApiResponse(responseCode = "200", description = "The trasactions were found successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
-                    @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
-            })
-    public ResponseEntity<?> findAllByUserReferringFound(HttpServletRequest request) {
-        return transactionService.findAllByUserReferringFound(request);
-    }
+        @GetMapping(value = "/check/referring")
+        @PreAuthorize(value = "hasRole('ADMIN')")
+        @Operation(summary = "Find all transaction that have issues referring", description = "Find all transaction that have issues referring", tags = {
+                        "Transactions" }, responses = {
+                                        @ApiResponse(responseCode = "200", description = "The trasactions were found successfully", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class))),
+                                        @ApiResponse(responseCode = "4XX", description = "General responses", content = @Content(mediaType = CONTENT_TYPE, schema = @Schema(implementation = GeneralResponse.class)))
+                        })
+        public ResponseEntity<?> findAllByUserReferringFound() {
+                return transactionService.findAllByUserReferringFound();
+        }
 
 }
