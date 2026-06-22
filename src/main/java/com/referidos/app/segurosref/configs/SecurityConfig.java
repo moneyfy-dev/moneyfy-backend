@@ -1,10 +1,7 @@
 package com.referidos.app.segurosref.configs;
 
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -19,7 +16,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.referidos.app.segurosref.helpers.FilterHelper;
-import org.springframework.web.filter.CorsFilter;
 
 import com.referidos.app.segurosref.configs.filters.JwtValidationFilter;
 import com.referidos.app.segurosref.repositories.AuthRepository;
@@ -38,27 +34,15 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Order(1)
-    public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .securityMatcher(FilterHelper.PUBLIC_ROUTES)
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .cors(cors -> cors.configurationSource(this.corsConfigurationSource()))
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll())
-                .build();
-    }
-
-    @Bean
-    @Order(2)
-    public SecurityFilterChain apiFilterChain(HttpSecurity http,
+    public SecurityFilterChain filterChain(HttpSecurity http,
             JwtValidationFilter jwtValidationFilter) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(management -> management
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(cors -> cors.configurationSource(this.corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(FilterHelper.PUBLIC_ROUTES).permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtValidationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
@@ -87,8 +71,9 @@ public class SecurityConfig {
                 "http://10.*.*.*:*",
                 "exp://*"));
         cors.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        cors.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Refresh-Token", "Origin", "User-Agent",
-                "X-New-Session-Token", "X-New-Refresh-Token"));
+        cors.setAllowedHeaders(
+                Arrays.asList("Authorization", "Content-Type", "Refresh-Token", "Origin", "User-Agent",
+                        "X-New-Session-Token", "X-New-Refresh-Token"));
         cors.setAllowCredentials(true);
 
         // Creamos la instancia del objeto que implementa la interfaz Cors... y
@@ -99,15 +84,6 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", cors);
 
         return source;
-    }
-
-    @Bean
-    public FilterRegistrationBean<CorsFilter> corsFilter() {
-        @SuppressWarnings("null")
-        FilterRegistrationBean<CorsFilter> corsFilter = new FilterRegistrationBean<>(
-                new CorsFilter(this.corsConfigurationSource()));
-        corsFilter.setOrder(Ordered.HIGHEST_PRECEDENCE);
-        return corsFilter;
     }
 
 }
