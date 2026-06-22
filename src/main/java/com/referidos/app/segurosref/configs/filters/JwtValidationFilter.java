@@ -11,15 +11,16 @@ import java.time.ZoneId;
 import com.referidos.app.segurosref.helpers.FilterHelper;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -52,13 +53,13 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
+        return FilterHelper.checkPublicRoute(request);
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-
-        if (FilterHelper.checkPublicRoute(request)) {
-            chain.doFilter(request, response);
-            return;
-        }
 
         String tokenHeader = request.getHeader(HEADER_AUTHORIZATION);
         String refreshToken = request.getHeader("X-New-Refresh-Token");
@@ -110,7 +111,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             String refreshToken) throws IOException, ServletException {
         try {
             Claims claims = JwtConfig.obtainClaims(refreshToken);
-            String userEmail = JwtConfig.getClaim(claims, "user");
+            String userEmail = JwtConfig.getSubject(claims);
 
             if (!validateTokenNotRevoked(userEmail, claims.getIssuedAt())) {
                 sendUnauthorizedError(response);
@@ -124,8 +125,8 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             }
 
             AuthModel authModel = authOptional.get();
-            Collection<GrantedAuthority> authorities = Collections
-                    .singletonList(new SimpleGrantedAuthority(authModel.getRole()));
+            Collection<GrantedAuthority> authorities = AuthorityUtils
+                    .commaSeparatedStringToAuthorityList(authModel.getRole());
 
             // Generar nuevo Session Token
             String newSessionToken = JwtConfig.createSessionToken(userEmail, authorities);

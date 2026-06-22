@@ -35,4 +35,17 @@ A diferencia de `QuoterModel`, el `status` general de un `TransactionModel` es e
 - Si **al menos una** comisión en el arreglo está en `Conflictivo`, el estado de la transacción completa será `Conflictivo`, sirviendo de bandera roja para el administrador de que el ciclo de vida de este negocio aún no ha terminado.
 
 ### 3.4 Trazabilidad Constante (`PaymentModel`)
+### 3.4 Trazabilidad Constante (`PaymentModel`)
 Cualquier respuesta de un banco o administrador sobre una nómina (ya sea `Pagado` o `Conflictivo`) generará la inserción de un `PaymentModel`. Si el pago fue `Conflictivo`, el modelo incluirá un campo `note` explicando el porqué y se gatillará un envío de correo al usuario para que subsane sus datos.
+
+### 3.5. Inmutabilidad de Referidores e Integridad
+- **No cambio de referidor**: Un usuario cuando es referido, luego no puede cambiar de referidor.
+- **Protección de eliminación**: No se permite eliminar un usuario si este tiene transacciones pendientes, protegiendo así la integridad referencial de los pagos pendientes.
+- **Bandera `userReferringFound`**: Para evitar que las comisiones exitosas (ej. del comprador) queden bloqueadas si falla la búsqueda de un referidor, el método `generateTransaction` omite cambiar esta bandera a `false` frente a excepciones. De esta forma la transacción se crea de todos modos con los usuarios encontrados. La bandera es gestionada de manera exclusiva en `finalizeQuote` (quien marcará el error sólo si no halla a los usuarios que *ya estaban* guardados en la transacción).
+
+### 3.6. Protección Financiera Ante Cambios de Variables de Entorno
+Al liquidar comisiones en `finalizeQuote`, el sistema ignora las variables de entorno actuales (ej. `commissionUserC`). En su lugar, lee directamente de la memoria (`transactionDB.getCommissions()`) usando `getUserCommission()`. Esto garantiza que si mañana cambian los montos de comisión definidos desde el inicio de la APP, las cotizaciones y transacciones pendientes antiguas cierren con el monto **histórico exacto** con el que fueron creadas, mitigando cualquier riesgo de descuadre financiero.
+
+### 3.7. Estandarización de Respuestas
+- **Manejo de Tildes**: Por regla general en todo el código, los comentarios o mensajes de respuestas (tanto logs como mensajes JSON al frontend) deben escribirse **sin tildes** para no tener problemas de codificación de caracteres en los distintos entornos.
+- **Formato Estándar**: Las respuestas de negocio deben seguir un formato consistente, por ejemplo, utilizando `DataHelper.buildUser(userC, data)` incluso en caminos alternativos (como el bloqueo de doble clic en `generateTransaction`), omitiendo identificadores internos que no aporten valor al frontend (como el `transactionId` si la transacción ya existía).
