@@ -12,6 +12,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -181,6 +182,7 @@ public class EmailAppProvider {
         }
     }
 
+    @Async
     public void sendQuoteDetails(UserModel userDB, QuoterModel quoterDB) {
         // Se envía email al usuario de la app para seguimiento de cotización y al comprador de la cotización
         UserDataModel userDataDB = userDB.getPersonalData();

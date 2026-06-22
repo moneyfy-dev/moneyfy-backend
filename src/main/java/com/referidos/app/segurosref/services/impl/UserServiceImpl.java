@@ -1,4 +1,5 @@
 package com.referidos.app.segurosref.services.impl;
+
 import com.referidos.app.segurosref.services.UserService;
 
 import java.io.IOException;
@@ -8,7 +9,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
@@ -21,8 +24,6 @@ import org.springframework.validation.Errors;
 import com.referidos.app.segurosref.dtos.ReferredDto;
 import com.referidos.app.segurosref.dtos.UserCommissionDto;
 import com.referidos.app.segurosref.dtos.earning.DailyCommissionDto;
-import com.referidos.app.segurosref.dtos.earning.DailyDataDto;
-import com.referidos.app.segurosref.dtos.earning.LastDaysEarningDto;
 import com.referidos.app.segurosref.dtos.earning.LastMonthsEarningDto;
 import com.referidos.app.segurosref.dtos.earning.MonthlyDataDto;
 import com.referidos.app.segurosref.helpers.ResponseHelper;
@@ -229,9 +230,9 @@ public class UserServiceImpl implements UserService {
         List<UserCommissionDto> userCommissions = new ArrayList<>();
         List<TransactionModel> transactionsDB = transactionRepository
                 .findAllByCommissions_UserIdAndStatusPassed(userId);
+        Map<String, String> cachedSellers = new HashMap<>();
         // Buscamos por las comisiones de las transacciones, donde el id del usuario de
-        // la comisión, sea igual al id del
-        // usuario que está realizando la consulta
+        // la comisión, sea igual al id del usuario que está realizando la consulta
         for (TransactionModel transactionDB : transactionsDB) {
             String transactionId = transactionDB.getTransactionId();
             String transactionUserId = transactionDB.getUserId();
@@ -246,14 +247,18 @@ public class UserServiceImpl implements UserService {
                     // Buscamos el vendedor del plan
                     if (userId.equals(transactionUserId)) {
                         seller = userDataDB.getName() + " " + userDataDB.getSurname();
+                    } else if (cachedSellers.containsKey(transactionUserId)) {
+                        seller = cachedSellers.get(transactionUserId);
                     } else {
                         try {
                             UserModel userSeller = userRepository.findById(new ObjectId(transactionUserId))
                                     .orElseThrow();
                             UserDataModel userDataSeller = userSeller.getPersonalData();
                             seller = userDataSeller.getName() + " " + userDataSeller.getSurname();
+                            cachedSellers.put(transactionUserId, seller);
                         } catch (Exception e) {
                             seller = "Sin especificar";
+                            cachedSellers.put(transactionUserId, seller);
                         }
                     }
                     userCommissions.add(new UserCommissionDto(transactionId, seller, status, userCommission,
@@ -276,58 +281,6 @@ public class UserServiceImpl implements UserService {
                 DataHelper.buildUser(userDB, "userPayments", userPayments));
     }
 
-    // SERVICIO PARA OBTENER LAS GANANCIAS DEL USUARIO EN LOS ÚLTIMOS 7 DÍAS
-    @Transactional(readOnly = true)
-    @Override
-    public ResponseEntity<GeneralResponse> weeklyEarnings(String emailAuth) {
-        UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
-        String userId = userDB.getUserId();
-        LocalDateTime currentDate = LocalDateTime.now();
-        DateTimeFormatter formatterDate = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        // Obtención de fecha de hace 6 días (7 días contando el actual)
-        LocalDateTime lastDay = currentDate.minusDays(6)
-                .withHour(0)
-                .withMinute(0)
-                .withSecond(0)
-                .withNano(0);
-        // Buscamos todas las transacciones con algún estado aceptado y que la fecha en
-        // la que fue aprobada la transacción, haya sea igual o superior a la fecha
-        // previamente obtenida.
-        List<TransactionModel> transactionsDB = transactionRepository
-                .findAllByApprovalDateAfterAndCommissions_UserIdAndStatusPassed(lastDay, userId);
-        LastDaysEarningDto earningDto = new LastDaysEarningDto(
-                this.addDaysToEarnings(lastDay, formatterDate),
-                0, 0, lastDay.format(formatterDate));
-        int finalCommissions = 0;
-        int finalAmount = 0;
-        for (TransactionModel transactionDB : transactionsDB) {
-            String transacionId = transactionDB.getTransactionId();
-            String approvalDate = transactionDB.getApprovalDate().format(formatterDate);
-            for (TransactionComissionModel commissionDB : transactionDB.getCommissions()) {
-                String transactionUserId = commissionDB.getUserId();
-                int transactionCommission = commissionDB.getUserCommission();
-                if (userId.equals(transactionUserId)) {
-                    if (!this.addCommissionToDailyEarnings(earningDto, transacionId,
-                            approvalDate, transactionCommission)) {
-                        return ResponseHelper.locked("no se pudo encontrar el día, al que corresponde la comisión",
-                                null);
-                    }
-                    finalCommissions += transactionCommission;
-                    finalAmount += 1;
-                    break;
-                }
-            }
-        }
-        // Se vuelven a establecer los valores finales
-        earningDto.setFinalCommissions(finalCommissions);
-        earningDto.setFinalAmount(finalAmount);
-        return ResponseHelper.ok("se han recuperado las comisiones aceptadas de los últimos 7 días del usuario",
-                DataHelper.buildUser(userDB, "weeklyEarnings", earningDto));
-    }
-
-    // SERVICIOS HELPERS PARA OBTENER LAS GANANCIAS DE LOS ÚLTIMOS 7 DÍAS DEL
-    // USUARIO
-    // Crea la estructura de la data de cada día
     @Transactional(readOnly = true)
     @Override
     public ResponseEntity<GeneralResponse> monthlyEarnings(String emailAuth) {
@@ -369,7 +322,7 @@ public class UserServiceImpl implements UserService {
                 int transactionCommission = commissionDB.getUserCommission();
                 if (!this.addCommissionToMonthlyEarnings(earningDto, transactionId,
                         approvalMonth, transactionCommission)) {
-                    return ResponseHelper.locked("no se pudo encontrar el mes, al que corresponde la comisiÃ³n",
+                    return ResponseHelper.locked("no se pudo encontrar el mes, al que corresponde la comision",
                             null);
                 }
                 finalCommissions += transactionCommission;
@@ -380,34 +333,8 @@ public class UserServiceImpl implements UserService {
 
         earningDto.setFinalCommissions(finalCommissions);
         earningDto.setFinalAmount(finalAmount);
-        return ResponseHelper.ok("se han recuperado las comisiones aceptadas de los Ãºltimos 5 meses del usuario",
+        return ResponseHelper.ok("se han recuperado las comisiones aceptadas de los ultimos 5 meses del usuario",
                 DataHelper.buildUser(userDB, "monthlyEarnings", earningDto));
-    }
-
-    private List<DailyDataDto> addDaysToEarnings(LocalDateTime lastDay, DateTimeFormatter formatterDate) {
-        List<DailyDataDto> list = new ArrayList<>();
-        // Agregamos desde el día más reciente hasta el más antiguo o viceversa
-        for (int i = 6; i >= 0; i--) {
-            String dayStr = lastDay.plusDays(i).toLocalDate().format(formatterDate);
-            list.add(new DailyDataDto(dayStr, 0, 0, new ArrayList<>()));
-        }
-        return list;
-    }
-
-    // Asigna una comisión al día correspondiente
-    private boolean addCommissionToDailyEarnings(LastDaysEarningDto earningDto, String transacionId,
-            String approvalDateStr, int transactionCommission) {
-        for (DailyDataDto dayDto : earningDto.getDays()) {
-            if (approvalDateStr.equals(dayDto.getDate())) {
-                int totalCommissions = dayDto.getTotalCommission() + transactionCommission;
-                int totalAmount = dayDto.getTotalAmount() + 1;
-                dayDto.setTotalCommission(totalCommissions);
-                dayDto.setTotalAmount(totalAmount);
-                dayDto.addCommission(new DailyCommissionDto(transacionId, transactionCommission));
-                return true;
-            }
-        }
-        return false;
     }
 
     private List<MonthlyDataDto> addMonthsToEarnings(LocalDateTime firstMonth, DateTimeFormatter formatterMonth) {

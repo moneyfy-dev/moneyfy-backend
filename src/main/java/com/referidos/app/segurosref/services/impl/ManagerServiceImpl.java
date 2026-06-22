@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.NoSuchElementException;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.referidos.app.segurosref.models.ManagerModel;
@@ -43,8 +42,6 @@ import com.referidos.app.segurosref.integrations.email.providers.EmailAppProvide
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
-import com.referidos.app.segurosref.models.ReferredModel;
-import com.referidos.app.segurosref.repositories.ReferredRepository;
 import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
 import org.springframework.stereotype.Service;
 
@@ -79,7 +76,6 @@ public class ManagerServiceImpl implements ManagerService {
     private final UserRepository userRepository;
     private final PaymentRepository paymentRepository;
     private final MongoTemplate mongoTemplate;
-    private final ReferredRepository referredRepository;
     private final EmailAppProvider emailAppProvider;
 
     private final ManagerRepository managerRepository;
@@ -549,90 +545,60 @@ public class ManagerServiceImpl implements ManagerService {
                 }
 
                 String transactionId = transactionDB.getTransactionId();
-                int commissionScope = transactionDB.getCommissionScope();
                 boolean isTrasactionApproved = pointOfTransactionStatus.equals("Aprobado");
                 List<UserModel> updateUsers = new ArrayList<>();
                 boolean errorEnReferidos = false;
 
-                UserModel userB = null;
-                UserModel userA = null;
-
-                // Buscamos a los referidores PRIMERO, para no ensuciar la wallet en caso de
-                // fallo
-                try {
-                    String currentUserEmail = userC.getPersonalData().getEmail();
-                    if (commissionScope > 1) {
-                        ReferredModel referredByUserB = referredRepository.findByReferred(currentUserEmail)
-                                .orElseThrow();
-                        String emailUserB = referredByUserB.getUserReferring();
-                        String codeToReferB = referredByUserB.getCodeToRefer();
-                        userB = userRepository.findByPersonalData_EmailAndCodeToRefer(emailUserB, codeToReferB)
-                                .orElseThrow();
-                        if (usersToSave.containsKey(userB.getUserId()))
-                            userB = usersToSave.get(userB.getUserId());
-
-                        if (commissionScope > 2) {
-                            ReferredModel referredByUserA = referredRepository.findByReferred(emailUserB).orElseThrow();
-                            String emailUserA = referredByUserA.getUserReferring();
-                            String codeToReferA = referredByUserA.getCodeToRefer();
-                            userA = userRepository.findByPersonalData_EmailAndCodeToRefer(emailUserA, codeToReferA)
-                                    .orElseThrow();
-                            if (usersToSave.containsKey(userA.getUserId()))
-                                userA = usersToSave.get(userA.getUserId());
+                // 1. Validamos que todos los usuarios de la comisión existan en la BD
+                for (TransactionComissionModel commission : transactionDB.getCommissions()) {
+                    String commUserId = commission.getUserId();
+                    if (!usersToSave.containsKey(commUserId) && !commUserId.equals(userC.getUserId())) {
+                        Optional<UserModel> userOpt = userRepository.findById(new ObjectId(commUserId));
+                        if (userOpt.isPresent()) {
+                            usersToSave.put(commUserId, userOpt.get());
+                        } else {
+                            errorEnReferidos = true;
+                            message = "Ha ocurrido una excepción en la transacción N°" + transactionId
+                                    + ", no se ha podido encontrar al usuario comisionista con ID: " + commUserId;
+                            LOGGER_MESSAGES.info("Usuario " + userId + " - Cotización " + quoterId + ": " + message);
+                            break;
                         }
                     }
-                } catch (NoSuchElementException e) {
-                    errorEnReferidos = true;
-                    message = "Ha ocurrido un excepción en la transacción N°" + transactionId
-                            + ", el alcance de la comisión es " + commissionScope + ", y ";
-                    if (userB == null) {
-                        message += "no se ha podido encontrar el usuario referidor B";
-                        message += (commissionScope == 2) ? "" : " y por lo tanto, tampoco el usuario referidor A";
-                    } else {
-                        message += "no se ha podido encontrar el usuario referidor A";
-                    }
-                    LOGGER_MESSAGES.info("Usuario " + userId + " - Cotización " + quoterId + ": " + message);
                 }
 
                 if (errorEnReferidos) {
-                    // Si hay error en referidos, NO actualizamos wallets ni cotizaciones, solo el
-                    // flag de la transaccion
+                    // Si hay error, NO actualizamos wallets ni cotizaciones, solo el flag de la
+                    // transaccion
                     transactionDB.setUserReferringFound(false);
                     transactionsToSave.put(transactionDB.getTransactionId(), transactionDB);
                     quotesResultList.add(Map.of("quoterId", quoterId, "message", message + " - Requiere revisión"));
                     continue;
                 }
 
-                // Sin error, ahora SI actualizamos Wallets
-                WalletModel walletC = userC.getWallet();
-                int outstandingBalanceC = walletC.getOutstandingBalance() - commissionUserC;
-                walletC.setOutstandingBalance(outstandingBalanceC);
-                int availableBalanceC = walletC.getAvailableBalance();
-                walletC.setAvailableBalance(
-                        (isTrasactionApproved) ? (availableBalanceC + commissionUserC) : availableBalanceC);
-                walletC.setTotalBalance(walletC.getOutstandingBalance() + walletC.getAvailableBalance());
-                updateUsers.add(userC);
+                // 2. Sin error, ahora SI actualizamos Wallets usando los montos históricos
+                // guardados
+                for (TransactionComissionModel commission : transactionDB.getCommissions()) {
+                    String commUserId = commission.getUserId();
+                    UserModel userToUpdate;
 
-                if (userB != null) {
-                    WalletModel walletB = userB.getWallet();
-                    int outstandingBalanceB = walletB.getOutstandingBalance() - commissionUserB;
-                    walletB.setOutstandingBalance(outstandingBalanceB);
-                    int availableBalanceB = walletB.getAvailableBalance();
-                    walletB.setAvailableBalance(
-                            (isTrasactionApproved) ? (availableBalanceB + commissionUserB) : availableBalanceB);
-                    walletB.setTotalBalance(walletB.getOutstandingBalance() + walletB.getAvailableBalance());
-                    updateUsers.add(userB);
-                }
+                    if (commUserId.equals(userC.getUserId())) {
+                        userToUpdate = userC;
+                    } else {
+                        userToUpdate = usersToSave.get(commUserId);
+                    }
 
-                if (userA != null) {
-                    WalletModel walletA = userA.getWallet();
-                    int outstandingBalanceA = walletA.getOutstandingBalance() - commissionUserA;
-                    walletA.setOutstandingBalance(outstandingBalanceA);
-                    int availableBalanceA = walletA.getAvailableBalance();
-                    walletA.setAvailableBalance(
-                            (isTrasactionApproved) ? (availableBalanceA + commissionUserA) : availableBalanceA);
-                    walletA.setTotalBalance(walletA.getOutstandingBalance() + walletA.getAvailableBalance());
-                    updateUsers.add(userA);
+                    WalletModel wallet = userToUpdate.getWallet();
+                    int commAmount = commission.getUserCommission();
+
+                    int outstandingBalance = wallet.getOutstandingBalance() - commAmount;
+                    wallet.setOutstandingBalance(outstandingBalance);
+
+                    int availableBalance = wallet.getAvailableBalance();
+                    wallet.setAvailableBalance(
+                            (isTrasactionApproved) ? (availableBalance + commAmount) : availableBalance);
+
+                    wallet.setTotalBalance(wallet.getOutstandingBalance() + wallet.getAvailableBalance());
+                    updateUsers.add(userToUpdate);
                 }
 
                 // Actualizamos estados y fechas
@@ -749,7 +715,7 @@ public class ManagerServiceImpl implements ManagerService {
                 boolean userCommissionApproved = false;
                 if (tx.getCommissions() != null) {
                     for (TransactionComissionModel comm : tx.getCommissions()) {
-                        if (comm.getUserId().equals(userId) && "Aprobado".equals(comm.getCommissionStatus())) {
+                        if (comm.getUserId().equals(userId) && ("Aprobado".equals(comm.getCommissionStatus()) || "Conflictivo".equals(comm.getCommissionStatus()))) {
                             userCommissionApproved = true;
                             break;
                         }
@@ -765,7 +731,7 @@ public class ManagerServiceImpl implements ManagerService {
 
             if (!validTransactions || userTransactions.size() != transactionIds.size()) {
                 failedPayments.add(new FailedPaymentDto(userId, transactionIds,
-                        "Una o más transacciones no existen o no están en estado Aprobado para este usuario (Todo o Nada)"));
+                        "Una o más transacciones no existen o no están en estado Aprobado o Conflictivo para este usuario (Todo o Nada)"));
                 continue; // Todo o Nada
             }
 
@@ -796,6 +762,15 @@ public class ManagerServiceImpl implements ManagerService {
                 wallet.setAvailableBalance(currentAvailable - userQuote.getUserPayment());
                 wallet.setTotalBalance(wallet.getAvailableBalance() + wallet.getOutstandingBalance());
                 wallet.setPaymentBalance(wallet.getPaymentBalance() + userQuote.getUserPayment());
+                
+                // Crear Payment obligatoriamente
+                ObjectId newPaymentId = new ObjectId();
+                PaymentModel payment = new PaymentModel(newPaymentId, userId, userQuote.getUserAccount(),
+                        userQuote.getUserPayment(),
+                        userVoucher, userNote, transactionIds, now, now);
+                paymentsToSave.add(payment);
+                
+                wallet.addPaymentId(newPaymentId.toString());
             } else {
                 // Enviar correo si es Conflictivo
                 String userEmail = user.getPersonalData() != null ? user.getPersonalData().getEmail() : null;
@@ -803,15 +778,6 @@ public class ManagerServiceImpl implements ManagerService {
                     emailAppProvider.notifyConflictivePayment(userEmail, userNote);
                 }
             }
-
-            // Crear Payment obligatoriamente
-            ObjectId newPaymentId = new ObjectId();
-            PaymentModel payment = new PaymentModel(newPaymentId, userId, userQuote.getUserAccount(),
-                    userQuote.getUserPayment(),
-                    userVoucher, transactionStatus, userNote, transactionIds, now, now);
-            paymentsToSave.add(payment);
-
-            wallet.addPaymentId(newPaymentId.toString());
 
             // Actualizar Transacciones y Comisiones
             for (TransactionModel tx : userTransactions) {
@@ -935,30 +901,14 @@ public class ManagerServiceImpl implements ManagerService {
         LocalDateTime dateTo = request.getDateTo().atTime(23, 59, 59);
 
         List<TransactionModel> approvedTransactions = transactionRepository
-                .findAllByApprovalDateBetweenAndStatus(dateFrom, dateTo, "Aprobado");
+                .findAllByApprovalDateBetweenAndStatusIn(dateFrom, dateTo, List.of("Aprobado", "Conflictivo"));
 
         Map<String, List<TransactionModel>> transactionsByUser = new HashMap<>();
-
-        // Agrupar transacciones por userId a partir de las comisiones en estado
-        // Aprobado
-        // También detectar si el usuario tiene transacciones en estado Conflictivo
-        // globalmente
-        Set<String> usersWithConflicts = new HashSet<>();
-        List<TransactionModel> conflictiveTransactions = transactionRepository.findAllByStatus("Conflictivo");
-        for (TransactionModel ctx : conflictiveTransactions) {
-            if (ctx.getCommissions() != null) {
-                for (TransactionComissionModel ccomm : ctx.getCommissions()) {
-                    if ("Conflictivo".equals(ccomm.getCommissionStatus())) {
-                        usersWithConflicts.add(ccomm.getUserId());
-                    }
-                }
-            }
-        }
 
         for (TransactionModel tx : approvedTransactions) {
             if (tx.getCommissions() != null) {
                 for (TransactionComissionModel comm : tx.getCommissions()) {
-                    if ("Aprobado".equals(comm.getCommissionStatus())) {
+                    if ("Aprobado".equals(comm.getCommissionStatus()) || "Conflictivo".equals(comm.getCommissionStatus())) {
                         String userId = comm.getUserId();
                         transactionsByUser.computeIfAbsent(userId, k -> new ArrayList<>()).add(tx);
                     }
@@ -999,10 +949,7 @@ public class ManagerServiceImpl implements ManagerService {
                     ? user.getPersonalData().getName() + " " + user.getPersonalData().getSurname()
                     : "N/A";
 
-            if (usersWithConflicts.contains(userId)) {
-                conflicts.add(new ConflictDto(userId, userName,
-                        "Advertencia: El usuario tiene otras comisiones en estado Conflictivo pendientes de revisión. Sin embargo, sus comisiones aprobadas están en la nómina."));
-            }
+
 
             AccountModel selectedAccount = null;
             if (user.getAccounts() != null) {
@@ -1011,8 +958,12 @@ public class ManagerServiceImpl implements ManagerService {
             }
 
             if (selectedAccount == null) {
+                if (user.getPersonalData() != null && user.getPersonalData().getEmail() != null) {
+                    emailAppProvider.notifyConflictivePayment(user.getPersonalData().getEmail(), 
+                        "No hemos podido generar la nómina de tus comisiones debido a que no tienes una cuenta bancaria confirmada. Por favor, actualiza tus datos en la plataforma para gestionar tus pagos.");
+                }
                 conflicts.add(new ConflictDto(userId, userName,
-                        "Usuario no tiene cuenta bancaria confirmada/seleccionada"));
+                        "Usuario no tiene cuenta bancaria confirmada/seleccionada. Se notificó al usuario por correo electrónico y fue excluido de la nómina."));
                 continue;
             }
 
@@ -1022,7 +973,7 @@ public class ManagerServiceImpl implements ManagerService {
             for (TransactionModel tx : userTransactions) {
                 transactionIds.add(tx.getTransactionId());
                 for (TransactionComissionModel comm : tx.getCommissions()) {
-                    if (comm.getUserId().equals(userId) && "Aprobado".equals(comm.getCommissionStatus())) {
+                    if (comm.getUserId().equals(userId) && ("Aprobado".equals(comm.getCommissionStatus()) || "Conflictivo".equals(comm.getCommissionStatus()))) {
                         calculatedTotal += comm.getUserCommission();
                     }
                 }
@@ -1059,6 +1010,7 @@ public class ManagerServiceImpl implements ManagerService {
                 Map.of("report", new PayQuotesReportResponse(bankPayroll, backendPayload,
                         conflicts), "manager", managerDto));
     }
+
     @Override
     public ResponseEntity<?> getMoneyfyersDashboard() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -1080,23 +1032,28 @@ public class ManagerServiceImpl implements ManagerService {
         operations.add(Aggregation.project()
                 .and("commissions.userId").as("receptorId")
                 .and(ComparisonOperators.Eq.valueOf("userId").equalTo("commissions.userId")).as("isOwn")
-                .and(ConditionalOperators.when(Criteria.where("commissions.commissionStatus").in("Aprobado", "Conflictivo", "Pagado"))
-                        .thenValueOf("commissions.userCommission").otherwise(0)).as("validCommission")
-                .and(ConditionalOperators.when(Criteria.where("commissions.commissionStatus").in("Aprobado", "Conflictivo"))
-                        .thenValueOf("commissions.userCommission").otherwise(0)).as("pendingCommission")
+                .and(ConditionalOperators
+                        .when(Criteria.where("commissions.commissionStatus").in("Aprobado", "Conflictivo", "Pagado"))
+                        .thenValueOf("commissions.userCommission").otherwise(0))
+                .as("validCommission")
+                .and(ConditionalOperators
+                        .when(Criteria.where("commissions.commissionStatus").in("Aprobado", "Conflictivo"))
+                        .thenValueOf("commissions.userCommission").otherwise(0))
+                .as("pendingCommission")
                 .and(ConditionalOperators.when(Criteria.where("commissions.commissionStatus").is("Pagado"))
-                        .thenValueOf("commissions.userCommission").otherwise(0)).as("paidCommission")
-        );
+                        .thenValueOf("commissions.userCommission").otherwise(0))
+                .as("paidCommission"));
 
         operations.add(Aggregation.group("receptorId")
                 .count().as("realizedCommissions")
                 .sum("pendingCommission").as("pendingPayments")
                 .sum("paidCommission").as("paidCommissions")
                 .sum(ConditionalOperators.when(Criteria.where("isOwn").is(true))
-                        .thenValueOf("validCommission").otherwise(0)).as("ownCommissions")
+                        .thenValueOf("validCommission").otherwise(0))
+                .as("ownCommissions")
                 .sum(ConditionalOperators.when(Criteria.where("isOwn").is(false))
-                        .thenValueOf("validCommission").otherwise(0)).as("referredCommissions")
-        );
+                        .thenValueOf("validCommission").otherwise(0))
+                .as("referredCommissions"));
 
         Aggregation aggregation = Aggregation.newAggregation(operations);
         AggregationResults<Document> results = mongoTemplate.aggregate(aggregation, "transactions", Document.class);
@@ -1125,7 +1082,9 @@ public class ManagerServiceImpl implements ManagerService {
 
             moneyfyers.add(MoneyfyerDto.builder()
                     .idUser(uId)
-                    .userFullname(user.getPersonalData() != null ? user.getPersonalData().getName() + " " + user.getPersonalData().getSurname() : "N/A")
+                    .userFullname(user.getPersonalData() != null
+                            ? user.getPersonalData().getName() + " " + user.getPersonalData().getSurname()
+                            : "N/A")
                     .userEmail(user.getPersonalData() != null ? user.getPersonalData().getEmail() : "N/A")
                     .userPhone(user.getPersonalData() != null ? user.getPersonalData().getPhone() : "N/A")
                     .activeAccount(activeAccount)
@@ -1138,7 +1097,8 @@ public class ManagerServiceImpl implements ManagerService {
                     .build());
         }
 
-        return ResponseEntity.ok(new MoneyfyersResponseDto("Moneyfyers recuperados exitosamente", 200, moneyfyers, managerDto));
+        return ResponseEntity
+                .ok(new MoneyfyersResponseDto("Moneyfyers recuperados exitosamente", 200, moneyfyers, managerDto));
     }
 
 }
