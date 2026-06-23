@@ -105,7 +105,7 @@ public class QuoterServiceImpl implements QuoterService {
     @Override
     public ResponseEntity<?> searchVehicleBrands(String emailAuth) {
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
-        // Error en caso de que el usuario aÃºn no tenga cuentas bancarias registradas
+        // Error en caso de que el usuario aun no tenga cuentas bancarias registradas
         if (!DataHelper.accountAvailable(userDB)) {
             return ResponseHelper.locked(
                     "debe asegurarse de tener una cuenta bancaria para recibir las comisiones, antes de cotizar seguros",
@@ -113,7 +113,7 @@ public class QuoterServiceImpl implements QuoterService {
         }
         List<BrandModel> brandsDB = brandRepository.findAll();
         List<VehicleBrandDto> brandsDto = new ArrayList<>();
-        // Por cada registro de marcas de vehÃ­culos, generamos un objeto dto de la
+        // Por cada registro de marcas de vehiculos, generamos un objeto dto de la
         // marca, que se le anidan los objetos dto de los modelos de la marca
         for (BrandModel brandDB : brandsDB) {
             List<VehicleModelDto> modelsDto = new ArrayList<>();
@@ -122,7 +122,7 @@ public class QuoterServiceImpl implements QuoterService {
             }
             brandsDto.add(new VehicleBrandDto(brandDB.getBrandId(), brandDB.getBrand(), modelsDto));
         }
-        return ResponseHelper.ok("se ha traido la lista de las marcas de los vehÃ­culos disponibles",
+        return ResponseHelper.ok("se ha traido la lista de las marcas de los vehiculos disponibles",
                 DataHelper.buildUser(userDB, "brands", brandsDto));
     }
 
@@ -142,27 +142,27 @@ public class QuoterServiceImpl implements QuoterService {
     @Override
     public ResponseEntity<?> searchVehicle(SearchVehicleRequest searchVehicle, String emailAuth) {
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
-        // Error en caso de que el usuario aÃºn no tenga cuentas bancarias registradas
+        // Error en caso de que el usuario aun no tenga cuentas bancarias registradas
         if (!DataHelper.accountAvailable(userDB)) {
             return ResponseHelper.locked(
                     "debe asegurarse de tener una cuenta bancaria para recibir las comisiones, antes de cotizar seguros",
                     null);
         }
-        String ppu = searchVehicle.ppu().toUpperCase(); // Patente del vehÃ­culo a mayÃºsculas
-        String ownerId = searchVehicle.ownerId().toUpperCase(); // Rut de propietario a mayÃºsculas por la 'k'
+        String ppu = searchVehicle.ppu().toUpperCase(); // Patente del vehiculo a mayusculas
+        String ownerId = searchVehicle.ownerId().toUpperCase(); // Rut de propietario a mayusculas por la 'k'
 
-        // Consultar cliente externo BCI para datos del vehÃ­culo
+        // Consultar cliente externo BCI para datos del vehiculo
         BCIVehicleResponsePojo vehicleResponse = bciVehicleClient.searchVehicle(ppu);
 
         QuoterCarModel vehicleFound;
         VehicleDto vehicleDto;
 
         if (vehicleResponse.hasError()) {
-            // Error en la API externa o no encontrado: se dejan los campos vacÃ­os
+            // Error en la API externa o no encontrado: se dejan los campos vacios
             vehicleFound = new QuoterCarModel(ppu, "", "", "", "", "", "", "", "");
             vehicleDto = new VehicleDto(ppu, "", "", "", "", "", "", "", "", false);
         } else {
-            // BÃºsqueda exitosa
+            // Busqueda exitosa
             BCIVehicleResponsePojo.Resultado resultado = vehicleResponse.getResultado();
             vehicleFound = new QuoterCarModel(
                     ppu,
@@ -203,7 +203,7 @@ public class QuoterServiceImpl implements QuoterService {
                 break;
             }
         }
-        // Si no se encontrÃ³ registro existente, se crea una nueva cotizaciÃ³n
+        // Si no se encontro registro existente, se crea una nueva cotizacion
         if (userQuoter == null) {
             QuoterOwnerModel quoterOwner = new QuoterOwnerModel(ownerId, "", "", "");
             QuoterPurchaserModel quoterPurchaser = new QuoterPurchaserModel("", "", "", "", "", "", "");
@@ -222,7 +222,7 @@ public class QuoterServiceImpl implements QuoterService {
                     .fromCode(vehicleResponse.getInternalErrorCode()).getErrorDescription());
         }
 
-        return ResponseHelper.created("se ha realizado la cotizaciÃ³n exitosamente",
+        return ResponseHelper.created("se ha realizado la cotizacion exitosamente",
                 DataHelper.buildUser(userDB, dataResponse));
     }
 
@@ -233,7 +233,7 @@ public class QuoterServiceImpl implements QuoterService {
         // Si llega, es porque se validaron los datos, por lo tanto, los recuperamos
         UserModel userDB = userRepository.findByPersonalData_Email(emailAuth).orElseThrow();
         // Campo opcional, porque se puede realizar una solitud directa sin pasar por la
-        // bÃºsqueda de vehÃ­culo
+        // busqueda de vehiculo
         String quoterId = (!DataHelper.isNull(searchPlan.quoterId())) ? searchPlan.quoterId() : "";
         String ppu = searchPlan.ppu().toUpperCase();
         String brand = searchPlan.brand().toUpperCase();
@@ -246,9 +246,9 @@ public class QuoterServiceImpl implements QuoterService {
         String purchaserMaternalSur = searchPlan.purchaserMaternalSur().strip();
         String purchaserEmail = searchPlan.purchaserEmail();
         String purchaserPhone = !DataHelper.isNull(searchPlan.purchaserPhone()) ? searchPlan.purchaserPhone() : ""; // Opcional
-        String ownerRelationOption = searchPlan.ownerRelationOption(); // Depende de la aseguradora si se usarÃ¡ el
+        String ownerRelationOption = searchPlan.ownerRelationOption(); // Depende de la aseguradora si se usara el
                                                                        // campo
-        // Intentamos encontrar la cotizaciÃ³n, si existe actualizamos los datos, si no
+        // Intentamos encontrar la cotizacion, si existe actualizamos los datos, si no
         // existe se crea la cotizacion
         QuoterModel userQuoter = null;
         List<QuoterModel> quoters = userDB.getQuoters();
@@ -260,12 +260,12 @@ public class QuoterServiceImpl implements QuoterService {
                 if (quoterDBId.equals(quoterId)) {
                     if (!quoterDB.getQuoterStatus().equals("Iniciando")
                             && !quoterDB.getQuoterStatus().equals(pointOfQuoterCurrentStatus)) {
-                        return ResponseHelper.locked("La cotizaciÃ³n se esta procesando", null);
+                        return ResponseHelper.locked("La cotizacion se esta procesando", null);
                     }
                     // En caso de que sea una cotizacion que venga del proceso anterior
                     // actualizamos
                     // los datos, recordar que este es un endpoint que se puede repetir como tantas
-                    // aseguradoras existan. Se debe actualizar los datos del vehÃ­culo, porque
+                    // aseguradoras existan. Se debe actualizar los datos del vehiculo, porque
                     // puede
                     // que el ingreso se haya realizado manual, pero solo los datos que vengan en la
                     // solicitud, los otros datos que no vienen, deben mantenerse con el valor que
@@ -280,7 +280,7 @@ public class QuoterServiceImpl implements QuoterService {
                         quoterCarDB = new QuoterCarModel(ppu, brand, model, year, "", "", "", "", "");
                         quoterDB.setQuoterCarData(quoterCarDB);
                     }
-                    // Se actualiza la data del comprador de la cotizaciÃ³n
+                    // Se actualiza la data del comprador de la cotizacion
                     QuoterPurchaserModel quoterPurchaserDB = quoterDB.getQuoterPurchaserData();
                     quoterPurchaserDB.setPersonalId(purchaserId);
                     quoterPurchaserDB.setName(purchaserName);
@@ -289,7 +289,7 @@ public class QuoterServiceImpl implements QuoterService {
                     quoterPurchaserDB.setEmail(purchaserEmail);
                     quoterPurchaserDB.setPhone(purchaserPhone);
                     quoterPurchaserDB.setOwnerRelationOption(ownerRelationOption);
-                    // Se actualiza el estado actual de la cotizaciÃ³n y sus metadatos
+                    // Se actualiza el estado actual de la cotizacion y sus metadatos
                     quoterDB.setQuoterStatus(pointOfQuoterCurrentStatus);
                     quoterDB.setUpdatedDate(currentDateTime);
 
@@ -298,9 +298,9 @@ public class QuoterServiceImpl implements QuoterService {
                 }
             }
         }
-        // Si la cotizaciÃ³n aÃºn no existe se debe crear
+        // Si la cotizacion aun no existe se debe crear
         if (userQuoter == null) {
-            // Primero se busca una cotizaciÃ³n existente con los datos mÃ¡s relevante del
+            // Primero se busca una cotizacion existente con los datos mas relevante del
             // proceso actual, incluyendo el estado
             boolean isQuoter = false;
             for (QuoterModel quoterDB : quoters) {
@@ -316,7 +316,7 @@ public class QuoterServiceImpl implements QuoterService {
                     break;
                 }
             }
-            // Si la cotizaciÃ³n no se encontrÃ³ con los datos actuales de la solicitud, se
+            // Si la cotizacion no se encontro con los datos actuales de la solicitud, se
             // crea porque definitivamente no existe
             if (!isQuoter) {
                 String vehicleType = "";
@@ -335,7 +335,7 @@ public class QuoterServiceImpl implements QuoterService {
                     }
                 } catch (Exception e) {
                     LOGGER_MESSAGES
-                            .info("ExcepciÃ³n al intentar autocompletar datos del vehÃ­culo BCI: " + e.getMessage());
+                            .info("Excepcion al intentar autocompletar datos del vehiculo BCI: " + e.getMessage());
                 }
 
                 QuoterOwnerModel quoterOwner = new QuoterOwnerModel("", "", "", "");
@@ -345,24 +345,24 @@ public class QuoterServiceImpl implements QuoterService {
                 QuoterPurchaserModel quoterPurchaser = new QuoterPurchaserModel(purchaserId, purchaserName,
                         purchaserPaternalSur, purchaserMaternalSur, purchaserEmail, purchaserPhone,
                         ownerRelationOption);
-                // Creamos nueva cotizaciÃ³n y la persistimos
+                // Creamos nueva cotizacion y la persistimos
                 userQuoter = quoterHelper.createQuoteStructure(quoterOwner, quoterCar, quoterPurchaser,
                         pointOfQuoterCurrentStatus, currentDateTime);
                 userDB.addQuoter(userQuoter);
             }
         }
         // Ahora entregaremos los planes, dependiendo de la aseguradora, enviando los
-        // datos del vehÃ­culo verificado.
+        // datos del vehiculo verificado.
         List<QuotationPlanDto> planList = new ArrayList<>();
         InsurerModel returnInsurerDB = new InsurerModel(null, "", "");
         returnInsurerDB.setInsurerId(new ObjectId());
         Optional<InsurerModel> insurerOptional = insurerRepository.findByAlias(insurerAlias);
-        String errorPlanFinder = "1"; // Error no se encontrÃ³ una aseguradora para la bÃºsqueda de planes
+        String errorPlanFinder = "1"; // Error no se encontro una aseguradora para la busqueda de planes
         String errorMessage = "No se encontro la aseguradora con el alias '" + insurerAlias + "'";
         String requestBody = "";
         String responseStr = "";
         // Si es una consulta a una aseguradora de prueba, se juega con delay para mejor
-        // simulaciÃ³n
+        // simulacion
         if (insurerOptional.isPresent()) {
             returnInsurerDB = insurerOptional.get();
             switch (insurerAlias) {
@@ -379,7 +379,7 @@ public class QuoterServiceImpl implements QuoterService {
                         errorPlanFinder = "0";
                         errorMessage = "Se encontro la aseguradora con los planes";
                     } catch (Exception e) {
-                        LOGGER_MESSAGES.info("\n-----\nExcepciÃ³n capturada: " + e.getMessage() + "\n-----");
+                        LOGGER_MESSAGES.info("\n-----\nExcepcion capturada: " + e.getMessage() + "\n-----");
                     }
                     break;
                 }
@@ -390,7 +390,7 @@ public class QuoterServiceImpl implements QuoterService {
                         errorPlanFinder = "0";
                         errorMessage = "Se encontro la aseguradora con los planes";
                     } catch (Exception e) {
-                        LOGGER_MESSAGES.info("\n-----\nExcepciÃ³n capturada: " + e.getMessage() + "\n-----");
+                        LOGGER_MESSAGES.info("\n-----\nExcepcion capturada: " + e.getMessage() + "\n-----");
                     }
                     break;
                 }
@@ -424,7 +424,7 @@ public class QuoterServiceImpl implements QuoterService {
                     break;
                 }
                 case "aseguradora5" -> {
-                    // MomentaneÃ³ antes del cambio de estructura de esta respuesta
+                    // Momentaneo antes del cambio de estructura de esta respuesta
                     errorPlanFinder = "0";
                     errorMessage = "Se encontro la aseguradora";
                     Object[] response = fdiQuotationClient.quoteVehicle();
@@ -520,7 +520,7 @@ public class QuoterServiceImpl implements QuoterService {
 
         QuotationDto quotationDto = new QuotationDto(userQuoter.getQuoterId(), errorPlanFinder, errorMessage,
                 requestBody, responseStr, returnInsurerDB, planList);
-        return ResponseHelper.ok("se ha realizado la cotizaciÃ³n", quotationDto);
+        return ResponseHelper.ok("se ha realizado la cotizacion", quotationDto);
     }
 
     @Override
@@ -573,7 +573,7 @@ public class QuoterServiceImpl implements QuoterService {
                 quoterDB.setQuoterStatus(pointOfQuoterCurrentStatus);
                 quoterDB.setUpdatedDate(LocalDateTime.now());
                 userDB = userRepository.save(userDB);
-                return ResponseHelper.ok("se ha seleccionado el plan de la cotizaciÃ³n",
+                return ResponseHelper.ok("se ha seleccionado el plan de la cotizacion",
                         DataHelper.buildUser(userDB, "quoterId", quoterId));
             }
         }
@@ -589,13 +589,13 @@ public class QuoterServiceImpl implements QuoterService {
         quoterId = (!DataHelper.isNull(quoterId) && ObjectId.isValid(quoterId)) ? quoterId : "";
         if (!quoterId.equals("")) {
             // El id del cotizador cumple con el formato, para buscar un registro
-            // especÃ­fico
+            // especifico
             List<QuoterModel> quoters = userC.getQuoters();
             for (QuoterModel quoterDB : quoters) {
                 String quoterIdDB = quoterDB.getQuoterId();
                 String quoterStatusDB = quoterDB.getQuoterStatus();
                 String message = "";
-                if (quoterId.equals(quoterIdDB) && quoterStatusDB.equals("Recopilando")) {
+                if (quoterId.equals(quoterIdDB)) {
                     if (transactionRepository.existsByUserIdAndQuoterId(userCId, quoterId)) {
                         message = "Su transaccion para esta cotizacion ya ha sido generada y esta siendo procesada.";
                         LOGGER_MESSAGES.info("Intento duplicado bloqueado: " + message);
@@ -603,92 +603,97 @@ public class QuoterServiceImpl implements QuoterService {
                         return ResponseHelper.ok("la transaccion se encuentra en proceso",
                                 DataHelper.buildUser(userC, data));
                     }
-                    // Se comienza a generar la transaccion con las comisiones debidas
-                    String transactionId = new ObjectId().toString();
-                    int commissionScope = 1; // Comienzo de nivel encontrado para entregar comisiones
-                    int commissionTotal = commissionUserC; // Comienzo de la comision total que se lleva la venta
-                    String pointOfCurrentStatus = "Pendiente";
-                    LocalDateTime currentDateTime = LocalDateTime.now();
-                    TransactionModel novaTransaction = quoterHelper.generateNovaTransactionStructure(transactionId,
-                            userCId, quoterDB, pointOfCurrentStatus, commissionTotal, commissionScope,
-                            "La comisión está siendo procesada", currentDateTime);
-                    List<UserModel> users = new ArrayList<>(); // Usuarios que se tienen que actualizar por el ajuste de
-                                                               // la wallet
-                    // Comenzamos a actualizar la data de la wallet del usuario.
-                    WalletModel walletC = userC.getWallet();
-                    walletC.setOutstandingBalance(walletC.getOutstandingBalance() + commissionUserC);
-                    walletC.setTotalBalance(walletC.getOutstandingBalance() + walletC.getAvailableBalance());
-                    users.add(userC);
-                    // Ver si existe el userB y userA, para ajustar transacciÃ³n
-                    String emailUserB = "";
-                    String emailUserA = "";
-                    try {
-                        // IMPORTANTE: Se busca un userB que haya referido al userC, para agregar la
-                        // comisión correspondiente.
-                        // Si el usuario que estÃ¡ refiriendo estÃ¡ activado, tiene que haber un
-                        // registro
-                        // en la colecciÃ³n de
-                        // 'users', si no se encuentra se maneja con una respuesta errada con try/catch.
-                        Optional<ReferredModel> referredByUserB = referredRepository.findByReferred(emailAuth);
-                        if (referredByUserB.isPresent()
-                                && referredByUserB.get().getUserReferringStatus().equals("Activado")) {
-                            // Buscamos el usuario referidor y actualizamos wallet
-                            emailUserB = referredByUserB.get().getUserReferring();
-                            UserModel userB = userRepository.findByPersonalData_Email(emailUserB).orElseThrow();
-                            WalletModel walletB = userB.getWallet();
-                            walletB.setOutstandingBalance(walletB.getOutstandingBalance() + commissionUserB);
-                            walletB.setTotalBalance(walletB.getOutstandingBalance() + walletB.getAvailableBalance());
-                            users.add(userB);
-                            // Ajustamos valores de transacciÃ³n y agregamos comisiÃ³n
-                            commissionScope = 2;
-                            commissionTotal += commissionUserB;
-                            novaTransaction.addCommission(new TransactionComissionModel(userB.getUserId(),
-                                    commissionUserB, pointOfCurrentStatus, "", DataHelper.deprecatedDateTime()));
-                            // IMPORTANTE: Se busca un userA que haya referido al userB, para agregar la
-                            // comisiÃ³n correspondiente.
-                            Optional<ReferredModel> referredByUserA = referredRepository.findByReferred(emailUserB);
-                            if (referredByUserA.isPresent()
-                                    && referredByUserA.get().getUserReferringStatus().equals("Activado")) {
+                    if (quoterStatusDB.equals("Recopilando")) {
+                        // Se comienza a generar la transaccion con las comisiones debidas
+                        String transactionId = new ObjectId().toString();
+                        int commissionScope = 1; // Comienzo de nivel encontrado para entregar comisiones
+                        int commissionTotal = commissionUserC; // Comienzo de la comision total que se lleva la venta
+                        String pointOfCurrentStatus = "Pendiente";
+                        LocalDateTime currentDateTime = LocalDateTime.now();
+                        TransactionModel novaTransaction = quoterHelper.generateNovaTransactionStructure(transactionId,
+                                userCId, quoterDB, pointOfCurrentStatus, commissionTotal, commissionScope,
+                                "La comisión está siendo procesada", currentDateTime);
+                        List<UserModel> users = new ArrayList<>();
+                        // Usuarios que se tienen que actualizar por el ajuste de la wallet
+                        // Comenzamos a actualizar la data de la wallet del usuario.
+                        WalletModel walletC = userC.getWallet();
+                        walletC.setOutstandingBalance(walletC.getOutstandingBalance() + commissionUserC);
+                        walletC.setTotalBalance(walletC.getOutstandingBalance() + walletC.getAvailableBalance());
+                        users.add(userC);
+                        // Ver si existe el userB y userA, para ajustar transaccion
+                        String emailUserB = "";
+                        String emailUserA = "";
+                        try {
+                            // IMPORTANTE: Se busca un userB que haya referido al userC, para agregar la
+                            // comisión correspondiente. Si el usuario que esta refiriendo esta activado,
+                            // tiene que haber un registro en la coleccion de 'users', si no se encuentra se
+                            // maneja con una respuesta errada con try/catch.
+                            Optional<ReferredModel> referredByUserB = referredRepository.findByReferred(emailAuth);
+                            if (referredByUserB.isPresent()
+                                    && referredByUserB.get().getUserReferringStatus().equals("Activado")) {
                                 // Buscamos el usuario referidor y actualizamos wallet
-                                emailUserA = referredByUserA.get().getUserReferring();
-                                UserModel userA = userRepository.findByPersonalData_Email(emailUserA).orElseThrow();
-                                WalletModel walletA = userA.getWallet();
-                                walletA.setOutstandingBalance(walletA.getOutstandingBalance() + commissionUserA);
-                                walletA.setTotalBalance(
-                                        walletA.getOutstandingBalance() + walletA.getAvailableBalance());
-                                users.add(userA);
+                                emailUserB = referredByUserB.get().getUserReferring();
+                                UserModel userB = userRepository.findByPersonalData_Email(emailUserB).orElseThrow();
+                                WalletModel walletB = userB.getWallet();
+                                walletB.setOutstandingBalance(walletB.getOutstandingBalance() + commissionUserB);
+                                walletB.setTotalBalance(
+                                        walletB.getOutstandingBalance() + walletB.getAvailableBalance());
+                                users.add(userB);
                                 // Ajustamos valores de transaccion y agregamos comision
-                                commissionScope = 3;
-                                commissionTotal += commissionUserA;
-                                novaTransaction.addCommission(new TransactionComissionModel(userA.getUserId(),
-                                        commissionUserA, pointOfCurrentStatus, "", DataHelper.deprecatedDateTime()));
+                                commissionScope = 2;
+                                commissionTotal += commissionUserB;
+                                novaTransaction.addCommission(new TransactionComissionModel(userB.getUserId(),
+                                        commissionUserB, pointOfCurrentStatus, "", DataHelper.deprecatedDateTime()));
+                                // IMPORTANTE: Se busca un userA que haya referido al userB, para agregar la
+                                // comision correspondiente.
+                                Optional<ReferredModel> referredByUserA = referredRepository.findByReferred(emailUserB);
+                                if (referredByUserA.isPresent()
+                                        && referredByUserA.get().getUserReferringStatus().equals("Activado")) {
+                                    // Buscamos el usuario referidor y actualizamos wallet
+                                    emailUserA = referredByUserA.get().getUserReferring();
+                                    UserModel userA = userRepository.findByPersonalData_Email(emailUserA).orElseThrow();
+                                    WalletModel walletA = userA.getWallet();
+                                    walletA.setOutstandingBalance(walletA.getOutstandingBalance() + commissionUserA);
+                                    walletA.setTotalBalance(
+                                            walletA.getOutstandingBalance() + walletA.getAvailableBalance());
+                                    users.add(userA);
+                                    // Ajustamos valores de transaccion y agregamos comision
+                                    commissionScope = 3;
+                                    commissionTotal += commissionUserA;
+                                    novaTransaction.addCommission(new TransactionComissionModel(userA.getUserId(),
+                                            commissionUserA, pointOfCurrentStatus, "",
+                                            DataHelper.deprecatedDateTime()));
+                                }
                             }
+                        } catch (NoSuchElementException e) {
+                            // En caso de haber excepcion, seguimos ya que no se alcanza a actualizar
+                            // ningun dato esencial y entregamos mensaje de excepcion
+                            String referredNotFound = (novaTransaction.getCommissionScope() == 1) ? emailUserB
+                                    : emailUserA;
+                            message = "Ha ocurrido una excepción en la transacción N°" + transactionId
+                                    + ", el referido no fue encontrado: " + referredNotFound + "\n" + e.getMessage();
+                            LOGGER_MESSAGES.info(message);
                         }
-                    } catch (NoSuchElementException e) {
-                        // En caso de haber excepcion, seguimos ya que no se alcanza a actualizar
-                        // ningun dato esencial y entregamos mensaje de excepcion
-                        String referredNotFound = (novaTransaction.getCommissionScope() == 1) ? emailUserB : emailUserA;
-                        message = "Ha ocurrido una excepción en la transacción N°" + transactionId
-                                + ", el referido no fue encontrado: " + referredNotFound + "\n" + e.getMessage();
-                        LOGGER_MESSAGES.info(message);
+                        // Se actualiza el nivel de comisiones que se alcanzo a entregar la transaccion
+                        // (referidos).
+                        novaTransaction.setCommissionScope(commissionScope);
+                        novaTransaction.setCommissionTotal(commissionTotal);
+                        // Se actualizan el estado, fecha de actualizacion y se envia el detalle del
+                        // plan que se esta cotizando al usuario
+                        quoterDB.setQuoterStatus(pointOfCurrentStatus);
+                        quoterDB.setUpdatedDate(currentDateTime);
+                        emailAppProvider.sendQuoteDetails(userC, quoterDB);
+                        // Guardamos en la base de datos y retornamos el usuario de la consulta (userC),
+                        // id del cotizador, y id de la transaccion
+                        userRepository.saveAll(users);
+                        transactionRepository.save(novaTransaction);
+                        Map<String, Object> data = Map.of("quoterId", quoterId, "transactionId", transactionId,
+                                "message",
+                                message);
+                        return ResponseHelper.ok("la transaccion se ha realizado correctamente",
+                                DataHelper.buildUser(userC, data));
                     }
-                    // Se actualiza el nivel de comisiones que se alcanzo a entregar la transacciÃ³n
-                    // (referidos).
-                    novaTransaction.setCommissionScope(commissionScope);
-                    novaTransaction.setCommissionTotal(commissionTotal);
-                    // Se actualizan el estado, fecha de actualizacion y se envÃ­a el detalle del
-                    // plan que se esta cotizando al usuario
-                    quoterDB.setQuoterStatus(pointOfCurrentStatus);
-                    quoterDB.setUpdatedDate(currentDateTime);
-                    emailAppProvider.sendQuoteDetails(userC, quoterDB);
-                    // Guardamos en la base de datos y retornamos el usuario de la consulta (userC),
-                    // id del cotizador, y id de la transaccion
-                    userRepository.saveAll(users);
-                    transactionRepository.save(novaTransaction);
-                    Map<String, Object> data = Map.of("quoterId", quoterId, "transactionId", transactionId, "message",
-                            message);
-                    return ResponseHelper.ok("la trasacción se ha realizado correctamente",
-                            DataHelper.buildUser(userC, data));
+                    break;
                 }
             }
         }
