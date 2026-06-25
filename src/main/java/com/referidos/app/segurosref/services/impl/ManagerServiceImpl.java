@@ -22,8 +22,12 @@ import com.referidos.app.segurosref.repositories.ManagerRepository;
 import org.springframework.http.ResponseEntity;
 
 import com.referidos.app.segurosref.dtos.manager.FailedPaymentDto;
+import com.referidos.app.segurosref.dtos.manager.InsurerGroupDto;
 import com.referidos.app.segurosref.dtos.manager.PayQuotesReportResponse;
 import com.referidos.app.segurosref.dtos.manager.PayQuotesRequest;
+import com.referidos.app.segurosref.dtos.manager.PendingQuoteDto;
+import com.referidos.app.segurosref.dtos.manager.PendingQuoteErrorDto;
+import com.referidos.app.segurosref.dtos.manager.PendingQuotesResponseDto;
 import com.referidos.app.segurosref.dtos.manager.UserQuotePaymentDto;
 import com.referidos.app.segurosref.dtos.manager.DashboardMetricPointDto;
 import com.referidos.app.segurosref.dtos.manager.DashboardSummaryDto;
@@ -48,6 +52,7 @@ import org.springframework.stereotype.Service;
 import com.referidos.app.segurosref.dtos.manager.DashboardQuoteDto;
 import com.referidos.app.segurosref.models.QuoterModel;
 import com.referidos.app.segurosref.models.TransactionModel;
+import com.referidos.app.segurosref.models.UserDataModel;
 import com.referidos.app.segurosref.repositories.TransactionRepository;
 import com.referidos.app.segurosref.services.ManagerService;
 import com.referidos.app.segurosref.dtos.manager.BankPayrollDto;
@@ -65,6 +70,8 @@ import org.springframework.data.mongodb.core.aggregation.FacetOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import com.referidos.app.segurosref.dtos.manager.MoneyfyerDto;
 import com.referidos.app.segurosref.dtos.manager.MoneyfyersResponseDto;
+import com.referidos.app.segurosref.dtos.manager.PayQuotesReportRequest;
+
 import org.springframework.data.mongodb.core.aggregation.ConditionalOperators;
 import org.springframework.data.mongodb.core.aggregation.ComparisonOperators;
 
@@ -172,8 +179,8 @@ public class ManagerServiceImpl implements ManagerService {
         for (Document doc : dataFacet) {
             String idUser = doc.getObjectId("_id").toString();
             Document personalDataDoc = doc.get("personalData", Document.class);
-            com.referidos.app.segurosref.models.UserDataModel personalData = personalDataDoc != null
-                    ? mongoTemplate.getConverter().read(com.referidos.app.segurosref.models.UserDataModel.class,
+            UserDataModel personalData = personalDataDoc != null
+                    ? mongoTemplate.getConverter().read(UserDataModel.class,
                             personalDataDoc)
                     : null;
 
@@ -715,7 +722,8 @@ public class ManagerServiceImpl implements ManagerService {
                 boolean userCommissionApproved = false;
                 if (tx.getCommissions() != null) {
                     for (TransactionComissionModel comm : tx.getCommissions()) {
-                        if (comm.getUserId().equals(userId) && ("Aprobado".equals(comm.getCommissionStatus()) || "Conflictivo".equals(comm.getCommissionStatus()))) {
+                        if (comm.getUserId().equals(userId) && ("Aprobado".equals(comm.getCommissionStatus())
+                                || "Conflictivo".equals(comm.getCommissionStatus()))) {
                             userCommissionApproved = true;
                             break;
                         }
@@ -762,14 +770,14 @@ public class ManagerServiceImpl implements ManagerService {
                 wallet.setAvailableBalance(currentAvailable - userQuote.getUserPayment());
                 wallet.setTotalBalance(wallet.getAvailableBalance() + wallet.getOutstandingBalance());
                 wallet.setPaymentBalance(wallet.getPaymentBalance() + userQuote.getUserPayment());
-                
+
                 // Crear Payment obligatoriamente
                 ObjectId newPaymentId = new ObjectId();
                 PaymentModel payment = new PaymentModel(newPaymentId, userId, userQuote.getUserAccount(),
                         userQuote.getUserPayment(),
                         userVoucher, userNote, transactionIds, now, now);
                 paymentsToSave.add(payment);
-                
+
                 wallet.addPaymentId(newPaymentId.toString());
             } else {
                 // Enviar correo si es Conflictivo
@@ -848,7 +856,7 @@ public class ManagerServiceImpl implements ManagerService {
                     }
 
                     if (owner.getQuoters() != null) {
-                        for (com.referidos.app.segurosref.models.QuoterModel q : owner.getQuoters()) {
+                        for (QuoterModel q : owner.getQuoters()) {
                             if (q.getQuoterId().equals(tx.getQuoterId())) {
                                 q.setQuoterStatus(ownerCommissionStatus);
                                 q.setUpdatedDate(now);
@@ -878,7 +886,7 @@ public class ManagerServiceImpl implements ManagerService {
     @SuppressWarnings("null")
     @Override
     public ResponseEntity<?> generatePayQuotesReport(
-            com.referidos.app.segurosref.dtos.manager.PayQuotesReportRequest request) {
+            PayQuotesReportRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         ManagerModel managerDB = managerRepository.findByEmail(email).orElse(null);
         if (managerDB == null) {
@@ -908,7 +916,8 @@ public class ManagerServiceImpl implements ManagerService {
         for (TransactionModel tx : approvedTransactions) {
             if (tx.getCommissions() != null) {
                 for (TransactionComissionModel comm : tx.getCommissions()) {
-                    if ("Aprobado".equals(comm.getCommissionStatus()) || "Conflictivo".equals(comm.getCommissionStatus())) {
+                    if ("Aprobado".equals(comm.getCommissionStatus())
+                            || "Conflictivo".equals(comm.getCommissionStatus())) {
                         String userId = comm.getUserId();
                         transactionsByUser.computeIfAbsent(userId, k -> new ArrayList<>()).add(tx);
                     }
@@ -949,8 +958,6 @@ public class ManagerServiceImpl implements ManagerService {
                     ? user.getPersonalData().getName() + " " + user.getPersonalData().getSurname()
                     : "N/A";
 
-
-
             AccountModel selectedAccount = null;
             if (user.getAccounts() != null) {
                 selectedAccount = user.getAccounts().stream()
@@ -959,8 +966,8 @@ public class ManagerServiceImpl implements ManagerService {
 
             if (selectedAccount == null) {
                 if (user.getPersonalData() != null && user.getPersonalData().getEmail() != null) {
-                    emailAppProvider.notifyConflictivePayment(user.getPersonalData().getEmail(), 
-                        "No hemos podido generar la nómina de tus comisiones debido a que no tienes una cuenta bancaria confirmada. Por favor, actualiza tus datos en la plataforma para gestionar tus pagos.");
+                    emailAppProvider.notifyConflictivePayment(user.getPersonalData().getEmail(),
+                            "No hemos podido generar la nómina de tus comisiones debido a que no tienes una cuenta bancaria confirmada. Por favor, actualiza tus datos en la plataforma para gestionar tus pagos.");
                 }
                 conflicts.add(new ConflictDto(userId, userName,
                         "Usuario no tiene cuenta bancaria confirmada/seleccionada. Se notificó al usuario por correo electrónico y fue excluido de la nómina."));
@@ -973,7 +980,8 @@ public class ManagerServiceImpl implements ManagerService {
             for (TransactionModel tx : userTransactions) {
                 transactionIds.add(tx.getTransactionId());
                 for (TransactionComissionModel comm : tx.getCommissions()) {
-                    if (comm.getUserId().equals(userId) && ("Aprobado".equals(comm.getCommissionStatus()) || "Conflictivo".equals(comm.getCommissionStatus()))) {
+                    if (comm.getUserId().equals(userId) && ("Aprobado".equals(comm.getCommissionStatus())
+                            || "Conflictivo".equals(comm.getCommissionStatus()))) {
                         calculatedTotal += comm.getUserCommission();
                     }
                 }
@@ -1099,6 +1107,145 @@ public class ManagerServiceImpl implements ManagerService {
 
         return ResponseEntity
                 .ok(new MoneyfyersResponseDto("Moneyfyers recuperados exitosamente", 200, moneyfyers, managerDto));
+    }
+
+    @Override
+    public ResponseEntity<?> getPendingQuotes() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        ManagerModel managerDB = managerRepository.findByEmail(email).orElse(null);
+        if (managerDB == null) {
+            return ResponseHelper.unauthorized("No autorizado");
+        }
+
+        ManagerDto managerDto = ManagerDto.builder()
+                .managerId(managerDB.getManagerId())
+                .name(managerDB.getName())
+                .surname(managerDB.getSurname())
+                .email(managerDB.getEmail())
+                .status(managerDB.getStatus())
+                .build();
+
+        List<PendingQuoteErrorDto> errors = new ArrayList<>();
+        Map<String, List<PendingQuoteDto>> groupedQuotes = new HashMap<>();
+
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.unwind("quoters"),
+                Aggregation.match(Criteria.where("quoters.quoterStatus").is("Pendiente")));
+
+        AggregationResults<Document> results = mongoTemplate.aggregate(aggregation, "users", Document.class);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
+        for (Document doc : results.getMappedResults()) {
+            String userId = "N/A";
+            String quotationId = "N/A";
+            String insurerAlias = "N/A";
+            try {
+                userId = doc.getObjectId("_id") != null ? doc.getObjectId("_id").toString() : "N/A";
+
+                Document personalDataDoc = doc.get("personalData", Document.class);
+                UserDataModel personalData = personalDataDoc != null
+                        ? mongoTemplate.getConverter().read(UserDataModel.class,
+                                personalDataDoc)
+                        : null;
+
+                Document quoterDoc = doc.get("quoters", Document.class);
+                QuoterModel quoter = quoterDoc != null
+                        ? mongoTemplate.getConverter().read(QuoterModel.class, quoterDoc)
+                        : null;
+
+                if (quoter == null)
+                    continue;
+
+                quotationId = quoter.getQuoterId();
+                if (quoter.getQuoterPlanData() != null && quoter.getQuoterPlanData().getInsurerAlias() != null) {
+                    insurerAlias = quoter.getQuoterPlanData().getInsurerAlias();
+                }
+
+                PendingQuoteDto.PendingQuoteDtoBuilder dtoBuilder = PendingQuoteDto.builder()
+                        .userId(userId)
+                        .userFullName(
+                                personalData != null ? personalData.getName() + " " + personalData.getSurname() : "N/A")
+                        .userEmail(personalData != null ? personalData.getEmail() : "N/A")
+                        .quotationId(quoter.getQuoterId())
+                        .quotationDate(
+                                quoter.getCreatedDate() != null ? quoter.getCreatedDate().format(formatter) : "N/A")
+                        .quotationStatus(quoter.getQuoterStatus());
+
+                if (quoter.getQuoterPlanData() != null) {
+                    dtoBuilder.insurer(quoter.getQuoterPlanData().getInsurer())
+                            .planId(quoter.getQuoterPlanData().getQuoterPlanId())
+                            .planName(quoter.getQuoterPlanData().getPlanName());
+
+                    String currentAlias = quoter.getQuoterPlanData().getInsurerAlias() != null
+                            ? quoter.getQuoterPlanData().getInsurerAlias()
+                            : "";
+
+                    if ("aseguradora4".equals(currentAlias)) {
+                        dtoBuilder.intNroTarificacionBCI(quoter.getQuoterPlanData().getIntNroTarificacionBCI())
+                                .strNroCotizacionBCI(quoter.getQuoterPlanData().getStrNroCotizacionBCI())
+                                .dtFinVigenciaBCI(quoter.getQuoterPlanData().getDtFinVigenciaBCI());
+                    } else if ("aseguradora5".equals(currentAlias)) {
+                        dtoBuilder.dealTokenFDI(quoter.getQuoterPlanData().getDealTokenFDI())
+                                .itemIdFDI(quoter.getQuoterPlanData().getItemIdFDI())
+                                .quotationIdFDI(quoter.getQuoterPlanData().getQuotationIdFDI())
+                                .fidIdFDI(quoter.getQuoterPlanData().getFidIdFDI())
+                                .expiryDateFDI(quoter.getQuoterPlanData().getExpiryDateFDI());
+                    }
+                }
+
+                if (quoter.getQuoterCarData() != null) {
+                    dtoBuilder.vehiclePlate(quoter.getQuoterCarData().getPpu())
+                            .vehicleBrand(quoter.getQuoterCarData().getBrand())
+                            .vehicleModel(quoter.getQuoterCarData().getModel());
+                    try {
+                        if (quoter.getQuoterCarData().getYear() != null
+                                && !quoter.getQuoterCarData().getYear().isBlank()) {
+                            dtoBuilder.vehicleYear(Integer.parseInt(quoter.getQuoterCarData().getYear().strip()));
+                        }
+                    } catch (Exception ex) {
+                    }
+                }
+
+                if (quoter.getQuoterOwnerData() != null) {
+                    dtoBuilder.ownerRut(quoter.getQuoterOwnerData().getPersonalId())
+                            .ownerFullName(quoter.getQuoterOwnerData().getName() + " "
+                                    + quoter.getQuoterOwnerData().getPaternalSurname() + " "
+                                    + quoter.getQuoterOwnerData().getMaternalSurname());
+                }
+
+                if (quoter.getQuoterPurchaserData() != null) {
+                    dtoBuilder.buyerRut(quoter.getQuoterPurchaserData().getPersonalId())
+                            .buyerFullName(quoter.getQuoterPurchaserData().getName() + " "
+                                    + quoter.getQuoterPurchaserData().getPaternalSurname() + " "
+                                    + quoter.getQuoterPurchaserData().getMaternalSurname())
+                            .buyerEmail(quoter.getQuoterPurchaserData().getEmail())
+                            .buyerPhone(quoter.getQuoterPurchaserData().getPhone());
+                }
+
+                if (quoter.getQuoterAddressData() != null) {
+                    dtoBuilder.region(quoter.getQuoterAddressData().getRegion())
+                            .commune(quoter.getQuoterAddressData().getCommune())
+                            .street(quoter.getQuoterAddressData().getStreet())
+                            .streetNumber(quoter.getQuoterAddressData().getStreetNumber());
+                }
+
+                groupedQuotes.computeIfAbsent(insurerAlias, k -> new ArrayList<>()).add(dtoBuilder.build());
+
+            } catch (Exception e) {
+                errors.add(new PendingQuoteErrorDto(userId, quotationId, insurerAlias, e.getMessage()));
+            }
+        }
+
+        List<InsurerGroupDto> quotationsList = groupedQuotes.entrySet().stream()
+                .map(e -> new InsurerGroupDto(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
+
+        PendingQuotesResponseDto.PendingQuotesData data = new PendingQuotesResponseDto.PendingQuotesData(managerDto,
+                quotationsList, errors);
+
+        return ResponseEntity
+                .ok(new PendingQuotesResponseDto("Cotizaciones pendientes recuperadas exitosamente", 200, data));
     }
 
 }

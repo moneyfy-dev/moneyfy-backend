@@ -32,6 +32,7 @@ import com.referidos.app.segurosref.configs.JwtConfig;
 import com.referidos.app.segurosref.dtos.quotation.QuotationPlanDto;
 import com.referidos.app.segurosref.dtos.quotation.QuotationPlanCoverDto;
 import com.referidos.app.segurosref.helpers.DataHelper;
+import com.referidos.app.segurosref.integrations.bci.docs.BCIDocsHelper;
 import com.referidos.app.segurosref.integrations.bci.dtos.BCIQuotationDto;
 import com.referidos.app.segurosref.integrations.bci.dtos.BCIQuotationPlanDto;
 import com.referidos.app.segurosref.integrations.bci.pojos.BCIQuoteCarPojo;
@@ -256,13 +257,12 @@ public class BCIQuotationClient {
     private Object[] buildResponseQuotationBCI(BCIQuotationDto bciQuotationDto) {
         List<QuotationPlanDto> plansDto = new ArrayList<>();
         for (BCIQuotationPlanDto bciQuotationPlan : bciQuotationDto.getPlans()) {
-            Set<QuotationPlanCoverDto> coveragesDto = com.referidos.app.segurosref.integrations.bci.docs.BCIDocsHelper
+            Set<QuotationPlanCoverDto> coveragesDto = BCIDocsHelper
                     .buildCoveragesForSolucionMovil2(bciQuotationPlan.getDeductible());
 
             plansDto.add(new QuotationPlanDto(
                     bciQuotationPlan.getUniquePlan(),
                     bciQuotationPlan.getPlanId(),
-                    "BCI",
                     bciQuotationPlan.getPlanName(),
                     bciQuotationDto.getTasaCambioUF(),
                     bciQuotationPlan.getGrossValueUF(),
@@ -272,12 +272,13 @@ public class BCIQuotationClient {
                     bciQuotationPlan.getDeductible(),
                     bciQuotationPlan.getDeductibleDesc(),
                     BigDecimal.ZERO, // descuento
-                    com.referidos.app.segurosref.integrations.bci.docs.BCIDocsHelper.getStolenVehicle(),
-                    com.referidos.app.segurosref.integrations.bci.docs.BCIDocsHelper.getTotalLoss(),
-                    com.referidos.app.segurosref.integrations.bci.docs.BCIDocsHelper.getDamageThirdParty(),
-                    com.referidos.app.segurosref.integrations.bci.docs.BCIDocsHelper.getWorkshopType(),
-                    bciQuotationDto.getIdCotizacion(),
-                    bciQuotationDto.getVigenciaCotizacion(),
+                    BCIDocsHelper.getStolenVehicle(),
+                    BCIDocsHelper.getTotalLoss(),
+                    BCIDocsHelper.getDamageThirdParty(),
+                    BCIDocsHelper.getWorkshopType(),
+                    bciQuotationDto.getIntNroTarificacion(),
+                    bciQuotationDto.getStrNroCotizacion(),
+                    bciQuotationDto.getDtFinVigencia(),
                     "", // dealTokenFDI
                     null, // itemIdFDI
                     null, // quotationIdFDI

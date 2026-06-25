@@ -5,7 +5,6 @@ import com.referidos.app.segurosref.services.QuoterService;
 import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGES;
 import lombok.RequiredArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -449,9 +448,6 @@ public class QuoterServiceImpl implements QuoterService {
             List<PlanModel> plansToSave = new ArrayList<>();
 
             for (QuotationPlanDto insurerPlan : planList) {
-                // Actualizar el nombre de la aseguradora dinamicamente en el DTO
-                insurerPlan.setInsurer(returnInsurerDB.getName());
-
                 String pId = insurerPlan.getPlanId();
                 PlanModel pModel = plansMap.get(pId);
 
@@ -478,42 +474,6 @@ public class QuoterServiceImpl implements QuoterService {
             }
         }
 
-        // Actualizar QuoterPlanModel con metadata compartida
-        if (planList != null && !planList.isEmpty()) {
-            QuoterPlanModel quoterPlan = userQuoter.getQuoterPlanData();
-            if ("aseguradora4".equals(insurerAlias)) { // BCI
-                QuotationPlanDto firstPlan = planList.get(0);
-                quoterPlan.setInsurerAlias(insurerAlias);
-                quoterPlan.setExternalQuotationId(String.valueOf(firstPlan.getQuotationIdBCI()));
-                try {
-                    String expiryStr = firstPlan.getExpiryDateBCI();
-                    if (expiryStr != null && expiryStr.length() >= 10) {
-                        quoterPlan.setExpiryDate(LocalDate.parse(expiryStr.substring(0, 10)));
-                    } else {
-                        quoterPlan.setExpiryDate(DataHelper.deprecatedDate());
-                    }
-                } catch (Exception e) {
-                    quoterPlan.setExpiryDate(DataHelper.deprecatedDate());
-                }
-            } else if ("aseguradora5".equals(insurerAlias)) { // FDI
-                QuotationPlanDto firstPlan = planList.get(0);
-                quoterPlan.setInsurerAlias(insurerAlias);
-                quoterPlan.setExternalQuotationId(String.valueOf(firstPlan.getQuotationIdFDI()));
-                quoterPlan.setDealTokenFDI(firstPlan.getDealTokenFDI() != null ? firstPlan.getDealTokenFDI() : "");
-                quoterPlan.setItemIdFDI(firstPlan.getItemIdFDI() != null ? firstPlan.getItemIdFDI() : 0);
-                try {
-                    String expiryStr = firstPlan.getExpiryDateFDI();
-                    if (expiryStr != null && expiryStr.length() >= 10) {
-                        quoterPlan.setExpiryDate(LocalDate.parse(expiryStr.substring(0, 10)));
-                    } else {
-                        quoterPlan.setExpiryDate(DataHelper.deprecatedDate());
-                    }
-                } catch (Exception e) {
-                    quoterPlan.setExpiryDate(DataHelper.deprecatedDate());
-                }
-            }
-        }
-
         // Guardado consolidado de toda la cotizacion en base de datos al final del
         // flujo
         userRepository.save(userDB);
@@ -523,6 +483,7 @@ public class QuoterServiceImpl implements QuoterService {
         return ResponseHelper.ok("se ha realizado la cotizacion", quotationDto);
     }
 
+    @Transactional
     @Override
     public ResponseEntity<?> selectPlan(SelectPlanRequest planSelected, String emailAuth) {
         // Los datos del plan seleccionado ya han sido validados
@@ -547,8 +508,18 @@ public class QuoterServiceImpl implements QuoterService {
                 quoterOwner.setMaternalSurname(planSelected.ownerMaternalSur().strip());
                 // Actualizamos el plan seleccionado del cotizador
                 QuoterPlanModel quoterPlan = quoterDB.getQuoterPlanData();
-                quoterPlan.setQuoterPlanId(planSelected.planId());
+                
+                String finalPlanId = planSelected.planId();
+                if (finalPlanId != null && (finalPlanId.startsWith("BCI_") || finalPlanId.startsWith("FDI_"))) {
+                    finalPlanId = finalPlanId.substring(4);
+                }
+                quoterPlan.setQuoterPlanId(finalPlanId);
+                
                 quoterPlan.setInsurer(planSelected.insurer().strip());
+                
+                String insurerAlias = planSelected.insurerAlias() != null ? planSelected.insurerAlias().strip() : "";
+                quoterPlan.setInsurerAlias(insurerAlias);
+                
                 quoterPlan.setPlanName(planSelected.planName().strip());
                 quoterPlan.setValueUF(planSelected.valueUF());
                 quoterPlan.setGrossPriceUF(planSelected.grossPriceUF());
@@ -557,6 +528,38 @@ public class QuoterServiceImpl implements QuoterService {
                 quoterPlan.setMonthlyPrice(planSelected.monthlyPrice());
                 quoterPlan.setDeductibleDesc(planSelected.deductibleDesc());
                 quoterPlan.setDiscount(planSelected.discount());
+
+                if ("aseguradora4".equals(insurerAlias)) { // BCI
+                    quoterPlan.setIntNroTarificacionBCI(planSelected.intNroTarificacionBCI());
+                    quoterPlan.setStrNroCotizacionBCI(planSelected.strNroCotizacionBCI());
+                    quoterPlan.setDtFinVigenciaBCI(planSelected.dtFinVigenciaBCI());
+                    
+                    quoterPlan.setDealTokenFDI("");
+                    quoterPlan.setItemIdFDI(null);
+                    quoterPlan.setQuotationIdFDI(null);
+                    quoterPlan.setFidIdFDI("");
+                    quoterPlan.setExpiryDateFDI("");
+                } else if ("aseguradora5".equals(insurerAlias)) { // FDI
+                    quoterPlan.setIntNroTarificacionBCI(null);
+                    quoterPlan.setStrNroCotizacionBCI("");
+                    quoterPlan.setDtFinVigenciaBCI("");
+                    
+                    quoterPlan.setDealTokenFDI(planSelected.dealTokenFDI());
+                    quoterPlan.setItemIdFDI(planSelected.itemIdFDI());
+                    quoterPlan.setQuotationIdFDI(planSelected.quotationIdFDI());
+                    quoterPlan.setFidIdFDI(planSelected.fidIdFDI());
+                    quoterPlan.setExpiryDateFDI(planSelected.expiryDateFDI());
+                } else { // Test insurers or others
+                    quoterPlan.setIntNroTarificacionBCI(null);
+                    quoterPlan.setStrNroCotizacionBCI("");
+                    quoterPlan.setDtFinVigenciaBCI("");
+                    
+                    quoterPlan.setDealTokenFDI("");
+                    quoterPlan.setItemIdFDI(null);
+                    quoterPlan.setQuotationIdFDI(null);
+                    quoterPlan.setFidIdFDI("");
+                    quoterPlan.setExpiryDateFDI("");
+                }
 
                 // Actualizamos la direccion de la cotizacion para la inspeccion
                 QuoterAddressModel quoterAddress = quoterDB.getQuoterAddressData();

@@ -10,7 +10,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-@JsonPropertyOrder(value = {"quoterId", "error", "errorMessage", "requestBody", "response", "insurer", "plans"})
+@JsonPropertyOrder(value = { "quoterId", "error", "errorMessage", "requestBody", "response", "insurer", "plans" })
 public class QuotationDto {
 
     private String quoterId;

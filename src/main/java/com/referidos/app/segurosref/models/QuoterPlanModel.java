@@ -1,7 +1,6 @@
 package com.referidos.app.segurosref.models;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
@@ -10,13 +9,16 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-@JsonPropertyOrder(value = { "quoterPlanId", "insurer", "planName", "valueUF", "grossPriceUF", "totalMonths",
-        "monthlyPriceUF", "monthlyPrice", "deductibleDesc", "discount", "insurerAlias", "externalQuotationId",
-        "expiryDate", "dealTokenFDI", "itemIdFDI" })
+@JsonPropertyOrder(value = { "quoterPlanId", "insurer", "insurerAlias", "planName", "valueUF", "grossPriceUF",
+        "totalMonths",
+        "monthlyPriceUF", "monthlyPrice", "deductibleDesc", "discount", "intNroTarificacionBCI",
+        "strNroCotizacionBCI", "dtFinVigenciaBCI", "dealTokenFDI", "itemIdFDI", "quotationIdFDI", "fidIdFDI",
+        "expiryDateFDI" })
 public class QuoterPlanModel {
 
     private String quoterPlanId;
     private String insurer;
+    private String insurerAlias;
     private String planName;
     private BigDecimal valueUF;
     private BigDecimal grossPriceUF;
@@ -26,10 +28,14 @@ public class QuoterPlanModel {
     private String deductibleDesc;
     private BigDecimal discount;
 
-    private String insurerAlias;
-    private String externalQuotationId;
-    private LocalDate expiryDate;
+    private Integer intNroTarificacionBCI;
+    private String strNroCotizacionBCI;
+    private String dtFinVigenciaBCI;
+
     private String dealTokenFDI;
     private Integer itemIdFDI;
+    private Integer quotationIdFDI;
+    private String fidIdFDI;
+    private String expiryDateFDI;
 
 }

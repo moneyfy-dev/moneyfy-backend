@@ -991,7 +991,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\r\n    \"quoterId\": \"69d89cee802c263065b3d40a\",\r\n    \"planId\": \"TRACTOR123456789\",\r\n    \"insurer\": \"Tractor Seguros Automotriz\",\r\n    \"planName\": \"Seguro auto completo\",\r\n    \"valueUF\": 37000.0,\r\n    \"grossPriceUF\": 22.72,\r\n    \"totalMonths\": 11,\r\n    \"monthlyPriceUF\": 2.0654,\r\n    \"monthlyPrice\": 76421.81,\r\n    \"deductibleDesc\": \"Deducible 5 UF\",\r\n    \"discount\": 0.0,\r\n    \"ownerName\": \"Ramiro\",\r\n    \"ownerPaternalSur\": \"Riquelme\",\r\n    \"ownerMaternalSur\": \"González\",\r\n    \"street\": \"San Antonio\",\r\n    \"streetNumber\": \"190#D\",\r\n    \"department\": \"\"\r\n}",
+                            "raw": "{\n    \"quoterId\": \"69d89cee802c263065b3d40a\",\n    \"planId\": \"TRACTOR123456789\",\n    \"insurer\": \"Tractor Seguros Automotriz\",\n    \"insurerAlias\": \"aseguradora4\",\n    \"planName\": \"Seguro auto completo\",\n    \"valueUF\": 37000.0,\n    \"grossPriceUF\": 22.72,\n    \"totalMonths\": 11,\n    \"monthlyPriceUF\": 2.0654,\n    \"monthlyPrice\": 76421.81,\n    \"deductibleDesc\": \"Deducible 5 UF\",\n    \"discount\": 0.0,\n    \"intNroTarificacionBCI\": 1234,\n    \"strNroCotizacionBCI\": \"BCI123\",\n    \"dtFinVigenciaBCI\": \"2026-12-31\",\n    \"dealTokenFDI\": \"FDITOKEN\",\n    \"itemIdFDI\": 1,\n    \"quotationIdFDI\": 2,\n    \"fidIdFDI\": \"FID123\",\n    \"expiryDateFDI\": \"2026-12-31\",\n    \"ownerName\": \"Ramiro\",\n    \"ownerPaternalSur\": \"Riquelme\",\n    \"ownerMaternalSur\": \"Gonz\\u00e1lez\",\n    \"region\": \"Metropolitana\",\n    \"commune\": \"Santiago\",\n    \"street\": \"San Antonio\",\n    \"streetNumber\": \"190#D\",\n    \"department\": \"\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -1086,11 +1086,12 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{Dev - URL}}/LOSALAMOS123456789",
+                            "raw": "{{Dev - URL}}/plans/LOSALAMOS123456789",
                             "host": [
                                 "{{Dev - URL}}"
                             ],
                             "path": [
+                                "plans",
                                 "LOSALAMOS123456789"
                             ]
                         }
@@ -1597,7 +1598,7 @@
                         "method": "GET",
                         "header": [
                             {
-                                "key": "Refresh-Token",
+                                "key": "X-New-Refresh-Token",
                                 "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
@@ -1612,6 +1613,37 @@
                                 "v1",
                                 "manager",
                                 "moneyfyers"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "get pending quotes",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{manager_session_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Dev - URL}}/api/v1/manager/pending-quotes",
+                            "host": [
+                                "{{Dev - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "pending-quotes"
                             ]
                         }
                     },
