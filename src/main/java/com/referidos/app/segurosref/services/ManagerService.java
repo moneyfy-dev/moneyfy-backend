@@ -20,4 +20,6 @@ public interface ManagerService {
 
     ResponseEntity<?> payQuotes(PayQuotesRequest request);
 
+
+    ResponseEntity<?> getPendingQuotes();
 }

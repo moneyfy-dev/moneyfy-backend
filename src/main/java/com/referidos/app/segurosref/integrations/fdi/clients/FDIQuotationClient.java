@@ -238,14 +238,18 @@ public class FDIQuotationClient {
                             Integer deductibleUF = (Integer) valueDeducPojo.getValue();
                             String deductibleDesc = "No definido";
                             if (deductibleUF != null) {
-                                deductibleDesc = deductibleUF == 0 ? "Sin Deducible" : "Deducible " + deductibleUF + " UF";
+                                deductibleDesc = deductibleUF == 0 ? "Sin Deducible"
+                                        : "Deducible " + deductibleUF + " UF";
                             }
                             String planId = "FDI_" + quotationPojo.getPlanId();
                             String uniquePlan = planId + "_" + String.valueOf(deductibleUF);
                             Integer totalMonths = 11;
-                            BigDecimal grossPlusBrokerage = quotationPojo.getGrossWrittenPremium().add(quotationPojo.getBrokerage());
-                            BigDecimal monthlyPriceUF = grossPlusBrokerage.divide(BigDecimal.valueOf(totalMonths), 2, RoundingMode.HALF_UP);
-                            BigDecimal monthlyPrice = monthlyPriceUF.multiply(quotationPojo.getValueUf()).setScale(2, RoundingMode.HALF_UP);
+                            BigDecimal grossPlusBrokerage = quotationPojo.getGrossWrittenPremium()
+                                    .add(quotationPojo.getBrokerage());
+                            BigDecimal monthlyPriceUF = grossPlusBrokerage.divide(BigDecimal.valueOf(totalMonths), 2,
+                                    RoundingMode.HALF_UP);
+                            BigDecimal monthlyPrice = monthlyPriceUF.multiply(quotationPojo.getValueUf()).setScale(2,
+                                    RoundingMode.HALF_UP);
                             plansDto.add(new FDIQuotationPlanDto(uniquePlan, planDetailPojo.getName(), planId,
                                     quotationPojo.getId(), quotationPojo.getFIDId(), quotationPojo.getExpiryDate(),
                                     quotationPojo.getPolicyInceptionDate(), quotationPojo.getPolicyExpiryDate(),
@@ -254,7 +258,8 @@ public class FDIQuotationClient {
                                     quotationPojo.getLiabilityAmount(), quotationPojo.getGarageType(),
                                     quotationPojo.getVehicleReplacement(), quotationPojo.getInspectionRequired(),
                                     quotationPojo.getMonthlyPremium(), monthlyPriceUF, monthlyPrice,
-                                    quotationPojo.getValueUf(), totalMonths, deductibleUF, deductibleDesc, BigDecimal.ZERO,
+                                    quotationPojo.getValueUf(), totalMonths, deductibleUF, deductibleDesc,
+                                    BigDecimal.ZERO,
                                     planDetailPojo.getPaymentPlan(), planDetailPojo.getPaymentPipeline(),
                                     planDetailPojo.getQuotationPeriod(), planDetailPojo.getPaymentWay(), coversDto));
                         }
@@ -285,16 +290,20 @@ public class FDIQuotationClient {
                 coveragesDto.add(new QuotationPlanCoverDto(coverageDtoFDI.getId(), coverageDtoFDI.getName(),
                         coverageDtoFDI.getGeneralDescription(), coverageDtoFDI.getPolCad(), coverageDtoFDI.getValue()));
             }
-            String liabilityDesc = planDtoFDI.getLiabilityAmount() != null ? "Hasta " + planDtoFDI.getLiabilityAmount() + " UF entre daño emergente, moral y lucro cesante" : "No definido";
-            String garageType = planDtoFDI.getGarageType() != null && !planDtoFDI.getGarageType().isBlank() ? planDtoFDI.getGarageType() : "No definido";
-            
-            plansDto.add(new QuotationPlanDto(planDtoFDI.getUniquePlan(), planDtoFDI.getPlanId(), "FDI",
+            String liabilityDesc = planDtoFDI.getLiabilityAmount() != null
+                    ? "Hasta " + planDtoFDI.getLiabilityAmount() + " UF entre daño emergente, moral y lucro cesante"
+                    : "No definido";
+            String garageType = planDtoFDI.getGarageType() != null && !planDtoFDI.getGarageType().isBlank()
+                    ? planDtoFDI.getGarageType()
+                    : "No definido";
+
+            plansDto.add(new QuotationPlanDto(planDtoFDI.getUniquePlan(), planDtoFDI.getPlanId(),
                     planDtoFDI.getPlanName(), planDtoFDI.getValueUF(), planDtoFDI.getGrossWrittenPremiumUF(),
                     planDtoFDI.getTotalMonths(), planDtoFDI.getMonthlyPriceUF(), planDtoFDI.getMonthlyPrice(),
-                    planDtoFDI.getDeductibleUF(), planDtoFDI.getDeductibleDesc(), planDtoFDI.getDiscount(), 
+                    planDtoFDI.getDeductibleUF(), planDtoFDI.getDeductibleDesc(), planDtoFDI.getDiscount(),
                     "Valor comercial", // stolenVehicle
                     "Valor comercial", // totalLoss
-                    liabilityDesc, garageType, null, "",
+                    liabilityDesc, garageType, null, "", "",
                     fdiQuotationDto.getDealToken(), fdiQuotationDto.getItemId(), planDtoFDI.getQuotationId(),
                     planDtoFDI.getFIDId(), planDtoFDI.getExpiryDate(), planDtoFDI.getBrokerageUF(),
                     planDtoFDI.getVehicleReplacement(), planDtoFDI.getInspectionRequired(),

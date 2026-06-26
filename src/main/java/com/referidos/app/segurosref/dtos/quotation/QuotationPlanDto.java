@@ -14,9 +14,9 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @JsonPropertyOrder(value = { "uniquePlan", "planId", "insurer", "planName", "valueUF", "grossPriceUF",
         "totalMonths", "monthlyPriceUF", "monthlyPrice", "deductible", "deductibleDesc", "discount",
-        "stolenVehicle", "totalLoss", "damageThirdParty", "workshopType", "quotationIdBCI",
-        "expiryDateBCI", "dealTokenFDI", "itemIdFDI",
-        "quotationIdFDI", "FIDId", "expiryDateFDI", "brokerageUfFDI", "vehicleReplacementFDI",
+        "workshopType", "intNroTarificacionBCI", "strNroCotizacionBCI",
+        "dtFinVigenciaBCI", "dealTokenFDI", "itemIdFDI",
+        "quotationIdFDI", "fidIdFDI", "expiryDateFDI", "brokerageUfFDI", "vehicleReplacementFDI",
         "inspectionRequiredFDI", "monthlyPremiumFDI", "paymentPlanFDI", "quotationPeriodFDI",
         "paymentWayFDI", "coverages" })
 public class QuotationPlanDto {
@@ -25,7 +25,6 @@ public class QuotationPlanDto {
     private String uniquePlan;
     @EqualsAndHashCode.Include
     private String planId;
-    private String insurer;
     @EqualsAndHashCode.Include
     private String planName;
     private BigDecimal valueUF;
@@ -41,14 +40,16 @@ public class QuotationPlanDto {
     private String damageThirdParty;
     private String workshopType;
 
-    private Integer quotationIdBCI;
-    private String expiryDateBCI;
+    private Integer intNroTarificacionBCI;
+    private String strNroCotizacionBCI;
+    private String dtFinVigenciaBCI;
 
     private String dealTokenFDI;
     private Integer itemIdFDI;
     private Integer quotationIdFDI;
-    private String FIDId;
+    private String fidIdFDI;
     private String expiryDateFDI;
+
     private BigDecimal brokerageUfFDI;
     private String vehicleReplacementFDI;
     private Integer inspectionRequiredFDI;

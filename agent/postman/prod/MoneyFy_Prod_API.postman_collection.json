@@ -991,7 +991,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\r\n    \"quoterId\": \"6a28e4095b5950dfb4b6e323\",\r\n    \"planId\": \"FDI_322\",\r\n    \"insurer\": \"FDI\",\r\n    \"planName\": \"AUTÓNOMO.IA TALLER DE MARCA CON/DMExt\",\r\n    \"valueUF\": 39764.84,\r\n    \"grossPriceUF\": 9.58,\r\n    \"totalMonths\": 11,\r\n    \"monthlyPriceUF\": 0.97,\r\n    \"monthlyPrice\": 38571.89,\r\n    \"deductible\": 3,\r\n    \"deductibleDesc\": \"Deducible 3 UF\",\r\n    \"discount\": 0,\r\n    \"ownerName\": \"Ramiro\",\r\n    \"ownerPaternalSur\": \"Riquelme\",\r\n    \"ownerMaternalSur\": \"González\",\r\n    \"street\": \"San Antonio\",\r\n    \"streetNumber\": \"190#D\",\r\n    \"department\": \"\"\r\n}",
+                            "raw": "{\n    \"quoterId\": \"69d89cee802c263065b3d40a\",\n    \"planId\": \"TRACTOR123456789\",\n    \"insurer\": \"Tractor Seguros Automotriz\",\n    \"insurerAlias\": \"aseguradora4\",\n    \"planName\": \"Seguro auto completo\",\n    \"valueUF\": 37000.0,\n    \"grossPriceUF\": 22.72,\n    \"totalMonths\": 11,\n    \"monthlyPriceUF\": 2.0654,\n    \"monthlyPrice\": 76421.81,\n    \"deductibleDesc\": \"Deducible 5 UF\",\n    \"discount\": 0.0,\n    \"intNroTarificacionBCI\": 1234,\n    \"strNroCotizacionBCI\": \"BCI123\",\n    \"dtFinVigenciaBCI\": \"2026-12-31\",\n    \"dealTokenFDI\": \"FDITOKEN\",\n    \"itemIdFDI\": 1,\n    \"quotationIdFDI\": 2,\n    \"fidIdFDI\": \"FID123\",\n    \"expiryDateFDI\": \"2026-12-31\",\n    \"ownerName\": \"Ramiro\",\n    \"ownerPaternalSur\": \"Riquelme\",\n    \"ownerMaternalSur\": \"Gonz\\u00e1lez\",\n    \"region\": \"Metropolitana\",\n    \"commune\": \"Santiago\",\n    \"street\": \"San Antonio\",\n    \"streetNumber\": \"190#D\",\n    \"department\": \"\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -1086,11 +1086,12 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{Prod - URL}}/LOSALAMOS123456789",
+                            "raw": "{{Prod - URL}}/plans/LOSALAMOS123456789",
                             "host": [
                                 "{{Prod - URL}}"
                             ],
                             "path": [
+                                "plans",
                                 "LOSALAMOS123456789"
                             ]
                         }
@@ -1573,7 +1574,7 @@
                         "method": "GET",
                         "header": [
                             {
-                                "key": "Refresh-Token",
+                                "key": "X-New-Refresh-Token",
                                 "value": "{{manager_refresh_token}}",
                                 "type": "text"
                             }
@@ -1588,6 +1589,37 @@
                                 "v1",
                                 "manager",
                                 "moneyfyers"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "get pending quotes",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{manager_session_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "X-New-Refresh-Token",
+                                "value": "{{manager_refresh_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Prod - URL}}/api/v1/manager/pending-quotes",
+                            "host": [
+                                "{{Prod - URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "manager",
+                                "pending-quotes"
                             ]
                         }
                     },

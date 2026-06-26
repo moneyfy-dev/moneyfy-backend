@@ -4,8 +4,10 @@ import java.math.BigDecimal;
 
 public record SelectPlanRequest(
         String quoterId,
+
         String planId,
         String insurer,
+        String insurerAlias,
         String planName,
         BigDecimal valueUF, // Este campo varía según el valor del UF del día / COMO ACTUALIZARLO
         BigDecimal grossPriceUF, // Este campo debería ser fijo
@@ -14,13 +16,25 @@ public record SelectPlanRequest(
         BigDecimal monthlyPrice, // Este campo varía según el valor del UF del día / COMO ACTUALIZARLO
         String deductibleDesc,
         BigDecimal discount,
+
+        Integer intNroTarificacionBCI,
+        String strNroCotizacionBCI,
+        String dtFinVigenciaBCI,
+
+        String dealTokenFDI,
+        Integer itemIdFDI,
+        Integer quotationIdFDI,
+        String fidIdFDI,
+        String expiryDateFDI,
+
         String ownerName,
         String ownerPaternalSur,
         String ownerMaternalSur,
+
+        String region,
+        String commune,
         String street,
         String streetNumber,
-        String department,
-        String region,
-        String commune) {
+        String department) {
 
 }

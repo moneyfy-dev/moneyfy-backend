@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.referidos.app.segurosref.services.ManagerService;
 
 import com.referidos.app.segurosref.dtos.manager.DashboardPaginatedResponseDto;
+import com.referidos.app.segurosref.dtos.manager.PayQuotesReportRequest;
+
 import org.springframework.web.bind.annotation.RequestParam;
 
 import org.springframework.web.bind.annotation.PutMapping;
@@ -33,7 +35,6 @@ public class ManagerController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String userId,
             @RequestParam(required = false) String quoteStatus) {
-
         DashboardPaginatedResponseDto response = managerService.getQuotesDashboard(page, size, userId, quoteStatus);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
@@ -41,7 +42,6 @@ public class ManagerController {
     @GetMapping("/dashboard/summary")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getDashboardSummary() {
-
         return managerService.getDashboardSummary();
     }
 
@@ -54,8 +54,7 @@ public class ManagerController {
     @PostMapping("/pay-quotes/report")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> generatePayQuotesReport(
-            @RequestBody com.referidos.app.segurosref.dtos.manager.PayQuotesReportRequest request) {
-
+            @RequestBody PayQuotesReportRequest request) {
         return managerService.generatePayQuotesReport(request);
     }
 
@@ -63,7 +62,6 @@ public class ManagerController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> payQuotes(
             @RequestBody PayQuotesRequest request) {
-
         return managerService.payQuotes(request);
     }
 
@@ -71,6 +69,12 @@ public class ManagerController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getMoneyfyers() {
         return managerService.getMoneyfyersDashboard();
+    }
+
+    @GetMapping("/pending-quotes")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getPendingQuotes() {
+        return managerService.getPendingQuotes();
     }
 
 }

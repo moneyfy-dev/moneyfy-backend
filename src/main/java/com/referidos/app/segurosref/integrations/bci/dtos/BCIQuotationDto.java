@@ -17,9 +17,9 @@ import lombok.NoArgsConstructor;
 public class BCIQuotationDto extends BaseIntegrationResponse {
 
     @EqualsAndHashCode.Include
-    private Integer idCotizacion;
-    private String nroCotizacion;
-    private String vigenciaCotizacion;
+    private Integer intNroTarificacion;
+    private String strNroCotizacion;
+    private String dtFinVigencia;
     private BigDecimal tasaCambioUF;
     private BigDecimal iva;
     private Integer rutCliente;

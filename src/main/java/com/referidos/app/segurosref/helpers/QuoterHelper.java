@@ -32,45 +32,45 @@ public class QuoterHelper {
                 String workshopType = "Oficial de la marca";
                 // Creamos planes de prueba
                 QuotationPlanDto plan1 = new QuotationPlanDto("TRACTOR045678987", "TRACTOR045678987",
-                                "Tractor Seguros Automotriz", "Plan protector de auto", BigDecimal.valueOf(valueUF),
+                                "Plan protector de auto", BigDecimal.valueOf(valueUF),
                                 BigDecimal.valueOf(24.86),
                                 11, BigDecimal.valueOf(24.86 / 11.0),
                                 BigDecimal.valueOf(24.86 / 11.0).multiply(BigDecimal.valueOf(valueUF)), 3,
                                 "Deducible 3 UF",
-                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
+                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
                                 "", new HashSet<>());
                 this.adjustTestPlan(plan1, "70%", "800 UF", "90", "3");
                 QuotationPlanDto plan2 = new QuotationPlanDto("TRACTOR123456789", "TRACTOR123456789",
-                                "Tractor Seguros Automotriz", "Seguro auto completo", BigDecimal.valueOf(valueUF),
+                                "Seguro auto completo", BigDecimal.valueOf(valueUF),
                                 BigDecimal.valueOf(22.72),
                                 11, BigDecimal.valueOf(22.72 / 11.0),
                                 BigDecimal.valueOf(22.72 / 11.0).multiply(BigDecimal.valueOf(valueUF)), 5,
                                 "Deducible 5 UF",
-                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
+                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
                                 "", new HashSet<>());
                 this.adjustTestPlan(plan2, "80%", "1200 UF", "120", "4");
                 QuotationPlanDto plan3 = new QuotationPlanDto("TRACTOR987654321", "TRACTOR987654321",
-                                "Tractor Seguros Automotriz", "Plan seguro auto asegurado", BigDecimal.valueOf(valueUF),
+                                "Plan seguro auto asegurado", BigDecimal.valueOf(valueUF),
                                 BigDecimal.valueOf(27.81),
                                 11, BigDecimal.valueOf(27.81 / 11.0),
                                 BigDecimal.valueOf(27.81 / 11.0).multiply(BigDecimal.valueOf(valueUF)), 0,
                                 "Deducible 0 UF",
-                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
+                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
                                 "", new HashSet<>());
                 this.adjustTestPlan(plan3, "60%", "1500 UF", "90", "4");
                 QuotationPlanDto plan4 = new QuotationPlanDto("TRACTOR12975678953", "TRACTOR12975678953",
-                                "Tractor Seguros Automotriz", "Seguro auto premium", BigDecimal.valueOf(valueUF),
+                                "Seguro auto premium", BigDecimal.valueOf(valueUF),
                                 BigDecimal.valueOf(20.12),
                                 11, BigDecimal.valueOf(20.12 / 11.0),
                                 BigDecimal.valueOf(20.12 / 11.0).multiply(BigDecimal.valueOf(valueUF)), 10,
                                 "Deducible 10 UF",
-                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
+                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
                                 "", new HashSet<>());
@@ -89,23 +89,23 @@ public class QuoterHelper {
                 String workshopType = "Oficial de la marca";
                 // Creamos planes de prueba
                 QuotationPlanDto plan1 = new QuotationPlanDto("SEGUROSALAMEDA045678987", "SEGUROSALAMEDA045678987",
-                                "Seguros Alameda", "Asistencia en viaje", BigDecimal.valueOf(valueUF),
+                                "Asistencia en viaje", BigDecimal.valueOf(valueUF),
                                 BigDecimal.valueOf(23.55),
                                 11, BigDecimal.valueOf(23.55 / 11.0),
                                 BigDecimal.valueOf(23.55 / 11.0).multiply(BigDecimal.valueOf(valueUF)), 5,
                                 "Deducible 5 UF",
-                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
+                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
                                 "", new HashSet<>());
                 this.adjustTestPlan(plan1, "70%", "1200 UF", "90", "3");
                 QuotationPlanDto plan2 = new QuotationPlanDto("SEGUROSALAMEDA123456789", "SEGUROSALAMEDA123456789",
-                                "Seguros Alameda", "Tu trasporte asegurado", BigDecimal.valueOf(valueUF),
+                                "Tu trasporte asegurado", BigDecimal.valueOf(valueUF),
                                 BigDecimal.valueOf(27.01),
                                 11, BigDecimal.valueOf(27.01 / 11.0),
                                 BigDecimal.valueOf(27.01 / 11.0).multiply(BigDecimal.valueOf(valueUF)), 3,
                                 "Deducible 3 UF",
-                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
+                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
                                 "", new HashSet<>());
@@ -122,34 +122,34 @@ public class QuoterHelper {
                 String workshopType = "Oficial de la marca";
                 // Creamos planes de prueba
                 QuotationPlanDto plan1 = new QuotationPlanDto("LOSALAMOS045678987", "LOSALAMOS045678987",
-                                "Los Alamos Seguros Automotriz", "Proteción ultra automóvil",
+                                "Proteción ultra automóvil",
                                 BigDecimal.valueOf(valueUF), BigDecimal.valueOf(22.03),
                                 11, BigDecimal.valueOf(22.03 / 11.0),
                                 BigDecimal.valueOf(22.03 / 11.0).multiply(BigDecimal.valueOf(valueUF)), 3,
                                 "Deducible 3 UF",
-                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
+                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
                                 "", new HashSet<>());
                 this.adjustTestPlan(plan1, "65%", "1500 uf", "180", "3");
                 QuotationPlanDto plan2 = new QuotationPlanDto("LOSALAMOS123456789", "LOSALAMOS123456789",
-                                "Los Alamos Seguros Automotriz", "Plan de automóvil asegurado",
+                                "Plan de automóvil asegurado",
                                 BigDecimal.valueOf(valueUF), BigDecimal.valueOf(21.41),
                                 11, BigDecimal.valueOf(21.41 / 11.0),
                                 BigDecimal.valueOf(21.41 / 11.0).multiply(BigDecimal.valueOf(valueUF)), 3,
                                 "Deducible 3 UF",
-                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
+                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
                                 "", new HashSet<>());
                 this.adjustTestPlan(plan2, "75%", "1000 UF", "120", "4");
                 QuotationPlanDto plan3 = new QuotationPlanDto("LOSALAMOS987654321", "LOSALAMOS987654321",
-                                "Los Alamos Seguros Automotriz", "Seguro MAX automóvil", BigDecimal.valueOf(valueUF),
+                                "Seguro MAX automóvil", BigDecimal.valueOf(valueUF),
                                 BigDecimal.valueOf(23.38),
                                 11, BigDecimal.valueOf(23.38 / 11.0),
                                 BigDecimal.valueOf(23.38 / 11.0).multiply(BigDecimal.valueOf(valueUF)), 5,
                                 "Deducible 5 UF",
-                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", null, null, "", "",
+                                BigDecimal.ZERO, stolenCar, "", "", workshopType, null, "", "", "", null, null, "", "",
                                 null, "", null,
                                 null, "", "",
                                 "", new HashSet<>());
@@ -175,9 +175,9 @@ public class QuoterHelper {
         public QuoterModel createQuoteStructure(QuoterOwnerModel quoterOwner, QuoterCarModel quoterCar,
                         QuoterPurchaserModel quoterPurchaser, String quoterStatus, LocalDateTime currentDateTime) {
                 // Estructura de los otros objetos del cotizador (vacíos por el momento)
-                QuoterPlanModel quoterPlan = new QuoterPlanModel("", "", "", BigDecimal.ZERO, BigDecimal.ZERO, 0,
-                                BigDecimal.ZERO, BigDecimal.ZERO, "", BigDecimal.ZERO, "", "",
-                                DataHelper.deprecatedDate(), "", 0);
+                QuoterPlanModel quoterPlan = new QuoterPlanModel("", "", "", "", BigDecimal.ZERO, BigDecimal.ZERO, 0,
+                                BigDecimal.ZERO, BigDecimal.ZERO, "", BigDecimal.ZERO, null, "",
+                                "", "", null, null, "", "");
                 QuoterAddressModel quoterAddress = new QuoterAddressModel("", "", "", "", "");
                 QuoterPaymentModel quoterPayment = new QuoterPaymentModel("", "", "", "");
                 return new QuoterModel(new ObjectId(), quoterStatus, quoterOwner, quoterCar, quoterPurchaser,
