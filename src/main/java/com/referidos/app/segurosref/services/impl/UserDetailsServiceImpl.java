@@ -4,7 +4,6 @@ import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGE
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -55,6 +54,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private final ValidateInputHelper validateInputHelper;
     private final UserHelper userHelper;
     private final PasswordEncoder pwdEncoder;
+    private static final int VERIFICATION_CODE_EXPIRATION_MINUTES = 15;
 
     @Transactional(readOnly = true)
     @Override
@@ -143,7 +143,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .pwd(pwdEncoder.encode(rawPwd))
                 .role("ROLE_USER")
                 .codeAuth(pwdEncoder.encode(codeAuth))
-                .codeExpirationTime(currenDateTime)
+                .codeExpirationTime(currenDateTime.plusMinutes(VERIFICATION_CODE_EXPIRATION_MINUTES))
                 .accountConfirmed(false)
                 .tokenRevocationDate(currenDateTime)
                 .build();
@@ -169,8 +169,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         AuthModel authDB = authRepository.findByEmail(userEmail).orElseThrow();
 
         if (!authDB.isAccountConfirmed()) {
-            boolean isCodeActive = isCodeActive(authDB.getCodeExpirationTime(), LocalDateTime.now(), 3);
-            boolean codeMatches = pwdEncoder.matches(confirm.code(), authDB.getCodeAuth());
+            boolean isCodeActive = isCodeActive(authDB.getCodeExpirationTime(), LocalDateTime.now());
+            boolean codeMatches = matchesVerificationCode(confirm.code(), authDB.getCodeAuth());
 
             if (isCodeActive && codeMatches) {
                 return this.successfulRegistration(userDB, authDB);
@@ -189,6 +189,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         userDB.setCodeToRefer(codeToRefer);
 
         authDB.setAccountConfirmed(true);
+        authDB.setCodeAuth(null);
+        authDB.setCodeExpirationTime(null);
         authRepository.save(authDB);
 
         String sessionToken = JwtConfig.createSessionToken(userEmail,
@@ -331,6 +333,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 }
 
                 authDB.setCodeAuth(pwdEncoder.encode(codeAuth));
+                authDB.setCodeExpirationTime(LocalDateTime.now().plusMinutes(VERIFICATION_CODE_EXPIRATION_MINUTES));
                 authRepository.save(authDB);
                 return ResponseHelper.ok(
                         "se ha enviado un código de confirmación para restablecer la contraseña al email: " + userEmail,
@@ -351,9 +354,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             AuthModel authDB = authOptional.get();
             UserModel userDB = userOptional.get();
             UserDataModel userData = userDB.getPersonalData();
+            String verificationCode = normalizeVerificationCode(passwordReset.code());
 
-            if (pwdEncoder.matches(passwordReset.code(), authDB.getCodeAuth())
-                    && isCodeActive(authDB.getCodeExpirationTime(), LocalDateTime.now(), 5)) {
+            if (matchesVerificationCode(verificationCode, authDB.getCodeAuth())
+                    && isCodeActive(authDB.getCodeExpirationTime(), LocalDateTime.now())) {
                 String newPwd = passwordReset.newPwd();
                 String repeatedPwd = passwordReset.repeatedPwd();
 
@@ -379,6 +383,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     }
 
                     authDB.setPwd(pwdEncoder.encode(newPwd));
+                    authDB.setCodeAuth(null);
+                    authDB.setCodeExpirationTime(null);
                     authDB.setTokenRevocationDate(LocalDateTime.now());
                     authRepository.save(authDB);
 
@@ -410,6 +416,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             String userStatusDB = userDB.getPersonalData().getStatus();
             String code = DataHelper.generateRandomCode();
             boolean isValid = false;
+            LocalDateTime expirationDateTime = null;
 
             if (!DataHelper.isNull(type)) {
                 switch (type) {
@@ -417,6 +424,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         if (!authDB.isAccountConfirmed() && userStatusDB.equals("Desactivado")) {
                             emailAppProvider.sendAuthCodeToRegisterUser(new String[] { userEmail }, code);
                             isValid = true;
+                            expirationDateTime = LocalDateTime.now()
+                                    .plusMinutes(VERIFICATION_CODE_EXPIRATION_MINUTES);
                         }
                         break;
                     }
@@ -424,13 +433,16 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         if (authDB.isAccountConfirmed()) {
                             emailAppProvider.sendAuthCodeToRestorePassword(new String[] { userEmail }, code);
                             isValid = true;
+                            expirationDateTime = LocalDateTime.now()
+                                    .plusMinutes(VERIFICATION_CODE_EXPIRATION_MINUTES);
                         }
                         break;
                     }
                 }
 
                 if (isValid) {
-                    authDB.setCodeExpirationTime(LocalDateTime.now());
+                    authDB.setCodeAuth(pwdEncoder.encode(code));
+                    authDB.setCodeExpirationTime(expirationDateTime);
                     authRepository.save(authDB);
                     return ResponseHelper.ok("el código de confirmación se ha vuelto ha enviar al email: " + userEmail,
                             Collections.singletonMap("info", (Object) "ok"));
@@ -504,17 +516,30 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return new UserDataModel(name, surname, email, "", "", DataHelper.deprecatedDate(), "Desactivado", new byte[0]);
     }
 
-    private boolean isCodeActive(LocalDateTime codeExpirationTime, LocalDateTime verificationDateTime,
-            int expirationMinutes) {
-        if (codeExpirationTime == null)
+    private String normalizeVerificationCode(String code) {
+        return DataHelper.isNull(code) ? "" : code.replaceAll("\\D", "");
+    }
+
+    private boolean matchesVerificationCode(String providedCode, String storedCode) {
+        String normalizedProvidedCode = normalizeVerificationCode(providedCode);
+
+        if (DataHelper.isNull(normalizedProvidedCode) || DataHelper.isNull(storedCode)) {
             return false;
-        long minutesDifference = ChronoUnit.MINUTES.between(codeExpirationTime, verificationDateTime);
-        if (minutesDifference < expirationMinutes) {
-            return true;
-        } else if (minutesDifference == expirationMinutes) {
-            long secondsDifference = ChronoUnit.SECONDS.between(codeExpirationTime, verificationDateTime);
-            return secondsDifference <= 0;
         }
-        return false;
+
+        String trimmedStoredCode = storedCode.trim();
+        if (trimmedStoredCode.matches("\\d{6}")) {
+            return trimmedStoredCode.equals(normalizedProvidedCode);
+        }
+
+        try {
+            return pwdEncoder.matches(normalizedProvidedCode, trimmedStoredCode);
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
+    }
+
+    private boolean isCodeActive(LocalDateTime codeExpirationTime, LocalDateTime verificationDateTime) {
+        return codeExpirationTime != null && !verificationDateTime.isAfter(codeExpirationTime);
     }
 }
