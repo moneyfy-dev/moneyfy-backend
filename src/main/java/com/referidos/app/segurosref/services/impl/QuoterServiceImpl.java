@@ -372,25 +372,15 @@ public class QuoterServiceImpl implements QuoterService {
                     break;
                 }
                 case "aseguradora2" -> {
-                    try {
-                        Thread.sleep(5000);
-                        planList = quoterHelper.planList2(); // Planes de pruebas
-                        errorPlanFinder = "0";
-                        errorMessage = "Se encontro la aseguradora con los planes";
-                    } catch (Exception e) {
-                        LOGGER_MESSAGES.info("\n-----\nExcepcion capturada: " + e.getMessage() + "\n-----");
-                    }
+                    planList = quoterHelper.planList2(); // Planes de pruebas
+                    errorPlanFinder = "0";
+                    errorMessage = "Se encontro la aseguradora con los planes";
                     break;
                 }
                 case "aseguradora3" -> {
-                    try {
-                        Thread.sleep(3000);
-                        planList = quoterHelper.planList3(); // Planes de pruebas
-                        errorPlanFinder = "0";
-                        errorMessage = "Se encontro la aseguradora con los planes";
-                    } catch (Exception e) {
-                        LOGGER_MESSAGES.info("\n-----\nExcepcion capturada: " + e.getMessage() + "\n-----");
-                    }
+                    planList = quoterHelper.planList3(); // Planes de pruebas
+                    errorPlanFinder = "0";
+                    errorMessage = "Se encontro la aseguradora con los planes";
                     break;
                 }
                 case "aseguradora4" -> { // ASEGURADORA 4 == BCI
@@ -508,18 +498,18 @@ public class QuoterServiceImpl implements QuoterService {
                 quoterOwner.setMaternalSurname(planSelected.ownerMaternalSur().strip());
                 // Actualizamos el plan seleccionado del cotizador
                 QuoterPlanModel quoterPlan = quoterDB.getQuoterPlanData();
-                
+
                 String finalPlanId = planSelected.planId();
                 if (finalPlanId != null && (finalPlanId.startsWith("BCI_") || finalPlanId.startsWith("FDI_"))) {
                     finalPlanId = finalPlanId.substring(4);
                 }
                 quoterPlan.setQuoterPlanId(finalPlanId);
-                
+
                 quoterPlan.setInsurer(planSelected.insurer().strip());
-                
+
                 String insurerAlias = planSelected.insurerAlias() != null ? planSelected.insurerAlias().strip() : "";
                 quoterPlan.setInsurerAlias(insurerAlias);
-                
+
                 quoterPlan.setPlanName(planSelected.planName().strip());
                 quoterPlan.setValueUF(planSelected.valueUF());
                 quoterPlan.setGrossPriceUF(planSelected.grossPriceUF());
@@ -533,7 +523,7 @@ public class QuoterServiceImpl implements QuoterService {
                     quoterPlan.setIntNroTarificacionBCI(planSelected.intNroTarificacionBCI());
                     quoterPlan.setStrNroCotizacionBCI(planSelected.strNroCotizacionBCI());
                     quoterPlan.setDtFinVigenciaBCI(planSelected.dtFinVigenciaBCI());
-                    
+
                     quoterPlan.setDealTokenFDI("");
                     quoterPlan.setItemIdFDI(null);
                     quoterPlan.setQuotationIdFDI(null);
@@ -543,7 +533,7 @@ public class QuoterServiceImpl implements QuoterService {
                     quoterPlan.setIntNroTarificacionBCI(null);
                     quoterPlan.setStrNroCotizacionBCI("");
                     quoterPlan.setDtFinVigenciaBCI("");
-                    
+
                     quoterPlan.setDealTokenFDI(planSelected.dealTokenFDI());
                     quoterPlan.setItemIdFDI(planSelected.itemIdFDI());
                     quoterPlan.setQuotationIdFDI(planSelected.quotationIdFDI());
@@ -553,7 +543,7 @@ public class QuoterServiceImpl implements QuoterService {
                     quoterPlan.setIntNroTarificacionBCI(null);
                     quoterPlan.setStrNroCotizacionBCI("");
                     quoterPlan.setDtFinVigenciaBCI("");
-                    
+
                     quoterPlan.setDealTokenFDI("");
                     quoterPlan.setItemIdFDI(null);
                     quoterPlan.setQuotationIdFDI(null);
