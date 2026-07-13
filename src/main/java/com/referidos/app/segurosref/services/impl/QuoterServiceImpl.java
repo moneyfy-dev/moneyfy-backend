@@ -216,6 +216,9 @@ public class QuoterServiceImpl implements QuoterService {
         dataResponse.put("vehicle", vehicleDto);
         dataResponse.put("quoterId", userQuoter.getQuoterId());
         if (vehicleResponse.hasError()) {
+            dataResponse.put("errorStatus", vehicleResponse.getStatusResponse());
+            dataResponse.put("errorStatusInfo", vehicleResponse.getStatusOrErrorStr());
+            dataResponse.put("errorResponseBodyStr", vehicleResponse.getResponseBodyStr());
             dataResponse.put("internalErrorCode", vehicleResponse.getInternalErrorCode());
             dataResponse.put("internalErrorMessage", BusinessCodeEnum
                     .fromCode(vehicleResponse.getInternalErrorCode()).getErrorDescription());
