@@ -53,7 +53,7 @@ public class BCIVehicleClient {
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-            headers.set(JwtConfig.HEADER_AUTHORIZATION, token);
+            headers.set(JwtConfig.HEADER_AUTHORIZATION, JwtConfig.PREFIX_TOKEN + token);
 
             String urlSearch = bciBaseUrl + "/DatosVehiculo?str_Patente=" + ppu;
             HttpEntity<Void> entity = new HttpEntity<>(headers);
