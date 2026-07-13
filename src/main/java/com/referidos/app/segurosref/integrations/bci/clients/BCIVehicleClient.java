@@ -35,9 +35,9 @@ public class BCIVehicleClient {
         // 1. Obtener Token
         BCITokenCreatePojo tokenCreateResponse = bciAuthClient.createToken();
         if (tokenCreateResponse.hasError()) {
-            return new BCIVehicleResponsePojo(tokenCreateResponse.getInternalErrorCode(), 
-                    tokenCreateResponse.getResponseBodyStr(), 
-                    tokenCreateResponse.getStatusOrErrorStr(), 
+            return new BCIVehicleResponsePojo(tokenCreateResponse.getInternalErrorCode(),
+                    tokenCreateResponse.getResponseBodyStr(),
+                    tokenCreateResponse.getStatusOrErrorStr(),
                     tokenCreateResponse.getStatusResponse());
         }
 
@@ -53,7 +53,7 @@ public class BCIVehicleClient {
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-            headers.set(JwtConfig.HEADER_AUTHORIZATION, JwtConfig.PREFIX_TOKEN + token);
+            headers.set(JwtConfig.HEADER_AUTHORIZATION, token);
 
             String urlSearch = bciBaseUrl + "/DatosVehiculo?str_Patente=" + ppu;
             HttpEntity<Void> entity = new HttpEntity<>(headers);
@@ -70,9 +70,11 @@ public class BCIVehicleClient {
                 if (responseJsonRaw != null) {
                     objectMapper.readerForUpdating(bciPojoResult).readValue(responseJsonRaw);
                 }
-                
-                // Si boolEstado es false o resultado es null, se considera respuesta no esperada / fallida
-                if (bciPojoResult.getBoolEstado() == null || !bciPojoResult.getBoolEstado() || bciPojoResult.getResultado() == null) {
+
+                // Si boolEstado es false o resultado es null, se considera respuesta no
+                // esperada / fallida
+                if (bciPojoResult.getBoolEstado() == null || !bciPojoResult.getBoolEstado()
+                        || bciPojoResult.getResultado() == null) {
                     bciPojoResult.setInternalErrorCode(47); // BCI_VEHICLE_LOOKUP_UNEXPECTED_RESPONSE
                 } else {
                     bciPojoResult.setInternalErrorCode(-1);
@@ -80,7 +82,8 @@ public class BCIVehicleClient {
                 return bciPojoResult;
             }
 
-            LOGGER_MESSAGES.info("Respuesta no esperada al buscar vehículo en servicio externo (BCI): " + statusResponse.value());
+            LOGGER_MESSAGES.info(
+                    "Respuesta no esperada al buscar vehículo en servicio externo (BCI): " + statusResponse.value());
             return new BCIVehicleResponsePojo(47, responseJsonRaw, statusResponse.toString(), statusResponse);
 
         } catch (HttpStatusCodeException e) {
@@ -89,7 +92,8 @@ public class BCIVehicleClient {
             bciPojoResult.setStatusOrErrorStr("HTTP Error: " + statusResponse.value() + " - " + e.getStatusText());
             bciPojoResult.setStatusResponse(statusResponse);
             bciPojoResult.setInternalErrorCode(46); // BCI_VEHICLE_LOOKUP_EXCEPTION
-            LOGGER_MESSAGES.info("Error HTTP de BCI buscar vehículo | JSON de error: " + bciPojoResult.getResponseBodyStr());
+            LOGGER_MESSAGES
+                    .info("Error HTTP de BCI buscar vehículo | JSON de error: " + bciPojoResult.getResponseBodyStr());
             return bciPojoResult;
         } catch (Exception e) {
             bciPojoResult.setStatusOrErrorStr("Exception: " + e.getClass().getSimpleName() + " - " + e.getMessage());
@@ -97,7 +101,8 @@ public class BCIVehicleClient {
             if (DataHelper.isNull(bciPojoResult.getResponseBodyStr())) {
                 bciPojoResult.setResponseBodyStr("No se alcanzó a obtener respuesta del servidor externo.");
             }
-            LOGGER_MESSAGES.info("Excepción al buscar vehículo en servicio externo (BCI): " + bciPojoResult.getStatusOrErrorStr());
+            LOGGER_MESSAGES.info(
+                    "Excepción al buscar vehículo en servicio externo (BCI): " + bciPojoResult.getStatusOrErrorStr());
             return bciPojoResult;
         }
     }
