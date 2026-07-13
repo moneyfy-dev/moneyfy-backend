@@ -58,7 +58,7 @@ public class BCIVehicleClient {
             String urlSearch = bciBaseUrl + "/DatosVehiculo?str_Patente=" + ppu;
             HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-            ResponseEntity<String> response = restTemplate.exchange(urlSearch, HttpMethod.GET, entity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(urlSearch, HttpMethod.POST, entity, String.class);
             responseJsonRaw = response.getBody();
             statusResponse = response.getStatusCode();
 
