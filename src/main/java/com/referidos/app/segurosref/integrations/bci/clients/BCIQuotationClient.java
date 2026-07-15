@@ -4,10 +4,11 @@ import static com.referidos.app.segurosref.configs.PropertyConfig.LOGGER_MESSAGE
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -312,53 +313,132 @@ public class BCIQuotationClient {
         List<BrandModel> brandsDB = brandRepository.findAll();
         String errorMessage = "";
         int brandId = 0;
-        int modelId = 0;
-        for (BrandModel brandDB : brandsDB) {
-            String brandNameDB = brandDB.getBrand();
-            // Primero buscamos para saber si existe la marca
-            if (brand.equals(brandNameDB)) {
-                // Existe la marca, ahora buscamos si la aseguradora tiene el id de la marca
-                // para ser cotizada
-                boolean isInsurerBrandId = false;
-                for (BrandInsurerModel insurerBrandId : brandDB.getInsurersId()) {
-                    String insurerNameForBrandIdDB = insurerBrandId.getName();
-                    if (insurer.equals(insurerNameForBrandIdDB)) {
-                        // Existe el id de la marca en la aseguradora
-                        isInsurerBrandId = true;
-                        brandId = insurerBrandId.getId();
-                        break;
-                    }
-                }
-                // Consultamos si se encontro el id de la marca en la aseguradora consultante
-                if (isInsurerBrandId) {
-                    // Existe el id de la marca en la aseguradora, ahora buscamos si existe el
-                    // modelo
-                    for (BrandDataModel modelDB : brandDB.getModels()) {
-                        String modelNameDB = modelDB.getModel();
-                        if (model.equals(modelNameDB)) {
-                            // Existe el modelo, ahora buscamos si existe el id del modelo en la aseguradora
-                            for (BrandInsurerModel insurerModelId : modelDB.getInsurersId()) {
-                                String insurerNameForModelIdDB = insurerModelId.getName();
-                                if (insurer.equals(insurerNameForModelIdDB)) {
-                                    // Existe el id del modelo en la aseguradora
-                                    modelId = insurerModelId.getId();
-                                    return new Object[] { "", "", brandId, modelId };
-                                }
-                            }
-                            errorMessage = "Existe el modelo, pero no se encontro el id del modelo en la aseguradora: "
-                                    + insurer;
-                            return new Object[] { "5", errorMessage, 0, 0 };
-                        }
-                    }
-                    errorMessage = "No existe el modelo consultado en la BD: " + model;
-                    return new Object[] { "4", errorMessage, 0, 0 };
-                }
-                errorMessage = "Existe la marca, pero no se encontro el id de la marca en la aseguradora: " + insurer;
-                return new Object[] { "3", errorMessage, 0, 0 };
+
+        BrandModel matchedBrand = this.findBestBrandMatch(brandsDB, brand);
+        if (matchedBrand == null) {
+            errorMessage = "No existe la marca consulta en la BD: " + brand;
+            return new Object[] { "2", errorMessage, 0, 0 };
+        }
+
+        boolean isInsurerBrandId = false;
+        for (BrandInsurerModel insurerBrandId : matchedBrand.getInsurersId()) {
+            String insurerNameForBrandIdDB = insurerBrandId.getName();
+            if (insurer.equals(insurerNameForBrandIdDB)) {
+                isInsurerBrandId = true;
+                brandId = insurerBrandId.getId();
+                break;
             }
         }
-        errorMessage = "No existe la marca consulta en la BD: " + brand;
-        return new Object[] { "2", errorMessage, 0, 0 };
+
+        if (!isInsurerBrandId) {
+            errorMessage = "Existe la marca, pero no se encontro el id de la marca en la aseguradora: " + insurer;
+            return new Object[] { "3", errorMessage, 0, 0 };
+        }
+
+        BrandDataModel matchedModel = this.findBestModelMatch(matchedBrand.getModels(), model);
+        if (matchedModel == null) {
+            errorMessage = "No existe el modelo consultado en la BD: " + model;
+            return new Object[] { "4", errorMessage, 0, 0 };
+        }
+
+        for (BrandInsurerModel insurerModelId : matchedModel.getInsurersId()) {
+            String insurerNameForModelIdDB = insurerModelId.getName();
+            if (insurer.equals(insurerNameForModelIdDB)) {
+                return new Object[] { "", "", brandId, insurerModelId.getId() };
+            }
+        }
+
+        errorMessage = "Existe el modelo, pero no se encontro el id del modelo en la aseguradora: "
+                + insurer;
+        return new Object[] { "5", errorMessage, 0, 0 };
+    }
+
+    private BrandModel findBestBrandMatch(List<BrandModel> brands, String requestedBrand) {
+        BrandModel bestMatch = null;
+        int bestScore = 0;
+
+        for (BrandModel brandDB : brands) {
+            int score = this.computeMatchScore(requestedBrand, brandDB.getBrand());
+            if (score > bestScore) {
+                bestScore = score;
+                bestMatch = brandDB;
+            }
+        }
+
+        return bestMatch;
+    }
+
+    private BrandDataModel findBestModelMatch(List<BrandDataModel> models, String requestedModel) {
+        BrandDataModel bestMatch = null;
+        int bestScore = 0;
+
+        for (BrandDataModel modelDB : models) {
+            int score = this.computeMatchScore(requestedModel, modelDB.getModel());
+            if (score > bestScore) {
+                bestScore = score;
+                bestMatch = modelDB;
+            }
+        }
+
+        return bestMatch;
+    }
+
+    private int computeMatchScore(String requestedValue, String candidateValue) {
+        String normalizedRequested = this.normalizeCatalogValue(requestedValue);
+        String normalizedCandidate = this.normalizeCatalogValue(candidateValue);
+
+        if (normalizedRequested.isEmpty() || normalizedCandidate.isEmpty()) {
+            return 0;
+        }
+
+        String compactRequested = normalizedRequested.replace(" ", "");
+        String compactCandidate = normalizedCandidate.replace(" ", "");
+
+        if (normalizedRequested.equals(normalizedCandidate) || compactRequested.equals(compactCandidate)) {
+            return 10000;
+        }
+
+        if (compactCandidate.contains(compactRequested) || compactRequested.contains(compactCandidate)) {
+            return 5000 - Math.abs(compactCandidate.length() - compactRequested.length());
+        }
+
+        String[] requestedTokens = normalizedRequested.split(" ");
+        String[] candidateTokens = normalizedCandidate.split(" ");
+        int sharedTokens = 0;
+        int sharedChars = 0;
+
+        for (String candidateToken : candidateTokens) {
+            if (candidateToken.isBlank()) {
+                continue;
+            }
+
+            for (String requestedToken : requestedTokens) {
+                if (!requestedToken.isBlank() && candidateToken.equals(requestedToken)) {
+                    sharedTokens++;
+                    sharedChars += candidateToken.length();
+                    break;
+                }
+            }
+        }
+
+        if (sharedTokens == 0) {
+            return 0;
+        }
+
+        return (sharedTokens * 100) + (sharedChars * 10)
+                - Math.abs(candidateTokens.length - requestedTokens.length);
+    }
+
+    private String normalizeCatalogValue(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "")
+                .toUpperCase()
+                .replaceAll("[^A-Z0-9]+", " ")
+                .trim();
     }
 
 }
