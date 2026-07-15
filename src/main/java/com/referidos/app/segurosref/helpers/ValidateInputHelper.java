@@ -417,8 +417,8 @@ public class ValidateInputHelper {
     public String verifyBrand(String brand) {
         if (DataHelper.isNull(brand)) {
             return env.getProperty("message.field.null");
-        } else if (brand.length() > 20) {
-            return env.getProperty("message.field.max.characters.20");
+        } else if (brand.length() > 50) {
+            return env.getProperty("message.field.max.characters.50");
         }
         return "";
     }
@@ -428,8 +428,8 @@ public class ValidateInputHelper {
     public String verifyModel(String model) {
         if (DataHelper.isNull(model)) {
             return env.getProperty("message.field.null");
-        } else if (model.length() > 20) {
-            return env.getProperty("message.field.max.characters.20");
+        } else if (model.length() > 50) {
+            return env.getProperty("message.field.max.characters.50");
         }
         return "";
     }
