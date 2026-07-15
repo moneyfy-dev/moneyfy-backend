@@ -213,6 +213,7 @@ public class QuoterServiceImpl implements QuoterService {
         }
 
         Map<String, Object> dataResponse = new HashMap<>();
+        dataResponse.put("user", userDB);
         dataResponse.put("vehicle", vehicleDto);
         dataResponse.put("quoterId", userQuoter.getQuoterId());
         if (vehicleResponse.hasError()) {
@@ -224,8 +225,7 @@ public class QuoterServiceImpl implements QuoterService {
                     .fromCode(vehicleResponse.getInternalErrorCode()).getErrorDescription());
         }
 
-        return ResponseHelper.created("se ha realizado la cotizacion exitosamente",
-                DataHelper.buildUser(userDB, dataResponse));
+        return ResponseHelper.created("se ha realizado la cotizacion exitosamente", dataResponse);
     }
 
     @SuppressWarnings({ "unchecked", "null" })
