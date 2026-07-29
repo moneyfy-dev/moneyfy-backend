@@ -247,9 +247,6 @@ public class SeedHelper {
         // Construimos las aseguradoras de la app
         private List<InsurerModel> buildInsurers() {
                 List<InsurerModel> insurers = new ArrayList<>();
-                insurers.add(new InsurerModel(null, "Tractor Seguros Automotriz", "aseguradora1"));
-                insurers.add(new InsurerModel(null, "Seguros Alameda", "aseguradora2"));
-                insurers.add(new InsurerModel(null, "Los Alamos Seguros Automotriz", "aseguradora3"));
                 insurers.add(new InsurerModel(null, "BCI", "aseguradora4"));
                 insurers.add(new InsurerModel(null, "FDI", "aseguradora5"));
                 return insurers;

@@ -363,29 +363,9 @@ public class QuoterServiceImpl implements QuoterService {
         String errorMessage = "No se encontro la aseguradora con el alias '" + insurerAlias + "'";
         String requestBody = "";
         String responseStr = "";
-        // Si es una consulta a una aseguradora de prueba, se juega con delay para mejor
-        // simulacion
         if (insurerOptional.isPresent()) {
             returnInsurerDB = insurerOptional.get();
             switch (insurerAlias) {
-                case "aseguradora1" -> {
-                    planList = quoterHelper.planList1(); // Planes de pruebas
-                    errorPlanFinder = "0";
-                    errorMessage = "Se encontro la aseguradora con los planes";
-                    break;
-                }
-                case "aseguradora2" -> {
-                    planList = quoterHelper.planList2(); // Planes de pruebas
-                    errorPlanFinder = "0";
-                    errorMessage = "Se encontro la aseguradora con los planes";
-                    break;
-                }
-                case "aseguradora3" -> {
-                    planList = quoterHelper.planList3(); // Planes de pruebas
-                    errorPlanFinder = "0";
-                    errorMessage = "Se encontro la aseguradora con los planes";
-                    break;
-                }
                 case "aseguradora4" -> { // ASEGURADORA 4 == BCI
                     Object[] brandAndModelId = bciQuotationClient.findBrandAndModelId(brandRepository, "BCI", brand,
                             model);

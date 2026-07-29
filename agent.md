@@ -8,7 +8,6 @@ La aplicación es una API que se conecta con múltiples aseguradoras externas pa
 - **Estructura Multiaseguradora**: El DTO `QuotationPlanDto` consolida todos los campos relevantes de las distintas aseguradoras. Los campos propios de una aseguradora específica (como `quotationIdBCI` para BCI o campos del FDI) se completan únicamente cuando corresponde a dicha aseguradora; para las demás se envían como `null` (o `""` en caso de cadenas de texto).
 - **Seguridad**: La API REST maneja la recuperación de información basada en **tokens de autenticación del usuario**.
 - **Aseguradoras**:
-  - Aseguradoras 1, 2 y 3: Entornos de prueba.
   - Aseguradora 4 (BCI): Integración productiva.
   - Aseguradora 5 (FDI): Integración productiva.
 
@@ -100,7 +99,6 @@ La aplicación es una API que se conecta con múltiples aseguradoras externas pa
 - **Estructura Multiaseguradora**: El DTO `QuotationPlanDto` consolida todos los campos relevantes de las distintas aseguradoras. Los campos propios de una aseguradora específica (como `quotationIdBCI` para BCI o campos del FDI) se completan únicamente cuando corresponde a dicha aseguradora; para las demás se envían como `null` (o `""` en caso de cadenas de texto).
 - **Seguridad**: La API REST maneja la recuperación de información basada en **tokens de autenticación del usuario**.
 - **Aseguradoras**:
-  - Aseguradoras 1, 2 y 3: Entornos de prueba.
   - Aseguradora 4 (BCI): Integración productiva.
   - Aseguradora 5 (FDI): Integración productiva.
 
