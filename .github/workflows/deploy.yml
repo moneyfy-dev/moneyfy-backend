@@ -5,6 +5,10 @@ on:
     branches:
       - master
 
+concurrency:
+  group: moneyfy-backend-tomcat
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -24,6 +28,7 @@ jobs:
         run: |
           export MONEYFY_JWT_SECRET="$(openssl rand -base64 64)"
           ./mvnw -B -ntp clean package -Dtest=CorsConfigurationTest,WebSessionSecurityTest
+          sha256sum target/segurosref-1.0.war > target/segurosref-1.0.war.sha256
 
       - name: Deploy to server
         uses: appleboy/scp-action@v0.1.7
@@ -32,27 +37,52 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          source: "target/*.war"
-          target: "/tmp/"
+          source: "target/segurosref-1.0.war,target/segurosref-1.0.war.sha256"
+          target: "/tmp/moneyfy-deploy-${{ github.sha }}/"
 
-      - name: Restart Tomcat
+      - name: Install WAR and verify application
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
+          command_timeout: 10m
           script: |
+            set -eu
             TOMCAT_WEBAPPS="/opt/tomcat10/webapps"
-            WAR_FILE=$(find /tmp -maxdepth 3 -name "*.war" -printf "%T@ %p\n" | sort -nr | head -n 1 | cut -d' ' -f2-)
-            if [ -z "$WAR_FILE" ]; then
-              echo "No WAR file found in /tmp" >&2
-              ls -la /tmp || true
-              ls -la /tmp/target || true
-              exit 1
+            STAGING_DIR="/tmp/moneyfy-deploy-${{ github.sha }}"
+            WAR_FILE="$STAGING_DIR/target/segurosref-1.0.war"
+            HEALTH_URL="http://127.0.0.1:8080/moneyfy/auth/web/csrf"
+            exception_classes() {
+              grep -Eo '([A-Za-z_$][A-Za-z0-9_$]*\.)+[A-Za-z_$][A-Za-z0-9_$]*(Exception|Error)' | sort -u | head -n 20 || true
+            }
+            deployment_diagnostics() {
+              echo "Tomcat service state:"
+              systemctl show tomcat10 --property=ActiveState,SubState,Result,ExecMainStatus || true
+              if [ -f "$TOMCAT_WEBAPPS/moneyfy.war" ]; then
+                printf 'Installed WAR bytes: '
+                wc -c < "$TOMCAT_WEBAPPS/moneyfy.war"
+              fi
+              echo "Recent startup exception classes (messages and credentials omitted):"
+              journalctl -u tomcat10 --since '10 minutes ago' --no-pager -o cat 2>/dev/null | exception_classes || true
+              LOG_DATE=$(date +%Y-%m-%d)
+              for LOG_FILE in /opt/tomcat10/logs/catalina.out "/opt/tomcat10/logs/catalina.$LOG_DATE.log" "/opt/tomcat10/logs/localhost.$LOG_DATE.log"; do
+                if [ -f "$LOG_FILE" ]; then
+                  tail -n 500 "$LOG_FILE" 2>/dev/null | exception_classes || true
+                fi
+              done
+            }
+            trap 'DEPLOY_RESULT=$?; if [ "$DEPLOY_RESULT" -ne 0 ]; then deployment_diagnostics; fi' EXIT
+            # Inspect the preceding failure before changing or stopping the application.
+            deployment_diagnostics
+            test -s "$WAR_FILE"
+            test -s "$WAR_FILE.sha256"
+            (cd "$STAGING_DIR" && sha256sum --check target/segurosref-1.0.war.sha256 >/dev/null)
+            command -v curl >/dev/null 2>&1
+            if [ -f "$TOMCAT_WEBAPPS/moneyfy.war" ]; then
+              cp -p "$TOMCAT_WEBAPPS/moneyfy.war" "$STAGING_DIR/previous-moneyfy.war"
             fi
-            rm -rf /opt/tomcat10/work/Catalina/localhost/moneyfy || true
-            rm -rf $TOMCAT_WEBAPPS/moneyfy $TOMCAT_WEBAPPS/moneyfy.war
             TOMCAT_SETENV="/opt/tomcat10/bin/setenv.sh"
             touch "$TOMCAT_SETENV"
             if ! grep -q "^export MONEYFY_JWT_SECRET=" "$TOMCAT_SETENV"; then
@@ -71,13 +101,26 @@ jobs:
             if grep -q "^export MONEYFY_CLEANUP_INVALID_USERS_ENABLED=" "$TOMCAT_SETENV"; then
               sed -i 's/^export MONEYFY_CLEANUP_INVALID_USERS_ENABLED=.*/export MONEYFY_CLEANUP_INVALID_USERS_ENABLED=false/' "$TOMCAT_SETENV"
             fi
-            chown tomcat:tomcat "$TOMCAT_SETENV" || true
-            mv "$WAR_FILE" $TOMCAT_WEBAPPS/moneyfy.war
-            chown tomcat:tomcat $TOMCAT_WEBAPPS/moneyfy.war || true
-            systemctl restart tomcat10
-            sleep 5
-            systemctl status tomcat10 --no-pager -l || true
-            ls -la $TOMCAT_WEBAPPS/moneyfy.war || true
-            if command -v curl >/dev/null 2>&1; then
-              curl -I http://localhost:8080/moneyfy/ || true
+            chown tomcat:tomcat "$TOMCAT_SETENV"
+            # Tomcat must not auto-deploy while its WAR and exploded directory are replaced.
+            systemctl stop tomcat10
+            if systemctl is-active --quiet tomcat10; then
+              echo "Tomcat did not stop; refusing to replace its application" >&2
+              exit 1
             fi
+            rm -rf -- /opt/tomcat10/work/Catalina/localhost/moneyfy "$TOMCAT_WEBAPPS/moneyfy"
+            install -o tomcat -g tomcat -m 0644 "$WAR_FILE" "$TOMCAT_WEBAPPS/moneyfy.war.next"
+            mv -f "$TOMCAT_WEBAPPS/moneyfy.war.next" "$TOMCAT_WEBAPPS/moneyfy.war"
+            systemctl start tomcat10
+            HEALTH_DEADLINE=$(($(date +%s) + 180))
+            HTTP_STATUS=000
+            while [ "$(date +%s)" -lt "$HEALTH_DEADLINE" ]; do
+              HTTP_STATUS=$(curl --silent --output /dev/null --write-out '%{http_code} %{content_type}' --connect-timeout 2 --max-time 5 -H 'X-Moneyfy-Client: web' "$HEALTH_URL" || true)
+              if [ "${HTTP_STATUS%% *}" = 200 ] && [ "${HTTP_STATUS#* }" != "$HTTP_STATUS" ] && printf '%s' "${HTTP_STATUS#* }" | grep -q '^application/json'; then
+                echo "Moneyfy CSRF endpoint ready (HTTP 200)"
+                exit 0
+              fi
+              sleep 5
+            done
+            echo "Moneyfy did not become ready within 180 seconds (HTTP $HTTP_STATUS)" >&2
+            exit 1
