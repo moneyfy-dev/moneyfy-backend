@@ -20,7 +20,10 @@ jobs:
           distribution: 'temurin'
 
       - name: Build WAR
-        run: ./mvnw clean package -DskipTests
+        # Test-only signing key; no MongoDB context or production credentials are needed.
+        run: |
+          export MONEYFY_JWT_SECRET="$(openssl rand -base64 64)"
+          ./mvnw -B -ntp clean package -Dtest=CorsConfigurationTest,WebSessionSecurityTest
 
       - name: Deploy to server
         uses: appleboy/scp-action@v0.1.7

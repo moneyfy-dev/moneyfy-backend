@@ -7,6 +7,7 @@ import org.springframework.util.AntPathMatcher;
 public class FilterHelper {
 
     public static final String[] PUBLIC_ROUTES = {
+            "/auth/web/csrf",
             "/auth/register",
             "/auth/confirm/registration",
             "/auth/log-in",
