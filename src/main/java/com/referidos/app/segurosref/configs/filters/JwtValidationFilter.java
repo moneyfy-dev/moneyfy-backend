@@ -6,6 +6,7 @@ import static com.referidos.app.segurosref.configs.JwtConfig.REFRESH_THRESHOLD;
 import static com.referidos.app.segurosref.configs.JwtConfig.CONTENT_TYPE;
 
 import java.io.IOException;
+import com.referidos.app.segurosref.websession.WebSessionSupport;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import com.referidos.app.segurosref.helpers.FilterHelper;
@@ -63,9 +64,16 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
 
         String tokenHeader = request.getHeader(HEADER_AUTHORIZATION);
         String refreshToken = request.getHeader("X-New-Refresh-Token");
+        boolean web = WebSessionSupport.isWebRequest(request);
+        if (web) {
+            String cookieToken = WebSessionSupport.cookie(request, WebSessionSupport.SESSION_COOKIE);
+            tokenHeader = cookieToken == null ? null : PREFIX_TOKEN + cookieToken;
+            refreshToken = WebSessionSupport.cookie(request, WebSessionSupport.REFRESH_COOKIE);
+            response.setHeader("Cache-Control", "no-store");
+        }
 
         if (tokenHeader == null || !tokenHeader.startsWith(PREFIX_TOKEN)) {
-            sendUnauthorizedError(response);
+            sendUnauthorizedError(request, response);
             return;
         }
 
@@ -77,7 +85,7 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             String userEmail = JwtConfig.getSubject(claims);
 
             if (!validateTokenNotRevoked(userEmail, claims.getIssuedAt())) {
-                sendUnauthorizedError(response);
+                sendUnauthorizedError(request, response);
                 return;
             }
 
@@ -95,32 +103,36 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             // Intento 2: Session Token Expirado, evaluar Refresh Token (Silent Refresh /
             // Sliding Session)
             if (DataHelper.isNull(refreshToken)) {
-                sendUnauthorizedError(response);
+                sendUnauthorizedError(request, response);
                 return;
             }
-            handleRefreshToken(request, response, chain, refreshToken);
+            handleRefreshToken(request, response, chain, refreshToken, e.getClaims().getSubject());
 
         } catch (JwtException e) {
-            sendUnauthorizedError(response);
+            sendUnauthorizedError(request, response);
         } catch (Exception e) {
-            sendUnauthorizedError(response);
+            sendUnauthorizedError(request, response);
         }
     }
 
     private void handleRefreshToken(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
-            String refreshToken) throws IOException, ServletException {
+            String refreshToken, String accessSubject) throws IOException, ServletException {
         try {
             Claims claims = JwtConfig.obtainClaims(refreshToken);
+            if (!java.util.Objects.equals(accessSubject, claims.getSubject())) {
+                sendUnauthorizedError(request, response);
+                return;
+            }
             String userEmail = JwtConfig.getSubject(claims);
 
             if (!validateTokenNotRevoked(userEmail, claims.getIssuedAt())) {
-                sendUnauthorizedError(response);
+                sendUnauthorizedError(request, response);
                 return;
             }
 
             Optional<AuthModel> authOptional = authRepository.findByEmail(userEmail);
             if (authOptional.isEmpty()) {
-                sendUnauthorizedError(response);
+                sendUnauthorizedError(request, response);
                 return;
             }
 
@@ -130,22 +142,27 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
 
             // Generar nuevo Session Token
             String newSessionToken = JwtConfig.createSessionToken(userEmail, authorities);
-            response.addHeader("X-New-Session-Token", newSessionToken);
+            String effectiveRefreshToken = refreshToken;
 
             // Verificar si el Refresh Token también necesita actualizarse (Sliding Session)
             Date expiration = claims.getExpiration();
             long timeLeft = expiration.getTime() - System.currentTimeMillis();
             if (timeLeft <= REFRESH_THRESHOLD) {
-                String newRefreshToken = JwtConfig.createRefreshToken(userEmail);
-                response.addHeader("X-New-Refresh-Token", newRefreshToken);
+                effectiveRefreshToken = JwtConfig.createRefreshToken(userEmail);
             }
 
+            if (WebSessionSupport.isWebRequest(request)) {
+                WebSessionSupport.issueAuthCookies(response, newSessionToken, effectiveRefreshToken);
+            } else {
+                response.addHeader("X-New-Session-Token", newSessionToken);
+                if (!effectiveRefreshToken.equals(refreshToken)) response.addHeader("X-New-Refresh-Token", effectiveRefreshToken);
+            }
             Authentication authForUser = new UsernamePasswordAuthenticationToken(userEmail, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authForUser);
             chain.doFilter(request, response);
 
         } catch (Exception e) {
-            sendUnauthorizedError(response);
+            sendUnauthorizedError(request, response);
         }
     }
 
@@ -163,7 +180,9 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
         return false;
     }
 
-    private void sendUnauthorizedError(HttpServletResponse response) throws IOException {
+    private void sendUnauthorizedError(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        SecurityContextHolder.clearContext();
+        if (WebSessionSupport.isWebRequest(request)) WebSessionSupport.clearCookies(response);
         response.setStatus(HttpStatus.EXPECTATION_FAILED.value());
         response.setContentType(CONTENT_TYPE);
 
