@@ -94,6 +94,40 @@ class WebSessionSecurityTest {
     private Cookie csrfCookie(MvcResult result) throws Exception { return new Cookie(CSRF_COOKIE, csrf(result)); }
     private Cookie[] authCookies() { return new Cookie[]{new Cookie(SESSION_COOKIE, session), new Cookie(REFRESH_COOKIE, refresh)}; }
 
+    @Test void loginCsrfSurvivesRepeatedAuthenticatedRequestsAndReload() throws Exception {
+        var initial = bootstrap();
+        var login = mvc.perform(post("/auth/log-in").header(CLIENT, "web").header(CSRF, csrf(initial))
+                .cookie(csrfCookie(initial)).secure(true).contentType("application/json")
+                .content("{\"email\":\"test@example.invalid\",\"pwd\":\"fixture\"}"))
+                .andExpect(status().isOk()).andReturn();
+        var jar = new java.util.LinkedHashMap<String, Cookie>();
+        updateCookieJar(jar, login);
+        assertEquals(csrf(login), jar.get(CSRF_COOKIE).getValue());
+        assertNotEquals(csrf(initial), csrf(login), "Login must rotate the CSRF token");
+        for (int request = 0; request < 3; request++) {
+            var result = mvc.perform(post("/users/hydration/data").header(CLIENT, "web").header(CSRF, csrf(login))
+                    .cookie(jar.values().toArray(Cookie[]::new)).secure(true))
+                    .andExpect(status().isOk()).andReturn();
+            updateCookieJar(jar, result);
+            assertNotNull(jar.get(CSRF_COOKIE), "JWT validation must not delete the CSRF cookie on every request");
+            assertEquals(csrf(login), jar.get(CSRF_COOKIE).getValue());
+        }
+        var restored = mvc.perform(get("/auth/web/session").header(CLIENT, "web")
+                .cookie(jar.values().toArray(Cookie[]::new)).secure(true))
+                .andExpect(status().isOk()).andReturn();
+        updateCookieJar(jar, restored);
+        assertEquals(csrf(restored), jar.get(CSRF_COOKIE).getValue());
+        mvc.perform(post("/users/hydration/data").header(CLIENT, "web").header(CSRF, csrf(restored))
+                .cookie(jar.values().toArray(Cookie[]::new)).secure(true)).andExpect(status().isOk());
+    }
+
+    private void updateCookieJar(Map<String, Cookie> jar, MvcResult result) {
+        for (String header : result.getResponse().getHeaders("Set-Cookie")) {
+            var cookie = java.net.HttpCookie.parse(header).getFirst();
+            if (cookie.getMaxAge() == 0) jar.remove(cookie.getName());
+            else jar.put(cookie.getName(), new Cookie(cookie.getName(), cookie.getValue()));
+        }
+    }
     @Test void bootstrapIsAnonymousAndItsCookieCannotBeReadByJavascript() throws Exception {
         var result = bootstrap();
         String cookie = result.getResponse().getHeader("Set-Cookie");

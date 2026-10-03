@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -48,6 +49,9 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfRepository)
+                        // Stateless JWT validation authenticates every request. Rotate CSRF only
+                        // when issuing login/confirmation/reset cookies in WebSessionResponseAdvice.
+                        .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler() {
                             @Override public String resolveCsrfTokenValue(jakarta.servlet.http.HttpServletRequest request, CsrfToken token) {
                                 return request.getHeader(token.getHeaderName());
