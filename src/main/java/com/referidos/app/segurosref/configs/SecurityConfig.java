@@ -64,6 +64,10 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cors = new CorsConfiguration();
 
+        cors.setAllowedOrigins(Arrays.asList(
+                "http://localhost:5173",
+                "http://127.0.0.1:5173"));
+
         cors.setAllowedOriginPatterns(Arrays.asList(
                 "https://moneyfy.cl",
                 "https://*.moneyfy.cl",
@@ -74,6 +78,8 @@ public class SecurityConfig {
         cors.setAllowedHeaders(
                 Arrays.asList("Authorization", "Content-Type", "Refresh-Token", "Origin", "User-Agent",
                         "X-New-Session-Token", "X-New-Refresh-Token"));
+        // Browsers must read these headers to persist rotated JWTs.
+        cors.setExposedHeaders(Arrays.asList("X-New-Session-Token", "X-New-Refresh-Token"));
         cors.setAllowCredentials(true);
 
         // Creamos la instancia del objeto que implementa la interfaz Cors... y
