@@ -27,7 +27,7 @@ jobs:
         # Test-only signing key; no MongoDB context or production credentials are needed.
         run: |
           export MONEYFY_JWT_SECRET="$(openssl rand -base64 64)"
-          ./mvnw -B -ntp clean package -Dtest=CorsConfigurationTest,WebSessionSecurityTest
+          ./mvnw -B -ntp clean package -Dtest=CorsConfigurationTest,WebSessionSecurityTest,ManagerCommissionReportingTest
           sha256sum target/segurosref-1.0.war > target/segurosref-1.0.war.sha256
 
       - name: Deploy to server

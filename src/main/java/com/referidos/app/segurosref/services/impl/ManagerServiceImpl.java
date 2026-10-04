@@ -9,6 +9,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import com.referidos.app.segurosref.helpers.CommissionReporting;
+import com.referidos.app.segurosref.dtos.manager.CommissionLedgerPageDto;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Optional;
@@ -345,10 +348,19 @@ public class ManagerServiceImpl implements ManagerService {
     @Override
     @Transactional(readOnly = true)
     public ResponseEntity<?> getDashboardSummary() {
+        return getDashboardSummary(null, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> getDashboardSummary(LocalDate dateFrom, LocalDate dateTo) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         ManagerModel managerDB = managerRepository.findByEmail(email).orElse(null);
         if (managerDB == null) {
             return ResponseHelper.unauthorized("no autorizado");
+        }
+        if (invalidPeriod(dateFrom, dateTo)) {
+            return ResponseHelper.badRequest("Periodo invalido", "dateFrom no puede ser posterior a dateTo");
         }
         ManagerDto managerDto = ManagerDto.builder()
                 .managerId(managerDB.getManagerId())
@@ -408,20 +420,15 @@ public class ManagerServiceImpl implements ManagerService {
             }
         }
 
-        int paidCommissions = 0;
-        int pendingCommissions = 0;
+        var ledger = CommissionReporting.entries(transactions, users, dateFrom, dateTo);
+        long paidCommissions = CommissionReporting.total(ledger, "Pagado");
+        long pendingCommissions = CommissionReporting.total(ledger, "Aprobado");
+        long pendingApprovalCommissions = CommissionReporting.total(ledger, "Pendiente");
+        long conflictCommissions = CommissionReporting.total(ledger, "Conflictivo");
 
         for (TransactionModel transaction : transactions) {
             String status = transaction.getStatus();
             int amount = transaction.getCommissionTotal();
-
-            if ("Pagado".equals(status)) {
-                paidCommissions += amount;
-            }
-
-            if ("Pendiente".equals(status) || "Aprobado".equals(status)) {
-                pendingCommissions += amount;
-            }
 
             if (transaction.getApprovalDate() == null || transaction.getApprovalDate().isBefore(firstDay)) {
                 continue;
@@ -450,10 +457,53 @@ public class ManagerServiceImpl implements ManagerService {
                 activeUsers,
                 paidCommissions,
                 pendingCommissions,
-                weeklyMetrics);
+                pendingApprovalCommissions,
+                conflictCommissions,
+                weeklyMetrics, dateFrom, dateTo);
 
         return ResponseHelper.ok("Solicitud realizada: Resumen dashboard generado",
                 Map.of("summary", summary, "manager", managerDto));
+    }
+
+    private boolean invalidPeriod(LocalDate from, LocalDate to) {
+        return from != null && to != null && from.isAfter(to);
+    }
+
+    private boolean isKnownManager() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && managerRepository.findByEmail(authentication.getName()).isPresent();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> getDashboardCommissionLedger(String status, LocalDate dateFrom,
+            LocalDate dateTo, int page, int size, String userId) {
+        if (!isKnownManager()) return ResponseHelper.unauthorized("No autorizado");
+        if (!CommissionReporting.REPORTABLE_STATUSES.contains(status == null ? "" : status)
+                || invalidPeriod(dateFrom, dateTo) || page < 0 || size < 1 || size > 100) {
+            return ResponseHelper.badRequest("Filtros invalidos", "Revise estado, fechas y paginacion");
+        }
+        var entries = CommissionReporting.entries(transactionRepository.findAll(), userRepository.findAll(), dateFrom, dateTo)
+                .stream().filter(entry -> status.equals(entry.status()))
+                .filter(entry -> userId == null || userId.isBlank() || userId.equals(entry.userId())).toList();
+        long totalAmount = CommissionReporting.total(entries, status);
+        int totalPages = (int) ((entries.size() + (long) size - 1) / size);
+        int start = (int) Math.min((long) page * size, entries.size());
+        int end = Math.min(start + size, entries.size());
+        var result = new CommissionLedgerPageDto(entries.subList(start, end), page, size, entries.size(),
+                totalPages, totalAmount, dateFrom, dateTo, status);
+        return ResponseHelper.response("Solicitud realizada: Detalle de comisiones generado", 200, result);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> getCommissionReconciliation() {
+        if (!isKnownManager()) return ResponseHelper.unauthorized("No autorizado");
+        var users = userRepository.findAll();
+        var entries = CommissionReporting.entries(transactionRepository.findAll(), users, null, null);
+        var discrepancies = CommissionReporting.reconcile(entries, users);
+        return ResponseHelper.ok("Conciliacion de saldos generada sin modificar datos",
+                Map.of("content", discrepancies, "discrepancyCount", discrepancies.size()));
     }
 
     @SuppressWarnings("null")
@@ -1045,9 +1095,15 @@ public class ManagerServiceImpl implements ManagerService {
                         .thenValueOf("commissions.userCommission").otherwise(0))
                 .as("validCommission")
                 .and(ConditionalOperators
-                        .when(Criteria.where("commissions.commissionStatus").in("Aprobado", "Conflictivo"))
+                        .when(Criteria.where("commissions.commissionStatus").is("Aprobado"))
                         .thenValueOf("commissions.userCommission").otherwise(0))
                 .as("pendingCommission")
+                .and(ConditionalOperators.when(Criteria.where("commissions.commissionStatus").is("Pendiente"))
+                        .thenValueOf("commissions.userCommission").otherwise(0))
+                .as("pendingApprovalCommission")
+                .and(ConditionalOperators.when(Criteria.where("commissions.commissionStatus").is("Conflictivo"))
+                        .thenValueOf("commissions.userCommission").otherwise(0))
+                .as("conflictCommission")
                 .and(ConditionalOperators.when(Criteria.where("commissions.commissionStatus").is("Pagado"))
                         .thenValueOf("commissions.userCommission").otherwise(0))
                 .as("paidCommission"));
@@ -1055,6 +1111,8 @@ public class ManagerServiceImpl implements ManagerService {
         operations.add(Aggregation.group("receptorId")
                 .count().as("realizedCommissions")
                 .sum("pendingCommission").as("pendingPayments")
+                .sum("pendingApprovalCommission").as("pendingApprovalCommissions")
+                .sum("conflictCommission").as("conflictCommissions")
                 .sum("paidCommission").as("paidCommissions")
                 .sum(ConditionalOperators.when(Criteria.where("isOwn").is(true))
                         .thenValueOf("validCommission").otherwise(0))
@@ -1083,10 +1141,10 @@ public class ManagerServiceImpl implements ManagerService {
                     .orElse(null) : null;
 
             int realized = metrics.getInteger("realizedCommissions", 0);
-            int pending = metrics.getInteger("pendingPayments", 0);
-            int own = metrics.getInteger("ownCommissions", 0);
-            int referred = metrics.getInteger("referredCommissions", 0);
-            int paid = metrics.getInteger("paidCommissions", 0);
+            long pending = ((Number) metrics.getOrDefault("pendingPayments", 0)).longValue();
+            long own = ((Number) metrics.getOrDefault("ownCommissions", 0)).longValue();
+            long referred = ((Number) metrics.getOrDefault("referredCommissions", 0)).longValue();
+            long paid = ((Number) metrics.getOrDefault("paidCommissions", 0)).longValue();
 
             moneyfyers.add(MoneyfyerDto.builder()
                     .idUser(uId)
@@ -1098,6 +1156,8 @@ public class ManagerServiceImpl implements ManagerService {
                     .activeAccount(activeAccount)
                     .realizedCommissions(realized)
                     .pendingPayments(pending)
+                    .pendingApprovalCommissions(((Number) metrics.getOrDefault("pendingApprovalCommissions", 0)).longValue())
+                    .conflictCommissions(((Number) metrics.getOrDefault("conflictCommissions", 0)).longValue())
                     .ownCommissions(own)
                     .referredCommissions(referred)
                     .totalCommissions(own + referred)
