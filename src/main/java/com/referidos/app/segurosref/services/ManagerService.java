@@ -12,6 +12,13 @@ public interface ManagerService {
 
     ResponseEntity<?> getDashboardSummary();
 
+    ResponseEntity<?> getDashboardSummary(java.time.LocalDate dateFrom, java.time.LocalDate dateTo);
+
+    ResponseEntity<?> getDashboardCommissionLedger(String status, java.time.LocalDate dateFrom,
+            java.time.LocalDate dateTo, int page, int size, String userId);
+
+    ResponseEntity<?> getCommissionReconciliation();
+
     ResponseEntity<?> getMoneyfyersDashboard();
 
     ResponseEntity<?> finalizeQuote(FinalizeQuoteRequest finalizeQuote);

@@ -23,9 +23,11 @@ public class MoneyfyerDto {
     private String userPhone;
     private AccountModel activeAccount;
     private int realizedCommissions;
-    private int pendingPayments;
-    private int ownCommissions;
-    private int referredCommissions;
-    private int totalCommissions;
-    private int paidCommissions;
+    private long pendingPayments;
+    private long pendingApprovalCommissions;
+    private long conflictCommissions;
+    private long ownCommissions;
+    private long referredCommissions;
+    private long totalCommissions;
+    private long paidCommissions;
 }

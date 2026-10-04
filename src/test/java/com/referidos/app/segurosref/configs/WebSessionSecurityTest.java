@@ -14,6 +14,8 @@ import java.util.List;
 import jakarta.servlet.Filter;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.ResponseEntity;
@@ -26,11 +28,13 @@ import org.springframework.web.context.support.AnnotationConfigWebApplicationCon
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.referidos.app.segurosref.controllers.AuthController;
+import com.referidos.app.segurosref.controllers.ManagerController;
 import com.referidos.app.segurosref.controllers.UserController;
 import com.referidos.app.segurosref.models.AuthModel;
 import com.referidos.app.segurosref.repositories.AuthRepository;
 import com.referidos.app.segurosref.responses.GeneralResponse;
 import com.referidos.app.segurosref.services.UserService;
+import com.referidos.app.segurosref.services.ManagerService;
 import com.referidos.app.segurosref.services.impl.UserDetailsServiceImpl;
 
 class WebSessionSecurityTest {
@@ -44,6 +48,7 @@ class WebSessionSecurityTest {
     private MockMvc mvc;
     private AuthRepository repository;
     private UserDetailsServiceImpl auth;
+    private ManagerService manager;
     private String session;
     private String refresh;
     private final ObjectMapper json = new ObjectMapper();
@@ -53,6 +58,8 @@ class WebSessionSecurityTest {
     static class TestMvc {
         @Bean AuthRepository authRepository() { return mock(AuthRepository.class); }
         @Bean UserService userService() { return mock(UserService.class); }
+        @Bean ManagerService managerService() { return mock(ManagerService.class); }
+        @Bean ManagerController managerController(ManagerService manager) { return new ManagerController(manager); }
         @Bean UserDetailsServiceImpl userDetailsServiceImpl() { return mock(UserDetailsServiceImpl.class); }
         @Bean AuthController authController(UserService users, UserDetailsServiceImpl auth) { return new AuthController(users, auth); }
         @Bean UserController userController(UserService users) { return new UserController(users); }
@@ -70,6 +77,7 @@ class WebSessionSecurityTest {
         mvc = MockMvcBuilders.webAppContextSetup(context).addFilter(context.getBean("springSecurityFilterChain", Filter.class)).build();
         repository = context.getBean(AuthRepository.class);
         auth = context.getBean(UserDetailsServiceImpl.class);
+        manager = context.getBean(ManagerService.class);
         when(repository.findByEmail(EMAIL)).thenReturn(Optional.of(AuthModel.builder().email(EMAIL).role("ROLE_USER")
                 .tokenRevocationDate(LocalDateTime.of(2000, 1, 1, 0, 0)).build()));
         session = JwtConfig.createSessionToken(EMAIL, AuthorityUtils.createAuthorityList("ROLE_USER"));
@@ -322,6 +330,42 @@ class WebSessionSecurityTest {
         verify(auth, never()).logout(anyString());
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"/api/v1/manager/dashboard/summary", "/api/v1/manager/dashboard/commissions?status=Aprobado", "/api/v1/manager/dashboard/commission-reconciliation"})
+    void managerFinancialReportsRejectUserCookiesBeforeLoadingFinancialData(String path) throws Exception {
+        mvc.perform(get(path).header(CLIENT, "web").cookie(authCookies()).secure(true))
+                .andExpect(status().isForbidden());
+        verifyNoInteractions(manager);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/api/v1/manager/dashboard/summary", "/api/v1/manager/dashboard/commissions?status=Aprobado", "/api/v1/manager/dashboard/commission-reconciliation"})
+    void managerFinancialReportsRejectMissingSessionBeforeLoadingFinancialData(String path) throws Exception {
+        mvc.perform(get(path).header(CLIENT, "web").secure(true))
+                .andExpect(status().isExpectationFailed())
+                .andExpect(jsonPath("$.internalErrorCode").value(3));
+        verifyNoInteractions(manager);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/api/v1/manager/dashboard/summary", "/api/v1/manager/dashboard/commissions?status=Aprobado", "/api/v1/manager/dashboard/commission-reconciliation"})
+    void managerFinancialReportsAllowAdminCookiesThroughRealSecurityFilters(String path) throws Exception {
+        when(repository.findByEmail(EMAIL)).thenReturn(Optional.of(AuthModel.builder().email(EMAIL).role("ROLE_ADMIN")
+                .tokenRevocationDate(LocalDateTime.of(2000, 1, 1, 0, 0)).build()));
+        session = JwtConfig.createSessionToken(EMAIL, AuthorityUtils.createAuthorityList("ROLE_ADMIN"));
+        when(manager.getDashboardSummary(any(), any())).thenAnswer(invocation ->
+                ResponseEntity.ok(new GeneralResponse("Report authorized", 200, Map.of("authorized", true))));
+        when(manager.getDashboardCommissionLedger(anyString(), any(), any(), anyInt(), anyInt(), any())).thenAnswer(invocation ->
+                ResponseEntity.ok(new GeneralResponse("Report authorized", 200, Map.of("authorized", true))));
+        when(manager.getCommissionReconciliation()).thenAnswer(invocation ->
+                ResponseEntity.ok(new GeneralResponse("Report authorized", 200, Map.of("authorized", true))));
+        mvc.perform(get(path).header(CLIENT, "web").cookie(authCookies()).secure(true))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.authorized").value(true));
+        if (path.endsWith("/summary")) verify(manager).getDashboardSummary(null, null);
+        else if (path.contains("/commissions?")) verify(manager).getDashboardCommissionLedger("Aprobado", null, null, 0, 10, null);
+        else verify(manager).getCommissionReconciliation();
+        verifyNoMoreInteractions(manager);
+    }
     @Test void mobileBearerAndLoginResponseRemainCompatibleWithoutCsrf() throws Exception {
         mvc.perform(post("/auth/log-in").contentType("application/json").content("{\"email\":\"test@example.invalid\",\"pwd\":\"fixture\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.sessionToken").value(session)).andExpect(jsonPath("$.data.refreshToken").value(refresh))

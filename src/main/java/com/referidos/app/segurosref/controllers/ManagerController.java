@@ -20,6 +20,8 @@ import com.referidos.app.segurosref.requests.FinalizeQuoteRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import lombok.RequiredArgsConstructor;
+import java.time.LocalDate;
+import org.springframework.format.annotation.DateTimeFormat;
 
 @RestController
 @RequestMapping("/api/v1/manager")
@@ -41,8 +43,28 @@ public class ManagerController {
 
     @GetMapping("/dashboard/summary")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getDashboardSummary() {
-        return managerService.getDashboardSummary();
+    public ResponseEntity<?> getDashboardSummary(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
+        return managerService.getDashboardSummary(dateFrom, dateTo);
+    }
+
+    @GetMapping("/dashboard/commissions")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getDashboardCommissionLedger(
+            @RequestParam String status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String userId) {
+        return managerService.getDashboardCommissionLedger(status, dateFrom, dateTo, page, size, userId);
+    }
+
+    @GetMapping("/dashboard/commission-reconciliation")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getCommissionReconciliation() {
+        return managerService.getCommissionReconciliation();
     }
 
     @PutMapping("/finalize/quote")
