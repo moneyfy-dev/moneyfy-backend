@@ -32,7 +32,7 @@ import com.referidos.app.segurosref.websession.WebSessionSupport;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    private static final String DEFAULT_WEB_ORIGINS = "https://moneyfy.cl,https://app.moneyfy.cl,http://localhost:5173,http://127.0.0.1:5173";
+    private static final String DEFAULT_WEB_ORIGINS = "https://moneyfy.cl,https://app.moneyfy.cl,https://web.moneyfy.cl,http://localhost:5173,http://127.0.0.1:5173";
 
     @org.springframework.beans.factory.annotation.Value("${moneyfy.web.allowed-origins:" + DEFAULT_WEB_ORIGINS + "}")
     private String webAllowedOrigins = DEFAULT_WEB_ORIGINS;
