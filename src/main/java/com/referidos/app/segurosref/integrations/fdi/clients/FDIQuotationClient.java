@@ -15,6 +15,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -27,15 +29,32 @@ import com.referidos.app.segurosref.integrations.fdi.dtos.FDIQuotationPlanDto;
 import com.referidos.app.segurosref.integrations.fdi.pojos.FDIItemCreatePojo;
 import com.referidos.app.segurosref.integrations.fdi.pojos.FDIQuoteDealPojo;
 import com.referidos.app.segurosref.integrations.fdi.pojos.FDIDealCreatePojo;
-import com.referidos.app.segurosref.integrations.fdi.requests.FDIDealUpAddressRequest;
 import com.referidos.app.segurosref.integrations.fdi.requests.FDIDealUpContractorRequest;
 import com.referidos.app.segurosref.integrations.fdi.requests.FDIDealUpRequest;
 import com.referidos.app.segurosref.integrations.fdi.requests.FDIItemCrRequest;
 import com.referidos.app.segurosref.integrations.fdi.requests.FDIItemCrVehicleRequest;
 import com.referidos.app.segurosref.integrations.fdi.requests.FDIDealUpPayerRequest;
+import com.referidos.app.segurosref.integrations.fdi.FdiVehicleMappingService;
+import com.referidos.app.segurosref.models.FdiVehicleMapping;
+import com.referidos.app.segurosref.models.QuoterModel;
+import com.referidos.app.segurosref.requests.SearchPlanRequest;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class FDIQuotationClient {
+
+    private final FdiVehicleMappingService mappings;
+
+    @Value("${fdi.homologation.enabled:false}")
+    private boolean homologationEnabled;
+
+    private RestTemplate restTemplate() {
+        var factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(3000);
+        factory.setReadTimeout(15000);
+        return new RestTemplate(factory);
+    }
 
     @Value(value = "${fdi.qa.base-url}")
     private String fdiBaseUrl;
@@ -49,13 +68,17 @@ public class FDIQuotationClient {
     @Value(value = "${fdi.qa.broker-id}")
     private String fdiBrokerId;
 
-    @Value(value = "${fdi.qa.update-endpoint.contractor-email}")
-    private String fdiContractorEmail;
-
-    @Value(value = "${fdi.qa.update-endpoint.payer-email}")
-    private String fdiPayerEmail;
-
-    public Object[] quoteVehicle() {
+    public Object[] quoteVehicle(SearchPlanRequest request, QuoterModel quote) {
+        if (!homologationEnabled) {
+            return new Object[] { 79, null };
+        }
+        FdiVehicleMapping mapping;
+        try {
+            // Validar antes de crear un deal externo. No usar coincidencias aproximadas.
+            mapping = mappings.resolve(request.brand(), request.model());
+        } catch (IllegalArgumentException e) {
+            return new Object[] { 78, null };
+        }
         // Se inicia y se revisa creación de deal
         FDIDealCreatePojo dealCreateResponse = this.createDeal();
         if (dealCreateResponse.hasError()) {
@@ -63,12 +86,12 @@ public class FDIQuotationClient {
         }
         // Se actualiza deal para ingresar información más relevante
         String dealToken = dealCreateResponse.getToken();
-        Integer dealUpdateCodeResponse = this.updateDeal(dealToken);
+        Integer dealUpdateCodeResponse = this.updateDeal(dealToken, request);
         if (dealUpdateCodeResponse != null && dealUpdateCodeResponse != -1) {
             return new Object[] { dealUpdateCodeResponse, null };
         }
         // Se crea item/riesgo asegurable en el deal
-        FDIItemCreatePojo itemCreateResponse = this.createItem(dealToken);
+        FDIItemCreatePojo itemCreateResponse = this.createItem(dealToken, mapping, request, quote);
         if (itemCreateResponse.hasError()) {
             return new Object[] { itemCreateResponse.getInternalErrorCode(), null };
         }
@@ -92,7 +115,7 @@ public class FDIQuotationClient {
     @SuppressWarnings("null")
     private FDIDealCreatePojo createDeal() {
         try {
-            RestTemplate restTemplate = new RestTemplate();
+            RestTemplate restTemplate = restTemplate();
             // Agregamos datos de cabecera
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", fdiApiKey);
@@ -120,20 +143,19 @@ public class FDIQuotationClient {
 
     // Endpoint para actualizar datos relevantes del deal
     @SuppressWarnings("null")
-    private Integer updateDeal(String dealToken) {
+    private Integer updateDeal(String dealToken, SearchPlanRequest request) {
         try {
-            RestTemplate restTemplate = new RestTemplate();
+            RestTemplate restTemplate = restTemplate();
             // Agregamos datos de cabecera y construimos url
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", fdiApiKey);
             headers.set("x-api-version", fdiVersion);
+            headers.setContentType(MediaType.APPLICATION_JSON);
             String urlUpdateDeal = fdiBaseUrl + "/deals/" + dealToken;
             // Construcción cuerpo de solicitud
             FDIDealUpRequest requestUpdateDeal = new FDIDealUpRequest(
-                    new FDIDealUpContractorRequest("11111111-1", fdiContractorEmail,
-                            new FDIDealUpAddressRequest("Calle 00", 1111, "15", "13", "13101")),
-                    new FDIDealUpPayerRequest("22222222-2", fdiPayerEmail, 911111111,
-                            new FDIDealUpAddressRequest("Calle 01", 1111, "15", "13", "13101")));
+                    new FDIDealUpContractorRequest(request.purchaserId(), request.purchaserEmail(), null),
+                    new FDIDealUpPayerRequest(request.purchaserId(), request.purchaserEmail(), phone(request), null));
             // Creamos entidad http y realizamos petición
             HttpEntity<FDIDealUpRequest> entity = new HttpEntity<>(requestUpdateDeal, headers);
             ResponseEntity<Void> response = restTemplate.exchange(urlUpdateDeal, HttpMethod.PUT, entity, Void.class);
@@ -151,18 +173,21 @@ public class FDIQuotationClient {
 
     // Crear el item asegurable del deal
     @SuppressWarnings("null")
-    private FDIItemCreatePojo createItem(String dealToken) {
+    private FDIItemCreatePojo createItem(String dealToken, FdiVehicleMapping mapping,
+            SearchPlanRequest request, QuoterModel quote) {
         try {
-            RestTemplate restTemplate = new RestTemplate();
+            RestTemplate restTemplate = restTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", fdiApiKey);
             headers.set("x-api-version", fdiVersion);
+            headers.setContentType(MediaType.APPLICATION_JSON);
             String urlCreateItem = fdiBaseUrl + "/deals/" + dealToken + "/items";
             // Construcción cuerpo de solicitud
             FDIItemCrRequest requestCreateItem = new FDIItemCrRequest(
-                    new FDIItemCrVehicleRequest(132, 2004, 2021, "CXLS79", "132", "2004"),
-                    new FDIDealUpPayerRequest("22222222-2", fdiPayerEmail, 911111111,
-                            new FDIDealUpAddressRequest("Calle 01", 1111, "15", "13", "13101")));
+                    new FDIItemCrVehicleRequest(mapping.fdiModelId(), mapping.fdiVersionId(), mapping.fdiTypeId(),
+                            Integer.valueOf(request.year()), request.ppu().toUpperCase(java.util.Locale.ROOT),
+                            quote.getQuoterCarData().getChassisNum(), quote.getQuoterCarData().getEngineNum()),
+                    new FDIDealUpPayerRequest(request.purchaserId(), request.purchaserEmail(), phone(request), null));
             // Creamos entidad http y realizamos petición
             HttpEntity<FDIItemCrRequest> entity = new HttpEntity<>(requestCreateItem, headers);
             ResponseEntity<FDIItemCreatePojo> response = restTemplate.exchange(urlCreateItem, HttpMethod.POST, entity,
@@ -183,7 +208,7 @@ public class FDIQuotationClient {
     @SuppressWarnings("null")
     private FDIQuoteDealPojo quoteDeal(String dealToken) {
         try {
-            RestTemplate restTemplate = new RestTemplate();
+            RestTemplate restTemplate = restTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", fdiApiKey);
             headers.set("x-api-version", fdiVersion);
@@ -205,6 +230,18 @@ public class FDIQuotationClient {
             LOGGER_MESSAGES
                     .info("Error de excepción al intentar solicitar la cotización final del deal: " + e.getMessage());
             return new FDIQuoteDealPojo(76);
+        }
+    }
+
+    private Integer phone(SearchPlanRequest request) {
+        if (request.purchaserPhone() == null || request.purchaserPhone().isBlank()) {
+            return null;
+        }
+        // No reemplazar telefonos ausentes o incompatibles por numeros ficticios.
+        try {
+            return Integer.valueOf(request.purchaserPhone());
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 

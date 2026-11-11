@@ -399,7 +399,7 @@ public class QuoterServiceImpl implements QuoterService {
                     // Momentaneo antes del cambio de estructura de esta respuesta
                     errorPlanFinder = "0";
                     errorMessage = "Se encontro la aseguradora";
-                    Object[] response = fdiQuotationClient.quoteVehicle();
+                    Object[] response = fdiQuotationClient.quoteVehicle(searchPlan, userQuoter);
                     Integer errorCode = (response[0] != null) ? (Integer) response[0] : null;
                     planList = (response[1] != null) ? (List<QuotationPlanDto>) response[1] : planList;
                     if (errorCode != null && errorCode != -1) {

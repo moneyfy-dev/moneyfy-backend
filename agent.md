@@ -205,3 +205,6 @@ Para operaciones masivas (por ejemplo, el endpoint `finalizeQuote` para uso excl
 ### Política de Evaluación Continua y Actualización del Contexto
 Toda modificación sustancial al modelo de negocios, a los flujos principales (ej: generación masiva de transacciones) o al modelo de la API (ej: uso de adaptadores y tipos precisos como `BigDecimal` para representación financiera) exige la invocación inmediata de la **Skill 3: Context Manager**. 
 El agente debe revisar si las lógicas implementadas o los nuevos descubrimientos hacen que la documentación actual quede obsoleta o escasa. En tal caso, el agente debe actualizar `agent.md` proactivamente y reorganizar o crear archivos nuevos bajo `agent/` para asegurar que todo el contexto de negocio permanezca robusto, actualizado y jerárquico.
+
+## Homologacion local FDI (2026-11-11)
+La cotizacion FDI consulta fdi_vehicle_mappings en MongoDB. Importacion opt-in de 723 filas y adaptador HTTP provisional deshabilitado por defecto; ver docs/fdi-vehicle-homologation.md para pruebas, configuracion y pendientes antes de QA. BCI conserva su flujo publicado.

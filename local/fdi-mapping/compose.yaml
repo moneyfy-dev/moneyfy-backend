@@ -1,0 +1,15 @@
+name: moneyfy-fdi-mapping-test
+services:
+  mongo:
+    image: mongo:7
+    ports:
+      - "127.0.0.1:27019:27017"
+    volumes:
+      - mapping_test_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+volumes:
+  mapping_test_data:

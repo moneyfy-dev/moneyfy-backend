@@ -28,7 +28,9 @@ public enum BusinessCodeEnum {
     FDI_ITEM_CREATION_EXCEPTION(74, "Error de excepción al intentar crear el ítem asegurable en el servicio externo (FDI)"),
     FDI_ITEM_CREATION_UNEXPECTED_RESPONSE(75, "Respuesta no esperada del servicio externo al crear el ítem asegurable"),
     FDI_QUOTE_DEAL_EXCEPTION(76, "Error de excepción al intentar solicitar la cotización final del deal (FDI)"),
-    FDI_QUOTE_DEAL_UNEXPECTED_RESPONSE(77, "Respuesta no esperada del servicio externo al procesar la cotización del deal");
+    FDI_QUOTE_DEAL_UNEXPECTED_RESPONSE(77, "Respuesta no esperada del servicio externo al procesar la cotización del deal"),
+    FDI_MAPPING_UNAVAILABLE(78, "Homologacion FDI ausente, incompleta o ambigua"),
+    FDI_MAPPING_ADAPTER_DISABLED(79, "Adaptador de homologacion FDI deshabilitado; contrato externo pendiente de validar");
 
     private final int errorCode;
     private final String errorDescription;
