@@ -30,7 +30,10 @@ public enum BusinessCodeEnum {
     FDI_QUOTE_DEAL_EXCEPTION(76, "Error de excepción al intentar solicitar la cotización final del deal (FDI)"),
     FDI_QUOTE_DEAL_UNEXPECTED_RESPONSE(77, "Respuesta no esperada del servicio externo al procesar la cotización del deal"),
     FDI_MAPPING_UNAVAILABLE(78, "Homologacion FDI ausente, incompleta o ambigua"),
-    FDI_MAPPING_ADAPTER_DISABLED(79, "Adaptador de homologacion FDI deshabilitado; contrato externo pendiente de validar");
+    FDI_MAPPING_ADAPTER_DISABLED(79, "Adaptador de homologacion FDI deshabilitado"),
+    FDI_QUOTATION_EMPTY_PLANS(80, "FDI no devolvio planes utilizables"),
+    FDI_QUOTATION_RESPONSE_INVALID(81, "No se pudo interpretar la respuesta de tarifas FDI"),
+    FDI_CONTACT_DATA_REQUIRED(82, "FDI requiere comprador propietario, telefono chileno valido y fdiAddress con direccion y codigos de localidad");
 
     private final int errorCode;
     private final String errorDescription;

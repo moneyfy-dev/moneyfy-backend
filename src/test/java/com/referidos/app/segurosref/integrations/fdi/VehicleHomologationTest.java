@@ -27,6 +27,7 @@ import com.referidos.app.segurosref.integrations.bci.clients.BCIAuthClient;
 import com.referidos.app.segurosref.integrations.bci.clients.BCIQuotationClient;
 import com.referidos.app.segurosref.integrations.bci.pojos.BCITokenCreatePojo;
 import com.referidos.app.segurosref.integrations.fdi.clients.FDIQuotationClient;
+import com.referidos.app.segurosref.integrations.fdi.requests.FDIDealUpAddressRequest;
 import com.referidos.app.segurosref.models.*;
 import com.referidos.app.segurosref.repositories.*;
 import com.referidos.app.segurosref.requests.SearchPlanRequest;
@@ -40,6 +41,7 @@ class VehicleHomologationTest {
     private final AtomicReference<String> itemBody = new AtomicReference<>();
     private final AtomicReference<String> bciBody = new AtomicReference<>();
     private final AtomicReference<String> updateBody = new AtomicReference<>();
+    private final AtomicReference<String> quotationQuery = new AtomicReference<>();
     private final FdiVehicleMappingRepository mappings = mock(FdiVehicleMappingRepository.class);
     private FdiVehicleMappingService resolver;
 
@@ -65,6 +67,7 @@ class VehicleHomologationTest {
                 itemBody.set(body);
                 response = "{\"itemId\":1}";
             } else if (path.endsWith("/quotations")) {
+                quotationQuery.set(exchange.getRequestURI().getRawQuery());
                 // Deliberadamente sin tarifas: este test verifica el transporte del request.
                 status = 503;
             } else if (path.equals("/Tarificar")) {
@@ -87,7 +90,11 @@ class VehicleHomologationTest {
 
     private SearchPlanRequest request(String model) {
         return new SearchPlanRequest("", "TEST12", "CHEVROLET", model, "2018", "aseguradora5",
-                "11111111-1", "Test", "Local", "Only", "test@example.invalid", "", "0");
+                "11.111.111-1", "Test", "Local", "Only", "test@example.invalid", "+56911111111", "0", address());
+    }
+
+    private FDIDealUpAddressRequest address() {
+        return new FDIDealUpAddressRequest("Test only", 100, "15", "13", "13101");
     }
 
     private QuoterModel quote() {
@@ -111,14 +118,20 @@ class VehicleHomologationTest {
         assertEquals(76, result[0]); // El servidor local simula la falta de tarifas, no un exito real.
         JsonNode vehicle = json.readTree(itemBody.get()).get("vehicle");
         assertEquals(2058, vehicle.get("modelId").asInt());
-        assertEquals(1, vehicle.get("versionId").asInt());
-        assertEquals(101, vehicle.get("typeId").asInt());
+        assertFalse(vehicle.has("versionId")); // QA rechaza propiedades adicionales.
+        assertFalse(vehicle.has("typeId"));
         assertFalse(vehicle.has("brandId")); // El Excel no define una marca FDI.
         assertEquals(2018, vehicle.get("modelYear").asInt());
         assertEquals("TEST12", vehicle.get("plateNumber").asText());
         assertEquals("CHASSIS-TEST", vehicle.get("chasisNumber").asText());
         assertEquals("ENGINE-TEST", vehicle.get("engineNumber").asText());
         assertEquals("test@example.invalid", json.readTree(updateBody.get()).at("/contractor/email").asText());
+        assertEquals("11111111-1", json.readTree(updateBody.get()).at("/contractor/idNumber").asText());
+        assertEquals("11111111-1", json.readTree(itemBody.get()).at("/policyHolder/idNumber").asText());
+        assertEquals(911111111, json.readTree(updateBody.get()).at("/payer/phone").asInt());
+        assertEquals("13101", json.readTree(updateBody.get()).at("/payer/address/communeCode").asText());
+        assertEquals("15", json.readTree(itemBody.get()).at("/policyHolder/address/countryCode").asText());
+        assertEquals("deductible=-1", quotationQuery.get());
         assertEquals(List.of("POST /deals", "PUT /deals/local-deal", "POST /deals/local-deal/items",
                 "GET /deals/local-deal/items/quotations"), calls);
     }
@@ -134,14 +147,39 @@ class VehicleHomologationTest {
 
     @Test void anotherVehicleTransmitsItsOwnMappingAndYear() throws Exception {
         var request = new SearchPlanRequest("", "TEST13", "ALFA ROMEO", "BRERA", "2020", "aseguradora5",
-                "11111111-1", "Test", "Local", "Only", "test@example.invalid", "", "0");
+                "11.111.111-1", "Test", "Local", "Only", "test@example.invalid", "+56911111111", "0", address());
         client(resolver).quoteVehicle(request, quote());
         JsonNode vehicle = json.readTree(itemBody.get()).get("vehicle");
         assertEquals(2012, vehicle.get("modelId").asInt());
-        assertEquals(1, vehicle.get("versionId").asInt());
-        assertEquals(101, vehicle.get("typeId").asInt());
+        assertFalse(vehicle.has("versionId"));
+        assertFalse(vehicle.has("typeId"));
         assertEquals(2020, vehicle.get("modelYear").asInt());
         assertEquals("TEST13", vehicle.get("plateNumber").asText());
+    }
+
+    @Test void missingContactDataBlocksBeforeCreatingDeal() {
+        var request = new SearchPlanRequest("", "TEST12", "CHEVROLET", "SPARK GT", "2018", "aseguradora5",
+                "11.111.111-1", "Test", "Local", "Only", "test@example.invalid", "", "0");
+        assertEquals(82, client(resolver).quoteVehicle(request, quote())[0]);
+        assertTrue(calls.isEmpty());
+    }
+
+    @Test void invalidAddressAndPhoneDoNotCreateExternalDeals() {
+        var request = new SearchPlanRequest("", "TEST12", "CHEVROLET", "SPARK GT", "2018", "aseguradora5",
+                "11.111.111-1", "Test", "Local", "Only", "test@example.invalid", "+56123", "0", address());
+        assertEquals(82, client(resolver).quoteVehicle(request, quote())[0]);
+        var invalidAddress = new FDIDealUpAddressRequest("Test", 100, "Chile", "13", "Santiago");
+        request = new SearchPlanRequest("", "TEST12", "CHEVROLET", "SPARK GT", "2018", "aseguradora5",
+                "11.111.111-1", "Test", "Local", "Only", "test@example.invalid", "+56911111111", "0", invalidAddress);
+        assertEquals(82, client(resolver).quoteVehicle(request, quote())[0]);
+        assertTrue(calls.isEmpty());
+    }
+
+    @Test void previousJsonWithoutAddressRemainsDeserializableForBci() throws Exception {
+        String body = "{\"brand\":\"CHEVROLET\",\"model\":\"SPARK GT\",\"insurerAlias\":\"aseguradora4\"}";
+        var request = json.readValue(body, SearchPlanRequest.class);
+        assertEquals("aseguradora4", request.insurerAlias());
+        assertNull(request.fdiAddress());
     }
 
     @Test void incompleteAndAmbiguousMappingsFailClosed() throws Exception {

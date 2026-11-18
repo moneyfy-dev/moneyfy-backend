@@ -2,12 +2,10 @@ package com.referidos.app.segurosref.integrations.fdi.requests;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-// Nombres del adaptador local: pendientes de validacion contra el contrato oficial FDI.
-@JsonPropertyOrder(value={"modelId", "versionId", "typeId", "modelYear", "plateNumber", "chasisNumber", "engineNumber"})
+// FDI QA acepta modelId; versionId y typeId se conservan en el catalogo, no en este JSON.
+@JsonPropertyOrder(value={"modelId", "modelYear", "plateNumber", "chasisNumber", "engineNumber"})
 public record FDIItemCrVehicleRequest(
     Integer modelId,
-    Integer versionId,
-    Integer typeId,
     Integer modelYear,
     String plateNumber,
     String chasisNumber,

@@ -20,6 +20,7 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClientResponseException;
 
 import com.referidos.app.segurosref.dtos.quotation.QuotationPlanCoverDto;
 import com.referidos.app.segurosref.dtos.quotation.QuotationPlanDto;
@@ -51,6 +52,9 @@ public class FDIQuotationClient {
 
     @Value("${fdi.homologation.trace-codes:false}")
     private boolean traceCodes;
+
+    @Value("${fdi.qa.quotation-read-timeout-ms:45000}")
+    private int quotationReadTimeoutMs = 45000;
 
     private RestTemplate restTemplate() {
         var factory = new SimpleClientHttpRequestFactory();
@@ -86,6 +90,9 @@ public class FDIQuotationClient {
             }
         } catch (IllegalArgumentException e) {
             return new Object[] { 78, null };
+        }
+        if (!validContact(request)) {
+            return new Object[] { 82, null };
         }
         // Se inicia y se revisa creación de deal
         FDIDealCreatePojo dealCreateResponse = this.createDeal();
@@ -143,8 +150,7 @@ public class FDIQuotationClient {
                     + response.getStatusCode().value());
             return new FDIDealCreatePojo(71);
         } catch (Exception e) {
-            LOGGER_MESSAGES.info(
-                    "Error de excepción al intentar crear el deal en el servicio externo (FDI): " + e.getMessage());
+            logFailure("create-deal", e);
             return new FDIDealCreatePojo(70);
         }
     }
@@ -162,19 +168,19 @@ public class FDIQuotationClient {
             String urlUpdateDeal = fdiBaseUrl + "/deals/" + dealToken;
             // Construcción cuerpo de solicitud
             FDIDealUpRequest requestUpdateDeal = new FDIDealUpRequest(
-                    new FDIDealUpContractorRequest(request.purchaserId(), request.purchaserEmail(), null),
-                    new FDIDealUpPayerRequest(request.purchaserId(), request.purchaserEmail(), phone(request), null));
+                    new FDIDealUpContractorRequest(fdiRut(request.purchaserId()), request.purchaserEmail(), request.fdiAddress()),
+                    new FDIDealUpPayerRequest(fdiRut(request.purchaserId()), request.purchaserEmail(), phone(request), request.fdiAddress()));
             // Creamos entidad http y realizamos petición
             HttpEntity<FDIDealUpRequest> entity = new HttpEntity<>(requestUpdateDeal, headers);
             ResponseEntity<Void> response = restTemplate.exchange(urlUpdateDeal, HttpMethod.PUT, entity, Void.class);
+            if (traceCodes) LOGGER_MESSAGES.info("FDI_DEAL_UPDATED status=" + response.getStatusCode().value());
             if (response.getStatusCode() == HttpStatus.NO_CONTENT) {
                 return -1; // Éxito
             }
             LOGGER_MESSAGES.info("Respuesta inesperada en actualización: " + response.getStatusCode().value());
             return 73;
         } catch (Exception e) {
-            LOGGER_MESSAGES.info(
-                    "Error de excepción en actualización del deal en el servicio externo (FDI): " + e.getMessage());
+            logFailure("update-deal", e);
             return 72;
         }
     }
@@ -192,19 +198,20 @@ public class FDIQuotationClient {
             String urlCreateItem = fdiBaseUrl + "/deals/" + dealToken + "/items";
             // Construcción cuerpo de solicitud
             FDIItemCrRequest requestCreateItem = new FDIItemCrRequest(
-                    new FDIItemCrVehicleRequest(mapping.fdiModelId(), mapping.fdiVersionId(), mapping.fdiTypeId(),
+                    new FDIItemCrVehicleRequest(mapping.fdiModelId(),
                             Integer.valueOf(request.year()), request.ppu().toUpperCase(java.util.Locale.ROOT),
                             quote.getQuoterCarData().getChassisNum(), quote.getQuoterCarData().getEngineNum()),
-                    new FDIDealUpPayerRequest(request.purchaserId(), request.purchaserEmail(), phone(request), null));
+                    new FDIDealUpPayerRequest(fdiRut(request.purchaserId()), request.purchaserEmail(), phone(request), request.fdiAddress()));
             // Creamos entidad http y realizamos petición
             HttpEntity<FDIItemCrRequest> entity = new HttpEntity<>(requestCreateItem, headers);
             if (traceCodes) {
                 LOGGER_MESSAGES.info("FDI_ITEM_REQUEST portal=" + mapping.portalCode()
-                        + " modelId=" + mapping.fdiModelId() + " versionId=" + mapping.fdiVersionId()
-                        + " typeId=" + mapping.fdiTypeId());
+                        + " modelId=" + mapping.fdiModelId());
             }
             ResponseEntity<FDIItemCreatePojo> response = restTemplate.exchange(urlCreateItem, HttpMethod.POST, entity,
                     FDIItemCreatePojo.class);
+            if (traceCodes) LOGGER_MESSAGES.info("FDI_ITEM_RESPONSE portal=" + mapping.portalCode()
+                    + " status=" + response.getStatusCode().value());
             if (response.getStatusCode() == HttpStatus.CREATED) {
                 FDIItemCreatePojo body = response.getBody();
                 body.setInternalErrorCode(-1);
@@ -213,7 +220,7 @@ public class FDIQuotationClient {
             LOGGER_MESSAGES.info("Respuesta inesperada al crear item asegurable: " + response.getStatusCode().value());
             return new FDIItemCreatePojo(75);
         } catch (Exception e) {
-            LOGGER_MESSAGES.info("Error de excepción al crear item asegurable: " + e.getMessage());
+            logFailure("create-item", e);
             return new FDIItemCreatePojo(74);
         }
     }
@@ -221,11 +228,14 @@ public class FDIQuotationClient {
     @SuppressWarnings("null")
     private FDIQuoteDealPojo quoteDeal(String dealToken) {
         try {
-            RestTemplate restTemplate = restTemplate();
+            var factory = new SimpleClientHttpRequestFactory();
+            factory.setConnectTimeout(3000);
+            factory.setReadTimeout(Math.max(1000, Math.min(90000, quotationReadTimeoutMs)));
+            RestTemplate restTemplate = new RestTemplate(factory);
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", fdiApiKey);
             headers.set("x-api-version", fdiVersion);
-            String urlGetQuotations = fdiBaseUrl + "/deals/" + dealToken + "/items/quotations";
+            String urlGetQuotations = fdiBaseUrl + "/deals/" + dealToken + "/items/quotations?deductible=-1";
             // Creamos entidad http y realizamos petición (No hay cuerpo de solicitud)
             HttpEntity<Void> entity = new HttpEntity<>(headers);
             ResponseEntity<FDIQuoteDealPojo> response = restTemplate.exchange(urlGetQuotations, HttpMethod.GET, entity,
@@ -240,28 +250,56 @@ public class FDIQuotationClient {
                     + response.getStatusCode().value());
             return new FDIQuoteDealPojo(77);
         } catch (Exception e) {
-            LOGGER_MESSAGES
-                    .info("Error de excepción al intentar solicitar la cotización final del deal: " + e.getMessage());
+            logFailure("quotations", e);
             return new FDIQuoteDealPojo(76);
         }
+    }
+
+    private void logFailure(String stage, Exception error) {
+        String status = error instanceof RestClientResponseException response
+                ? String.valueOf(response.getStatusCode().value()) : "unavailable";
+        LOGGER_MESSAGES.info("FDI_HTTP_FAILURE stage=" + stage + " status=" + status
+                + " exception=" + error.getClass().getSimpleName());
     }
 
     private Integer phone(SearchPlanRequest request) {
         if (request.purchaserPhone() == null || request.purchaserPhone().isBlank()) {
             return null;
         }
-        // No reemplazar telefonos ausentes o incompatibles por numeros ficticios.
-        try {
-            return Integer.valueOf(request.purchaserPhone());
-        } catch (NumberFormatException e) {
-            return null;
+        String value = request.purchaserPhone().strip();
+        if (value.startsWith("+56")) value = value.substring(3);
+        // FDI pide entero; MoneyFy recibe +569XXXXXXXX. No inventar ni truncar telefonos.
+        return value.matches("9[0-9]{8}") ? Integer.valueOf(value) : null;
+    }
+
+    private String fdiRut(String value) {
+        if (value == null) return "";
+        String normalized = value.replace(".", "").replace(" ", "").toUpperCase(java.util.Locale.ROOT);
+        if (!normalized.contains("-") && normalized.length() > 1) {
+            normalized = normalized.substring(0, normalized.length() - 1) + "-" + normalized.substring(normalized.length() - 1);
         }
+        return normalized;
+    }
+
+    private boolean validContact(SearchPlanRequest request) {
+        var address = request.fdiAddress();
+        return "0".equals(request.ownerRelationOption()) && phone(request) != null
+                && fdiRut(request.purchaserId()).matches("[0-9]{7,8}-[0-9K]")
+                && request.purchaserEmail() != null && !request.purchaserEmail().isBlank()
+                && address != null && address.streetName() != null && !address.streetName().isBlank()
+                && address.building() != null && address.building() > 0
+                && address.countryCode() != null && address.countryCode().matches("[0-9]+")
+                && address.regionCode() != null && address.regionCode().matches("[0-9]+")
+                && address.communeCode() != null && address.communeCode().matches("[0-9]+");
     }
 
     private FDIQuotationDto buildFDIQuotationDto(String dealToken, FDIQuoteDealPojo quoteDealResponse) {
         FDIQuotationDto fdiQuotationDto = new FDIQuotationDto(quoteDealResponse.getInternalErrorCode());
         fdiQuotationDto.setDealToken(dealToken);
         try {
+            if (quoteDealResponse.getItems() == null || quoteDealResponse.getItems().isEmpty()) {
+                return new FDIQuotationDto(80);
+            }
             // Cotizaciones del plan puede tener más de un deducible, si es así, por
             // deducible se crea un nuevo plan
             Set<FDIQuotationPlanDto> plansDto = new HashSet<>();
@@ -322,12 +360,12 @@ public class FDIQuotationClient {
             fdiQuotationDto.setPlans(plansDto);
             if (plansDto.size() <= 0) {
                 LOGGER_MESSAGES.info("No se han encontrado planes al construir el dto de la cotización de FDI");
-                return new FDIQuotationDto(78);
+                return new FDIQuotationDto(80);
             }
             return fdiQuotationDto;
         } catch (Exception e) {
-            LOGGER_MESSAGES.info("Error de excepción al construir el dto de la cotización de FDI: " + e.getMessage());
-            return new FDIQuotationDto(79);
+            logFailure("parse-quotations", e);
+            return new FDIQuotationDto(81);
         }
     }
 

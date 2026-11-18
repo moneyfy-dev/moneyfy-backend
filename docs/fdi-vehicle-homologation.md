@@ -3,22 +3,23 @@
 ## Estado y limites
 
 Implementado en el worktree local `moneyfy-backend-bci-prototype`, rama `eliu`.
-No se modificaron ni publicaron `master`, produccion, Mongo de produccion ni
-credenciales. El prototipo BCI de confirmacion de transaccion se conserva
+La primera version se publico y se cargo la coleccion el 2026-11-18 mediante
+autorizacion expresa del usuario. El prototipo BCI de transaccion se conserva
 localmente, pero no forma parte del commit de homologacion FDI publicado.
 
-**El contrato HTTP FDI sigue pendiente de confirmar.** El Excel acredita los
-valores `ModeloID`, `VersionID`, `TipoID`, pero no los nombres de campos JSON
-ni un `brandId` FDI. El adaptador local envia `modelId`, `versionId`, `typeId`
-como nombres provisionales. No se envia `MarcaID_Portal` como `brandId` FDI.
-Los tests verifican los bytes JSON recibidos por un servidor local, no que
-FDI acepte el contrato ni que haya cotizaciones comerciales disponibles.
+**Correccion comprobada en FDI QA, 2026-11-18:** PUT de negocio con RUT sin
+puntos, telefono entero y direcciones completas devuelve 204. POST de item
+con `modelId=2058` devuelve 201. FDI rechaza `versionId` y `typeId` como
+propiedades adicionales: se conservan en Mongo, pero no se envian al item.
+No se deduce ni envia un `brandId` desde codigos BCI. El GET de tarifas de la
+prueba directa alcanzo FDI y obtuvo 504 (timeout upstream), no tarifas.
+Esto confirma aceptacion del request de negocio/item, no contratacion ni
+correspondencia comercial completa de todos los modelos del Excel.
 
 La integracion queda deshabilitada por defecto mediante
 `fdi.homologation.enabled=false`. Sin habilitarla explicitamente devuelve
-codigo de negocio 79 y no inicia un deal externo. No publicar esta rama ni
-habilitarla en QA real hasta confirmar el esquema y los campos personales
-que FDI exige. No hay fallback al vehiculo fijo anterior.
+codigo de negocio 79 y no inicia un deal externo. La activacion del servidor
+se autoriza para diagnostico contra QA. No hay fallback al vehiculo fijo.
 
 ## Catalogo y origen
 
@@ -49,7 +50,8 @@ No borra registros fuera del archivo ni modifica `brands`.
 
 ## Flujo
 
-`POST /quoter/search/plan` conserva su request y autenticacion actuales.
+`POST /quoter/search/plan` conserva autenticacion. Agrega `fdiAddress`, opcional
+para BCI pero obligatorio para FDI, junto con un telefono valido del comprador.
 
 1. `aseguradora4`: rama BCI original, resuelve los codigos desde `brands`.
 2. `aseguradora5`: recibe `SearchPlanRequest` y el vehiculo de la cotizacion;
@@ -59,12 +61,32 @@ No borra registros fuera del archivo ni modifica `brands`.
 4. Conserva la secuencia POST deal, PUT deal, POST item, GET quotations,
    pero construye el vehiculo con los valores de Mongo y el ano/patente/motor/
    chasis solicitados, no con las constantes 132/2004/2021/CXLS79.
-5. El proveedor puede rechazar datos obligatorios ausentes. Ya no se inventan
-   RUT, correo ni direccion fija para completar el request externo: el correo
-   y RUT proceden del comprador, el telefono ausente/incompatible es null y
-   la direccion es null porque el request actual de cotizacion no la recibe.
-   El mapeo definitivo de asegurado, contratante y pagador requiere el contrato
-   FDI; este cambio no acredita un flujo personal/comercial completo.
+5. Valida contacto antes de crear un deal (error 82 si faltan datos). Normaliza
+   RUT a digitos-DV y telefono +569XXXXXXXX a entero 9XXXXXXXX. La direccion
+   procede de `fdiAddress`; no se inventan datos de contacto en el software.
+   Este contrato simple requiere `ownerRelationOption=0` (comprador propietario)
+   y utiliza sus datos para contratante, pagador y asegurado. Otros casos
+   requieren un contrato ampliado de personas; se rechazan en vez de confundirlas.
+
+Campos adicionales para FDI (fragmento, no request completo):
+
+```json
+{
+  "purchaserPhone": "+56911111111",
+  "ownerRelationOption": "0",
+  "fdiAddress": {
+    "streetName": "Direccion Prueba QA",
+    "building": 100,
+    "countryCode": "15",
+    "regionCode": "13",
+    "communeCode": "13101"
+  }
+}
+```
+
+Los valores anteriores son ejemplos de certificacion, no defaults de la app.
+El frontend debe aportar estos campos para cotizar FDI; sin ellos recibe
+error de negocio 82. BCI sigue aceptando el request anterior sin fdiAddress.
 
 El error de negocio se conserva dentro de `QuotationDto`; HTTP 200 por si
 solo no indica exito. No se cambian generacion de comisiones ni transacciones.
@@ -75,8 +97,6 @@ solo no indica exito. No se cambian generacion de comisiones ni transacciones.
 {
   "vehicle": {
     "modelId": 2058,
-    "versionId": 1,
-    "typeId": 101,
     "modelYear": 2018,
     "plateNumber": "TEST12",
     "chasisNumber": "CHASSIS-TEST",
@@ -107,10 +127,13 @@ no admite una URI externa y no crea usuarios de negocio ni credenciales.
 Los servidores HTTP de test solo enlazan `127.0.0.1` en puertos efimeros.
 
 Verificaciones: importacion doble mantiene 723 documentos, lectura real de
-Mongo, JSON externo con 2058/1/101, otro vehiculo con su propio codigo,
+Mongo con 2058/1/101, JSON externo solo con modelId=2058, otro vehiculo con su propio codigo,
 homologacion ausente/incompleta/ambigua sin llamadas externas, adaptador
 deshabilitado sin llamadas, y BCI sin consultar la homologacion FDI.
 El GET de tarifas se simula con 503 para no presentar tarifas inventadas.
+Tambien se verifica RUT sin puntos, telefono entero, direcciones completas,
+ausencia de versionId/typeId, datos obligatorios ausentes sin llamadas HTTP
+y compatibilidad de deserializacion del request BCI anterior.
 
 Resultado 2026-11-11: `package` con las suites aisladas de CORS, seguridad,
 comisiones, prototipo BCI y homologacion: **70 pruebas correctas, 0 fallos,
@@ -122,7 +145,7 @@ Validacion adicional de publicacion: snapshot limpio con solo los cambios FDI,
 sin el prototipo BCI local: WAR generado y **64 pruebas correctas, 0 fallos,
 0 errores, 0 omitidas**, incluyendo importacion y lectura de Mongo real.
 
-## Preparacion del servidor (no ejecutada por esta tarea)
+## Preparacion del servidor
 
 No hace falta editar `brands`, `users`, `transactions` ni sus identificadores.
 La coleccion nueva se crea al ejecutar el importador sobre la base configurada
@@ -144,8 +167,9 @@ El usuario autoriza activar el adaptador para diagnosticar la integracion FDI
 previamente inoperativa; esto no confirma el contrato JSON externo. Se mantiene
 la advertencia de compatibilidad pendiente y no se emiten propuestas ni pagos.
 Con `FDI_HOMOLOGATION_TRACE_CODES=true`, las trazas `FDI_MAPPING_RESOLVED` y
-`FDI_ITEM_REQUEST` contienen exclusivamente portalCode y codigos de modelo,
-version y tipo: no incluyen patente, RUT, correo, token ni payload completo.
+`FDI_ITEM_REQUEST` contienen exclusivamente codigos: la resolucion muestra
+modelo/version/tipo de Mongo y el request muestra solo el modelId enviado.
+No incluyen patente, RUT, correo, token ni payload completo.
 La primera traza confirma resolucion local; la segunda, preparacion del POST
 del item antes de HTTP. Ninguna por si sola prueba aceptacion del proveedor.
 
@@ -156,3 +180,15 @@ despliegue porque la carga ya se efectuo de forma controlada.
 
 No se incluye ningun cambio al workflow de despliegue. El push a `eliu` no
 integra `master` ni habilita el despliegue configurado solo para esa rama.
+
+## Errores y timeout
+
+- 78: homologacion no utilizable. 79: adaptador deshabilitado.
+- 80: respuesta sin planes. 81: respuesta de tarifas no interpretable.
+- 82: contacto/direccion ausentes, invalidos o comprador no propietario.
+- 72/74/76: fallo al actualizar negocio/crear item/obtener tarifas.
+- GET de tarifas incluye `deductible=-1`, como la coleccion FDI proporcionada.
+  Timeout de lectura configurable `fdi.qa.quotation-read-timeout-ms` (45 s por
+  defecto, limitado a 1-90 s); no hay reintentos automaticos.
+- Las excepciones FDI se registran solo con etapa, HTTP y clase: sin URL con
+  deal token, cuerpo del proveedor, RUT o correo.
