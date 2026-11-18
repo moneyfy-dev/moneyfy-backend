@@ -49,6 +49,9 @@ public class FDIQuotationClient {
     @Value("${fdi.homologation.enabled:false}")
     private boolean homologationEnabled;
 
+    @Value("${fdi.homologation.trace-codes:false}")
+    private boolean traceCodes;
+
     private RestTemplate restTemplate() {
         var factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(3000);
@@ -76,6 +79,11 @@ public class FDIQuotationClient {
         try {
             // Validar antes de crear un deal externo. No usar coincidencias aproximadas.
             mapping = mappings.resolve(request.brand(), request.model());
+            if (traceCodes) {
+                LOGGER_MESSAGES.info("FDI_MAPPING_RESOLVED portal=" + mapping.portalCode()
+                        + " modelId=" + mapping.fdiModelId() + " versionId=" + mapping.fdiVersionId()
+                        + " typeId=" + mapping.fdiTypeId());
+            }
         } catch (IllegalArgumentException e) {
             return new Object[] { 78, null };
         }
@@ -190,6 +198,11 @@ public class FDIQuotationClient {
                     new FDIDealUpPayerRequest(request.purchaserId(), request.purchaserEmail(), phone(request), null));
             // Creamos entidad http y realizamos petición
             HttpEntity<FDIItemCrRequest> entity = new HttpEntity<>(requestCreateItem, headers);
+            if (traceCodes) {
+                LOGGER_MESSAGES.info("FDI_ITEM_REQUEST portal=" + mapping.portalCode()
+                        + " modelId=" + mapping.fdiModelId() + " versionId=" + mapping.fdiVersionId()
+                        + " typeId=" + mapping.fdiTypeId());
+            }
             ResponseEntity<FDIItemCreatePojo> response = restTemplate.exchange(urlCreateItem, HttpMethod.POST, entity,
                     FDIItemCreatePojo.class);
             if (response.getStatusCode() == HttpStatus.CREATED) {

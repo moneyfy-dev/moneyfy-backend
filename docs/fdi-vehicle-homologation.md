@@ -138,5 +138,21 @@ importacion para evitar sobrescribir ajustes posteriores al reiniciar.
 no se debe habilitar en un entorno real sin confirmar el contrato externo.
 Si queda en false, las cotizaciones FDI devuelven codigo de negocio 79.
 
+## Diagnostico autorizado en servidor (2026-11-18)
+
+El usuario autoriza activar el adaptador para diagnosticar la integracion FDI
+previamente inoperativa; esto no confirma el contrato JSON externo. Se mantiene
+la advertencia de compatibilidad pendiente y no se emiten propuestas ni pagos.
+Con `FDI_HOMOLOGATION_TRACE_CODES=true`, las trazas `FDI_MAPPING_RESOLVED` y
+`FDI_ITEM_REQUEST` contienen exclusivamente portalCode y codigos de modelo,
+version y tipo: no incluyen patente, RUT, correo, token ni payload completo.
+La primera traza confirma resolucion local; la segunda, preparacion del POST
+del item antes de HTTP. Ninguna por si sola prueba aceptacion del proveedor.
+
+Antes de activar se respaldaron base, WAR y configuracion; se cargo solo
+`fdi_vehicle_mappings` y se verificaron 723 filas, 614 habilitadas y 109
+deshabilitadas. El importador automatico debe permanecer desactivado en este
+despliegue porque la carga ya se efectuo de forma controlada.
+
 No se incluye ningun cambio al workflow de despliegue. El push a `eliu` no
 integra `master` ni habilita el despliegue configurado solo para esa rama.
